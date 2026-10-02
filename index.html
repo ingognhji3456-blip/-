@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>붕어빵 제국</title>
+<meta name="description" content="골목 노점에서 시작해 붕어빵을 굽고, 돈을 벌고, 상권을 넓혀 제국을 세우는 클릭 게임.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Do+Hyeon&family=Gothic+A1:wght@400;500;700;800&display=swap">
+<style>
+/* 레이아웃: 포장마차 차양 아래 세 칸 — 왼쪽 철판(굽기), 가운데 상권 지도(확장), 오른쪽 장부(구매). 좁으면 탭으로 접는다. */
+:root{
+  color-scheme: dark;
+  --night:#11172a; --night-2:#182036; --panel:#1d2640; --panel-2:#26304f; --line:#323d64;
+  --snow:#eef1f8; --mist:#99a3c4; --dim:#5f6990;
+  --dough:#f2b45a; --crust:#c27428; --bean:#8f2b3b; --tarp:#d8412f; --canvas:#f3ece2;
+  --gold:#ffd66e; --ok:#7ad8a8;
+  --iron:#2a2f3e; --iron-2:#161a25; --steam:rgba(255,255,255,.32); --shadow:rgba(4,6,14,.5);
+  --tile-home:#d8412f; --tile-res:#3a4570; --tile-shop:#9a5a2c; --tile-school:#3e64a6;
+  --tile-station:#23875a; --tile-park:#66753a; --tile-river:#21507a; --tile-river-2:#2d6a9c;
+  --f-display:"Black Han Sans","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Gothic A1","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
+  --f-num:"Do Hyeon","Gothic A1","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --t-xs:12px; --t-sm:13px; --t-md:15px; --t-lg:19px; --t-xl:26px; --t-2xl:40px;
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html,body{min-height:100%}
+body{margin:0; background:var(--night); color:var(--snow); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit}
+h1,h2,h3{text-wrap:balance}
+.defs{position:absolute; width:0; height:0; overflow:hidden}
+#snow{position:fixed; inset:0; width:100%; height:100%; pointer-events:none; z-index:0}
+.app{position:relative; z-index:1}
+
+/* 차양 */
+.awning{position:relative; z-index:3; height:58px; display:flex; justify-content:center; align-items:flex-end; padding-inline:16px;
+  background:repeating-linear-gradient(90deg,var(--tarp) 0 48px,var(--canvas) 48px 96px)}
+.awning::after{content:""; position:absolute; left:0; right:0; top:100%; height:14px;
+  background:
+    radial-gradient(circle at 24px 0,var(--tarp) 0 23px,transparent 24px) 0 0/96px 14px repeat-x,
+    radial-gradient(circle at 72px 0,var(--canvas) 0 23px,transparent 24px) 0 0/96px 14px repeat-x;
+  filter:drop-shadow(0 6px 5px var(--shadow))}
+.sign{position:relative; z-index:1; top:24px; display:flex; align-items:center; gap:12px; background:var(--night-2); border:2px solid var(--dough); border-radius:8px; padding:7px 16px 8px; box-shadow:0 10px 24px var(--shadow)}
+.sign h1{margin:0; font-family:var(--f-display); font-weight:400; font-size:var(--t-xl); line-height:1; color:var(--dough); letter-spacing:.02em; white-space:nowrap}
+.tier{font-size:var(--t-xs); font-weight:800; color:var(--night); background:var(--dough); border-radius:999px; padding:3px 10px; white-space:nowrap}
+
+/* 모바일 금고 바 */
+.topbar{display:none; position:sticky; top:env(safe-area-inset-top,0px); z-index:4; justify-content:space-between; align-items:baseline; gap:12px; padding:10px 16px; background:var(--night-2); border-bottom:1px solid var(--line)}
+.topbar .money{font-size:var(--t-xl)}
+
+/* 판 */
+.game{display:grid; gap:20px; max-width:1380px; margin-inline:auto; padding-inline:16px; padding-block:52px 48px;
+  grid-template-columns:minmax(280px,340px) minmax(0,1fr) minmax(320px,430px); grid-template-areas:"stall map shop"; align-items:start}
+.stall{grid-area:stall; display:flex; flex-direction:column; gap:18px; position:sticky; top:calc(env(safe-area-inset-top,0px) + 16px)}
+.mapcol{grid-area:map; display:flex; flex-direction:column; gap:12px; min-width:0}
+.shopcol{grid-area:shop; display:flex; flex-direction:column; gap:12px; min-width:0}
+
+.eyebrow{font-size:var(--t-xs); font-weight:800; letter-spacing:.12em; color:var(--mist)}
+.muted{color:var(--mist); font-size:var(--t-sm)}
+.money{font-family:var(--f-num); font-size:var(--t-2xl); line-height:1.1; color:var(--snow); font-variant-numeric:tabular-nums; word-break:keep-all}
+.rate{color:var(--mist); font-size:var(--t-sm)}
+.rate b{font-family:var(--f-num); font-weight:400; font-size:var(--t-lg); color:var(--dough)}
+.money-box{display:flex; flex-direction:column; align-items:center; gap:2px; text-align:center}
+
+.griddle{position:relative; width:min(100%,300px); aspect-ratio:1; max-width:100%; margin-inline:auto; border-radius:50%; display:grid; place-items:center;
+  background:radial-gradient(circle at 50% 44%,var(--iron) 0,var(--iron-2) 66%,var(--night) 68%,var(--iron) 71%,var(--iron-2) 100%);
+  box-shadow:0 22px 40px var(--shadow), inset 0 0 0 5px var(--iron-2)}
+.bread{all:unset; position:relative; z-index:1; display:block; width:84%; cursor:pointer; border-radius:42%; touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none;
+  filter:drop-shadow(0 10px 12px var(--shadow)); transition:transform .1s ease}
+.bread svg{display:block; width:100%; height:auto; pointer-events:none}
+.bread:hover{transform:scale(1.03) rotate(-2deg)}
+.bread:focus-visible{outline:3px solid var(--gold); outline-offset:6px}
+.bread.hit{animation:squish .16s ease}
+@keyframes squish{0%{transform:scale(1)}40%{transform:scale(.93,.88)}100%{transform:scale(1)}}
+.steam{position:absolute; top:6%; left:50%; width:60%; height:34%; transform:translateX(-50%); pointer-events:none}
+.steam i{position:absolute; bottom:0; width:16px; height:64px; border-radius:50%; background:radial-gradient(ellipse,var(--steam),transparent 70%); filter:blur(4px); opacity:0; animation:steam 3.4s ease-in infinite}
+.steam i:nth-child(1){left:22%}
+.steam i:nth-child(2){left:47%; animation-delay:1.1s}
+.steam i:nth-child(3){left:72%; animation-delay:2.2s}
+@keyframes steam{0%{transform:translateY(12px) scaleX(1); opacity:0}30%{opacity:.9}100%{transform:translateY(-56px) scaleX(2.2); opacity:0}}
+.hint{position:absolute; bottom:12%; margin:0; font-size:var(--t-xs); font-weight:700; letter-spacing:.1em; color:var(--mist); pointer-events:none}
+
+.heat{display:flex; flex-direction:column; gap:6px}
+.heat-row{display:flex; justify-content:space-between; align-items:baseline}
+.heat-label{font-family:var(--f-num); font-size:var(--t-md); color:var(--dough)}
+.heat-bar{height:10px; border-radius:999px; background:var(--panel); box-shadow:inset 0 0 0 1px var(--line); overflow:hidden}
+.heat-bar i{display:block; height:100%; width:0; border-radius:inherit; background:linear-gradient(90deg,var(--bean),var(--tarp) 55%,var(--gold))}
+
+.quick{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0}
+.quick div{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px; min-width:0}
+.quick dt{font-size:var(--t-xs); color:var(--mist); font-weight:700}
+.quick dd{margin:0; font-family:var(--f-num); font-size:var(--t-lg); line-height:1.25; color:var(--snow); font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
+.buffs{display:flex; flex-wrap:wrap; gap:6px; justify-content:center; min-height:0}
+.buff{font-size:var(--t-sm); font-weight:800; color:var(--night); background:var(--gold); border-radius:999px; padding:4px 12px; font-variant-numeric:tabular-nums}
+
+/* 탭 */
+.tabs{display:flex; gap:4px; padding:4px; background:var(--night-2); border:1px solid var(--line); border-radius:12px; overflow-x:auto}
+.tab{position:relative; flex:1 0 auto; border:0; background:transparent; color:var(--mist); font-weight:800; font-size:var(--t-sm); padding:10px 12px; border-radius:8px; cursor:pointer}
+.tab:hover{color:var(--snow)}
+.tab[aria-selected="true"]{background:var(--panel-2); color:var(--snow)}
+.tab:focus-visible{outline:2px solid var(--gold); outline-offset:-2px}
+.tab .dot{position:absolute; top:6px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--gold); display:none}
+.tab.has .dot{display:block}
+.tab-map{display:none}
+
+.panel{display:flex; flex-direction:column; gap:12px}
+.panel-head{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+.panel-head h2{margin:0; font-family:var(--f-display); font-weight:400; font-size:var(--t-lg); letter-spacing:.02em}
+.bulk{display:flex; background:var(--night-2); border:1px solid var(--line); border-radius:999px; padding:3px}
+.bulk button{border:0; background:transparent; color:var(--mist); font-size:var(--t-xs); font-weight:800; padding:5px 11px; border-radius:999px; cursor:pointer}
+.bulk button[aria-pressed="true"]{background:var(--dough); color:var(--night)}
+.bulk button:focus-visible{outline:2px solid var(--gold)}
+
+/* 구매 행 */
+.list{display:flex; flex-direction:column; gap:8px}
+.row{display:grid; grid-template-columns:46px minmax(0,1fr) auto; gap:12px; align-items:center; width:100%; text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--panel); cursor:pointer; transition:border-color .15s,background-color .15s,transform .08s}
+.row.can{border-color:var(--dough); background:var(--panel-2)}
+.row.can:hover{transform:translateY(-1px)}
+.row:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+.row.locked{cursor:default; border-style:dashed; background:transparent}
+.row.locked .chip{background:var(--panel); color:var(--dim)}
+.chip{width:46px; height:46px; border-radius:10px; display:grid; place-items:center; background:var(--bean); color:var(--dough); font-family:var(--f-display); font-size:15px; line-height:1; box-shadow:inset 0 -3px 0 var(--shadow)}
+.row-main{display:flex; flex-direction:column; gap:1px; min-width:0}
+.row-name{font-weight:800}
+.row-desc{font-size:var(--t-xs); color:var(--mist)}
+.row-fx{font-size:var(--t-xs); color:var(--dough); font-weight:700}
+.row-side{display:flex; flex-direction:column; align-items:flex-end; gap:2px; text-align:right}
+.row-count{font-family:var(--f-num); font-size:26px; line-height:1; color:var(--snow); font-variant-numeric:tabular-nums}
+.row-cost{font-family:var(--f-num); font-size:var(--t-md); color:var(--dough); white-space:nowrap; font-variant-numeric:tabular-nums}
+.row:not(.can) .row-cost{color:var(--mist)}
+.row-qty{font-size:var(--t-xs); color:var(--mist); font-weight:700}
+.shake{animation:shake .28s}
+@keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
+.empty{margin:0; padding:14px; border:1px dashed var(--line); border-radius:12px; color:var(--mist); font-size:var(--t-sm)}
+
+/* 기록 */
+.stats{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0}
+.stats div{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:10px 12px; min-width:0}
+.stats dt{font-size:var(--t-xs); color:var(--mist); font-weight:700}
+.stats dd{margin:0; font-family:var(--f-num); font-size:var(--t-lg); font-variant-numeric:tabular-nums; overflow-wrap:anywhere}
+.prestige{display:flex; flex-direction:column; gap:8px; padding:16px; border-radius:14px; border:1px solid var(--bean); background:var(--night-2)}
+.prestige h3{margin:0; font-family:var(--f-display); font-weight:400; font-size:var(--t-lg); color:var(--dough)}
+.prestige p{margin:0; font-size:var(--t-sm); color:var(--mist); max-width:60ch}
+.prestige-gain{font-family:var(--f-num); font-size:var(--t-xl); color:var(--snow)}
+.btn{align-self:flex-start; border:0; border-radius:10px; padding:10px 16px; font-weight:800; background:var(--dough); color:var(--night); cursor:pointer}
+.btn:disabled{background:var(--panel-2); color:var(--dim); cursor:not-allowed}
+.btn.warn{background:var(--tarp); color:var(--snow)}
+.btn:focus-visible,.btn-ghost:focus-visible{outline:2px solid var(--gold); outline-offset:2px}
+.btn-ghost{align-self:flex-start; border:1px solid var(--line); background:transparent; color:var(--mist); border-radius:10px; padding:8px 14px; font-size:var(--t-sm); font-weight:700; cursor:pointer}
+.btn-ghost.warn{border-color:var(--tarp); color:var(--snow)}
+
+/* 지도 */
+.map-sub{margin:0; font-size:var(--t-sm); color:var(--mist)}
+.map-sub b{color:var(--dough)}
+.map{display:grid; grid-template-columns:repeat(9,minmax(0,1fr)); gap:3px; width:100%; max-width:500px; margin-inline:auto; padding:10px; background:var(--night-2); border:1px solid var(--line); border-radius:14px}
+.tile{--tc:var(--tile-res); position:relative; aspect-ratio:1; display:grid; place-items:center; padding:0; border:0; border-radius:6px; background:var(--tc); color:var(--snow);
+  font-family:var(--f-display); font-size:clamp(11px,2.3vw,17px); line-height:1; cursor:pointer; transition:transform .12s,opacity .2s}
+.tile.fog{opacity:.2; cursor:pointer}
+.tile.buy{opacity:.55; box-shadow:inset 0 0 0 2px var(--snow)}
+.tile.buy.can{opacity:.9; box-shadow:inset 0 0 0 2px var(--gold)}
+.tile.buy:hover{opacity:1; transform:scale(1.06)}
+.tile.sel{outline:2px solid var(--gold); outline-offset:2px; opacity:1; z-index:1}
+.tile:focus-visible{outline:2px solid var(--gold); outline-offset:2px; z-index:1}
+.tile.pop{animation:pop .45s ease}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.18)}100%{transform:scale(1)}}
+.t-home{--tc:var(--tile-home)} .t-res{--tc:var(--tile-res)} .t-shop{--tc:var(--tile-shop)} .t-school{--tc:var(--tile-school)}
+.t-station{--tc:var(--tile-station)} .t-park{--tc:var(--tile-park)}
+.t-river{--tc:var(--tile-river)}
+.tile.t-river{background:repeating-linear-gradient(160deg,var(--tile-river) 0 6px,var(--tile-river-2) 6px 9px)}
+.t-home.owned{box-shadow:inset 0 0 0 2px var(--canvas)}
+
+.tile-info{display:flex; align-items:center; gap:12px; flex-wrap:wrap; min-height:70px; padding:12px 14px; background:var(--panel); border:1px solid var(--line); border-radius:12px}
+.tile-info .chip{width:40px; height:40px; font-size:17px; color:var(--snow); background:var(--tc)}
+.ti-main{display:flex; flex-direction:column; gap:1px; flex:1 1 180px; min-width:0}
+.ti-main b{font-weight:800}
+.ti-main span{font-size:var(--t-sm); color:var(--mist)}
+.legend{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px 12px}
+.legend li{display:flex; align-items:center; gap:8px; font-size:var(--t-xs); color:var(--mist); min-width:0}
+.legend i{flex:none; width:20px; height:20px; border-radius:5px; display:grid; place-items:center; font-style:normal; font-family:var(--f-display); font-size:11px; color:var(--snow); background:var(--tc)}
+.legend b{color:var(--snow); font-weight:700}
+
+/* 효과 */
+.fx{position:fixed; inset:0; pointer-events:none; z-index:15; overflow:hidden}
+.float{position:absolute; font-family:var(--f-num); font-size:22px; color:var(--gold); text-shadow:0 2px 0 var(--shadow); white-space:nowrap; animation:rise .9s ease-out forwards}
+.float.big{font-size:30px}
+@keyframes rise{from{opacity:1; transform:translate(-50%,-50%)}to{opacity:0; transform:translate(-50%,calc(-50% - 72px))}}
+.golden{position:fixed; z-index:16; width:96px; padding:0; border:0; background:none; cursor:pointer;
+  filter:sepia(.3) saturate(1.9) brightness(1.18) drop-shadow(0 0 14px var(--gold)); animation:bob 1.4s ease-in-out infinite; transition:opacity .4s}
+.golden svg{display:block; width:100%; height:auto}
+.golden.fade{opacity:0}
+.golden:focus-visible{outline:3px solid var(--gold); outline-offset:4px}
+@keyframes bob{0%,100%{transform:translateY(0) rotate(-6deg)}50%{transform:translateY(-10px) rotate(6deg)}}
+.toasts{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); z-index:20; display:flex; flex-direction:column; gap:8px; width:min(calc(100vw - 32px),380px); pointer-events:none}
+.toast{padding:10px 14px; border-radius:12px; border:1px solid var(--dough); background:var(--panel-2); box-shadow:0 12px 30px var(--shadow); animation:toast-in .25s ease; transition:opacity .3s,transform .3s}
+.toast b{display:block; color:var(--dough)}
+.toast span{font-size:var(--t-sm); color:var(--mist)}
+.toast.out{opacity:0; transform:translateY(8px)}
+@keyframes toast-in{from{opacity:0; transform:translateY(10px)}}
+
+/* 중간 폭: 지도를 탭으로 */
+@media (max-width:1099px){
+  .game{grid-template-columns:minmax(260px,320px) minmax(0,1fr); grid-template-areas:"stall shop" "stall map"; grid-template-rows:auto 1fr}
+  .tab-map{display:block}
+  .game:not([data-tab="map"]) .mapcol{display:none}
+  .mapcol .panel-head{display:none}
+}
+/* 좁은 폭: 한 줄로 쌓기 */
+@media (max-width:719px){
+  .game{grid-template-columns:minmax(0,1fr); grid-template-areas:"stall" "shop" "map"; grid-template-rows:auto; padding-block:44px 40px; gap:16px}
+  .stall{position:static; gap:12px}
+  .stall .money-box{display:none}
+  .topbar{display:flex}
+  .griddle{width:min(72vw,240px)}
+  .awning{height:50px}
+  .sign{top:20px; padding:6px 12px 7px}
+  .sign h1{font-size:22px}
+  .row{grid-template-columns:42px minmax(0,1fr) auto; gap:10px; padding:9px 10px}
+  .chip{width:42px; height:42px; font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
+  .steam{display:none}
+  .float{animation:none; opacity:.9}
+}
+</style>
+</head>
+<body>
+
+<svg class="defs" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="g-dough" cx="42%" cy="38%" r="72%">
+      <stop offset="0" stop-color="#f8d488"/>
+      <stop offset=".5" stop-color="#eba64a"/>
+      <stop offset="1" stop-color="#b5661f"/>
+    </radialGradient>
+    <clipPath id="c-body">
+      <path d="M18 82C18 44 62 22 112 24C150 26 172 42 188 60L216 34C222 29 232 32 230 41L220 80L230 119C232 128 222 131 216 126L188 100C172 118 150 134 112 136C62 138 18 120 18 82Z"/>
+    </clipPath>
+    <symbol id="bung" viewBox="0 0 240 160">
+      <path d="M12 82C12 38 60 15 112 17C154 19 176 36 190 52L214 27C224 19 240 26 237 41L228 80L237 119C240 134 224 141 214 133L190 108C176 124 154 141 112 143C60 145 12 126 12 82Z" fill="#9b5418" opacity=".55"/>
+      <path d="M18 82C18 44 62 22 112 24C150 26 172 42 188 60L216 34C222 29 232 32 230 41L220 80L230 119C232 128 222 131 216 126L188 100C172 118 150 134 112 136C62 138 18 120 18 82Z" fill="url(#g-dough)" stroke="#8a4512" stroke-width="3" stroke-linejoin="round"/>
+      <g clip-path="url(#c-body)" fill="none" stroke="#9a5216" stroke-opacity=".55" stroke-width="2.2" stroke-linecap="round">
+        <path d="M96 34a8 8 0 0 0 0 14M96 48a8 8 0 0 0 0 14M96 62a8 8 0 0 0 0 14M96 76a8 8 0 0 0 0 14M96 90a8 8 0 0 0 0 14M96 104a8 8 0 0 0 0 14M96 118a8 8 0 0 0 0 14M111 41a8 8 0 0 0 0 14M111 55a8 8 0 0 0 0 14M111 69a8 8 0 0 0 0 14M111 83a8 8 0 0 0 0 14M111 97a8 8 0 0 0 0 14M111 111a8 8 0 0 0 0 14M111 125a8 8 0 0 0 0 14M126 34a8 8 0 0 0 0 14M126 48a8 8 0 0 0 0 14M126 62a8 8 0 0 0 0 14M126 76a8 8 0 0 0 0 14M126 90a8 8 0 0 0 0 14M126 104a8 8 0 0 0 0 14M126 118a8 8 0 0 0 0 14M141 41a8 8 0 0 0 0 14M141 55a8 8 0 0 0 0 14M141 69a8 8 0 0 0 0 14M141 83a8 8 0 0 0 0 14M141 97a8 8 0 0 0 0 14M141 111a8 8 0 0 0 0 14M141 125a8 8 0 0 0 0 14M156 34a8 8 0 0 0 0 14M156 48a8 8 0 0 0 0 14M156 62a8 8 0 0 0 0 14M156 76a8 8 0 0 0 0 14M156 90a8 8 0 0 0 0 14M156 104a8 8 0 0 0 0 14M156 118a8 8 0 0 0 0 14M171 41a8 8 0 0 0 0 14M171 55a8 8 0 0 0 0 14M171 69a8 8 0 0 0 0 14M171 83a8 8 0 0 0 0 14M171 97a8 8 0 0 0 0 14M171 111a8 8 0 0 0 0 14M171 125a8 8 0 0 0 0 14M186 34a8 8 0 0 0 0 14M186 48a8 8 0 0 0 0 14M186 62a8 8 0 0 0 0 14M186 76a8 8 0 0 0 0 14M186 90a8 8 0 0 0 0 14M186 104a8 8 0 0 0 0 14M186 118a8 8 0 0 0 0 14"/>
+      </g>
+      <g fill="#8a4512" opacity=".2">
+        <ellipse cx="60" cy="104" rx="14" ry="6" transform="rotate(-14 60 104)"/>
+        <ellipse cx="150" cy="118" rx="12" ry="4"/>
+        <ellipse cx="132" cy="38" rx="10" ry="4" transform="rotate(8 132 38)"/>
+      </g>
+      <path d="M76 38C90 58 90 106 76 126" fill="none" stroke="#8a4512" stroke-width="3" stroke-linecap="round" opacity=".75"/>
+      <path d="M24 92q8 5 15 0" fill="none" stroke="#6b3410" stroke-width="2.6" stroke-linecap="round"/>
+      <path d="M200 64l18 16-18 16M206 50l20 30-20 30" fill="none" stroke="#8a4512" stroke-width="2" stroke-linecap="round" opacity=".45"/>
+      <circle cx="50" cy="68" r="7.5" fill="#4a230c"/>
+      <circle cx="47.5" cy="65.5" r="2.4" fill="#fff" opacity=".85"/>
+      <ellipse cx="86" cy="42" rx="30" ry="7" fill="#fff" opacity=".16" transform="rotate(-10 86 42)"/>
+    </symbol>
+  </defs>
+</svg>
+<canvas id="snow" aria-hidden="true"></canvas>
+
+<div class="app">
+  <header class="awning">
+    <div class="sign"><h1>붕어빵 제국</h1><span class="tier" id="tier">골목 노점</span></div>
+  </header>
+
+  <div class="topbar">
+    <span class="money" id="moneyTop">0원</span>
+    <span class="rate">초당 <b id="rateTop">0원</b></span>
+  </div>
+
+  <main class="game" id="game" data-tab="shop">
+    <section class="stall" aria-label="붕어빵 굽는 철판">
+      <div class="money-box">
+        <span class="eyebrow">금고</span>
+        <span class="money" id="money" aria-live="off">0원</span>
+        <span class="rate">초당 <b id="rate">0원</b></span>
+      </div>
+      <div class="griddle">
+        <div class="steam" aria-hidden="true"><i></i><i></i><i></i></div>
+        <button class="bread" id="bread" type="button" aria-label="붕어빵 굽기">
+          <svg viewBox="0 0 240 160" aria-hidden="true"><use href="#bung"/></svg>
+        </button>
+        <p class="hint" aria-hidden="true">눌러서 굽기</p>
+      </div>
+      <div class="heat">
+        <div class="heat-row"><span class="eyebrow">화력</span><span class="heat-label" id="heatLabel">꺼짐 ×1.00</span></div>
+        <div class="heat-bar" aria-hidden="true"><i id="heatFill"></i></div>
+      </div>
+      <dl class="quick">
+        <div><dt>클릭당</dt><dd id="perClick">500원</dd></div>
+        <div><dt>직접 구운 붕어빵</dt><dd id="clicks">0개</dd></div>
+      </dl>
+      <div class="buffs" id="buffs"></div>
+    </section>
+
+    <section class="shopcol" aria-label="장부">
+      <div class="tabs" role="tablist" aria-label="메뉴">
+        <button class="tab tab-map" type="button" role="tab" id="tab-map" data-tab="map" aria-selected="false">확장<i class="dot"></i></button>
+        <button class="tab" type="button" role="tab" id="tab-shop" data-tab="shop" aria-selected="true">설비·직원<i class="dot"></i></button>
+        <button class="tab" type="button" role="tab" id="tab-upgrades" data-tab="upgrades" aria-selected="false">업그레이드<i class="dot"></i></button>
+        <button class="tab" type="button" role="tab" id="tab-stats" data-tab="stats" aria-selected="false">기록<i class="dot"></i></button>
+      </div>
+
+      <div class="panel" id="panel-shop" role="tabpanel" aria-labelledby="tab-shop">
+        <div class="panel-head">
+          <h2>설비·직원</h2>
+          <div class="bulk" role="group" aria-label="구매 수량">
+            <button type="button" id="bulk-1" data-bulk="1" aria-pressed="true">1개</button>
+            <button type="button" id="bulk-10" data-bulk="10" aria-pressed="false">10개</button>
+            <button type="button" id="bulk-max" data-bulk="max" aria-pressed="false">최대</button>
+          </div>
+        </div>
+        <div class="list" id="prodList"></div>
+      </div>
+
+      <div class="panel" id="panel-upgrades" role="tabpanel" aria-labelledby="tab-upgrades" hidden>
+        <div class="panel-head"><h2>업그레이드</h2><span class="muted" id="upCount">0개 구매</span></div>
+        <div class="list" id="upList"></div>
+        <p class="empty" id="upEmpty" hidden>지금 살 수 있는 업그레이드가 없어요. 더 굽고, 설비를 늘리고, 상권을 넓히면 새로 나타나요.</p>
+      </div>
+
+      <div class="panel" id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
+        <div class="panel-head"><h2>기록</h2></div>
+        <dl class="stats" id="stats"></dl>
+        <div class="prestige">
+          <h3>가게 물려주기</h3>
+          <p>지금까지 번 돈으로 비법 레시피를 남기고, 새 동네에서 리어카 한 대로 다시 시작해요. 레시피 하나마다 모든 수입이 영구히 4% 늘어요.</p>
+          <span class="prestige-gain" id="prestigeGain">레시피 +0개</span>
+          <p id="prestigeNext"></p>
+          <button class="btn" type="button" id="prestigeBtn" disabled>가게 물려주기</button>
+        </div>
+        <button class="btn-ghost" type="button" id="wipeBtn">저장 기록 지우기</button>
+      </div>
+    </section>
+
+    <section class="mapcol" aria-label="상권 지도">
+      <div class="panel-head"><h2>상권 확장</h2><span class="muted" id="mapCount">1 / 81칸</span></div>
+      <p class="map-sub" id="mapSub"></p>
+      <div class="map" id="map"></div>
+      <div class="tile-info" id="tileInfo"></div>
+      <ul class="legend" id="legend"></ul>
+    </section>
+  </main>
+</div>
+
+<div class="fx" id="fx" aria-hidden="true"></div>
+<button class="golden" id="golden" type="button" hidden aria-label="황금 붕어빵 잡기"><svg viewBox="0 0 240 160" aria-hidden="true"><use href="#bung"/></svg></button>
+<div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+<script id="core">
+"use strict";
+/* ===== 게임 규칙 (DOM 없음) ===== */
+const BASE_CLICK = 500;          // 붕어빵 한 마리 값
+const GROWTH = 1.15;             // 같은 설비를 살 때마다 값이 15%씩 오름
+const HEAT_GAIN = 6;             // 클릭 한 번에 오르는 화력
+const HEAT_DECAY = 0.55;         // 초당 식는 비율
+const RECIPE_BONUS = 0.04;       // 레시피 하나당 모든 수입 +4%
+const RECIPE_UNIT = 1e11;
+const TILE_BASE = 60000, TILE_GROWTH = 1.42, TILE_BONUS = 0.02;
+const MAP_W = 9, MAP_N = 81, HOME = 40;
+
+const PRODUCERS = [
+  { id:'mold', sign:'틀', name:'붕어빵 틀', desc:'틀이 하나 늘면 한 번에 더 구워요.', cost:7500, rate:100, tiles:1,
+    ups:[['코팅 틀','반죽이 눌어붙지 않아 회전이 빨라요.'],['6구 회전 틀','손잡이 하나로 여섯 마리를 한꺼번에.'],['자동 뒤집개','타이머가 알아서 뒤집어요.']] },
+  { id:'alba', sign:'알바', name:'알바생', desc:'반죽 붓고, 팥 넣고, 뒤집고, 봉투에 담고.', cost:60000, rate:500, tiles:1,
+    ups:[['알바 교육 매뉴얼','팥은 꼬리까지 꽉 채운다.'],['시급 인상','표정이 밝아지니 손님도 늘어요.'],['베테랑 점장','눈 감고도 뒤집는 경력 10년 차.']] },
+  { id:'truck', sign:'트럭', name:'푸드트럭', desc:'야구장, 축제, 퇴근길 지하철역 앞 어디든.', cost:7e5, rate:3000, tiles:2,
+    ups:[['트럭 랩핑 광고','달리는 붕어빵 간판.'],['야시장 고정 자리','매주 같은 자리에 줄이 생겨요.'],['트럭 군단','열 대가 줄지어 출동해요.']] },
+  { id:'store', sign:'매장', name:'동네 매장', desc:'겨울에만 열던 노점이 사계절 가게로.', cost:9e6, rate:18000, tiles:4,
+    ups:[['키오스크 도입','주문 줄이 절반으로 줄어요.'],['포장 전용 창구','한 봉지 다섯 마리, 바로 들고 가세요.'],['24시간 영업','새벽 택시 기사님들의 단골집.']] },
+  { id:'kitchen', sign:'주방', name:'센트럴 키친', desc:'반죽과 팥소를 한곳에서 대량으로 만들어요.', cost:1.2e8, rate:1e5, tiles:9,
+    ups:[['국산 팥 계약 재배','팥 맛이 달라졌다는 리뷰가 쏟아져요.'],['반죽 숙성실','하룻밤 숙성으로 더 바삭하게.'],['스마트 팩토리','로봇 팔이 초당 열 마리를 뒤집어요.']] },
+  { id:'hq', sign:'본사', name:'프랜차이즈 본사', desc:'가맹점 모집 중. 비법 반죽은 본사만 알아요.', cost:1.8e9, rate:6e5, tiles:16,
+    ups:[['가맹점 교육원','어느 지점에서 먹어도 같은 맛.'],['브랜드 리뉴얼','봉투 디자인 하나로 매출이 뛰어요.'],['코스피 상장','붕어빵 주식, 오늘도 상한가.']] },
+  { id:'frozen', sign:'냉동', name:'냉동 붕어빵 공장', desc:'에어프라이어 5분이면 갓 구운 맛.', cost:3e10, rate:3.6e6, tiles:25,
+    ups:[['급속 냉동 라인','바삭함을 그대로 얼려요.'],['편의점 납품','전국 편의점 냉동고에 입점.'],['대형마트 1+1','장바구니마다 한 봉지씩.']] },
+  { id:'abroad', sign:'해외', name:'해외 지사', desc:'BUNGEOPPANG, 이제 세계 어디서나 통해요.', cost:5e11, rate:2.2e7, tiles:36,
+    ups:[['현지화 메뉴','초코, 치즈, 말차 붕어빵.'],['K-간식 박람회','부스마다 붕어빵 냄새.'],['글로벌 물류망','어느 대륙이든 이틀 배송.']] },
+  { id:'park', sign:'테마', name:'붕어빵 테마파크', desc:'붕어빵 모양 관람차가 이곳의 명물.', cost:9e12, rate:1.4e8, tiles:49,
+    ups:[['붕어빵 퍼레이드','팥소 탈 인형이 손을 흔들어요.'],['야간 개장','불꽃놀이 뒤엔 따끈한 한 봉지.'],['붕어빵 호텔','베개도 붕어빵 모양.']] },
+  { id:'orbit', sign:'우주', name:'궤도 붕어빵 정거장', desc:'무중력이라 뒤집을 필요가 없어요.', cost:1.6e14, rate:9e8, tiles:64,
+    ups:[['태양열 화구','연료비가 들지 않아요.'],['달 기지 분점','지구가 보이는 창가 자리.'],['은하 배송','광속으로 따끈하게 도착.']] },
+];
+const PROD_TIERS = [{ at:10, mul:12 }, { at:25, mul:120 }, { at:50, mul:2500 }];
+
+const TILES = {
+  home:    { glyph:'본', name:'본점',   note:'처음 리어카를 세운 골목' },
+  res:     { glyph:'주', name:'주택가', note:'자동 수입 +3%', auto:0.03 },
+  shop:    { glyph:'상', name:'상가',   note:'모든 수입 +5%', all:0.05 },
+  school:  { glyph:'학', name:'학교 앞', note:'클릭 수입 +25%', click:0.25 },
+  station: { glyph:'역', name:'역세권', note:'모든 수입 +12% · 땅값 1.5배', all:0.12, price:1.5 },
+  park:    { glyph:'공', name:'공원',   note:'황금 붕어빵이 8% 더 자주', gold:0.08 },
+  river:   { glyph:'강', name:'한강변', note:'모든 수입 +8% · 땅값 2배', all:0.08, price:2 },
+};
+
+const TIERS = [[1,'골목 노점'],[4,'동네 맛집'],[9,'구 대표 맛집'],[16,'서울 3대 붕어빵'],[25,'전국 체인'],[36,'국민 간식'],[49,'아시아 진출'],[64,'글로벌 브랜드'],[81,'붕어빵 제국']];
+
+const UPGRADES = [
+  { id:'c1', sign:'손', name:'무쇠 틀', flavor:'묵직한 무쇠라 열이 고르게 퍼져요.', fx:'클릭 수입 ×2', cost:2500, eff:{ click:2 }, when:() => true },
+  { id:'c2', sign:'손', name:'팥 듬뿍', flavor:'꼬리 끝까지 팥이 꽉.', fx:'클릭 수입 ×2', cost:4e4, eff:{ click:2 }, when:s => s.clicks >= 40 },
+  { id:'h1', sign:'불', name:'가스 화구 교체', flavor:'불꽃이 고르게, 오래 가요.', fx:'화력이 40% 천천히 식어요', cost:1.2e5, eff:{ heatDecay:0.6 }, when:s => s.clicks >= 120 },
+  { id:'c3', sign:'손', name:'슈크림 반반', flavor:'팥파와 슈크림파가 모두 줄을 서요.', fx:'클릭마다 초당 수입의 2% 추가', cost:9e5, eff:{ clickPct:0.02 }, when:s => s.clicks >= 200 },
+  { id:'l1', sign:'복', name:'단골 장부', flavor:'황금 붕어빵 손님을 기억해 둬요.', fx:'황금 붕어빵 효과 2배 오래', cost:2e6, eff:{ goldDur:2 }, when:s => s.golden >= 3 },
+  { id:'g1', sign:'홍보', name:'배달 앱 입점', flavor:'별점 4.9, 리뷰 이벤트 진행 중.', fx:'자동 수입 ×1.25', cost:4e6, eff:{ auto:1.25 }, when:s => s.tiles.length >= 4 },
+  { id:'c4', sign:'손', name:'피자 붕어빵', flavor:'치즈가 쭉 늘어나요.', fx:'클릭 수입 ×3', cost:3e7, eff:{ click:3 }, when:s => s.clicks >= 500 },
+  { id:'h2', sign:'불', name:'숯불 화로', flavor:'겉은 바삭, 속은 촉촉.', fx:'최고 화력 배율 ×2 → ×3', cost:8e7, eff:{ heatMax:3 }, when:s => s.clicks >= 800 },
+  { id:'g2', sign:'홍보', name:'SNS 맛집 등극', flavor:'#붕어빵맛집 게시물 10만 개 돌파.', fx:'자동 수입 ×1.5', cost:4e8, eff:{ auto:1.5 }, when:s => s.tiles.length >= 9 },
+  { id:'c5', sign:'손', name:'미니 붕어빵 한 봉지', flavor:'한입 크기라 멈출 수가 없어요.', fx:'클릭마다 초당 수입의 3% 추가', cost:2e9, eff:{ clickPct:0.03 }, when:s => s.clicks >= 1200 },
+  { id:'l2', sign:'복', name:'복주머니', flavor:'가게 문 위에 달아 둔 빨간 주머니.', fx:'황금 붕어빵이 25% 더 자주', cost:5e9, eff:{ goldFreq:0.75 }, when:s => s.golden >= 10 },
+  { id:'g3', sign:'홍보', name:'겨울 한정 메뉴', flavor:'첫눈 오는 날엔 붕어빵.', fx:'모든 수입 ×2', cost:5e10, eff:{ all:2 }, when:s => s.tiles.length >= 16 },
+  { id:'c6', sign:'손', name:'크로와상 붕어빵', flavor:'겹겹이 바삭한 버터 반죽.', fx:'클릭 수입 ×3', cost:2e11, eff:{ click:3 }, when:s => s.clicks >= 2500 },
+  { id:'g4', sign:'홍보', name:'TV 맛집 방송', flavor:'방송 다음 날 새벽부터 줄이 섰어요.', fx:'모든 수입 ×2', cost:6e12, eff:{ all:2 }, when:s => s.tiles.length >= 25 },
+  { id:'c7', sign:'손', name:'황금 비율 반죽', flavor:'밀가루와 찹쌀의 비밀 배합.', fx:'클릭마다 초당 수입의 5% 추가', cost:3e13, eff:{ clickPct:0.05 }, when:s => s.clicks >= 5000 },
+  { id:'g5', sign:'홍보', name:'국민 간식 지정', flavor:'겨울 공식 간식으로 뽑혔어요.', fx:'모든 수입 ×2', cost:8e14, eff:{ all:2 }, when:s => s.tiles.length >= 36 },
+  { id:'g6', sign:'홍보', name:'길거리 음식 미쉐린', flavor:'노점 출신 최초의 별.', fx:'모든 수입 ×3', cost:1.5e17, eff:{ all:3 }, when:s => s.tiles.length >= 49 },
+  { id:'g7', sign:'홍보', name:'붕어빵의 날 제정', flavor:'매년 첫눈 오는 날은 공휴일.', fx:'모든 수입 ×3', cost:4e19, eff:{ all:3 }, when:s => s.tiles.length >= 64 },
+];
+PRODUCERS.forEach(p => p.ups.forEach(([name, flavor], k) => UPGRADES.push({
+  id:p.id + (k + 1), sign:p.sign, name, flavor, fx:p.name + ' 수입 ×2', cost:p.cost * PROD_TIERS[k].mul,
+  eff:{ prod:p.id }, when:s => (s.owned[p.id] || 0) >= PROD_TIERS[k].at,
+})));
+const UP_BY_ID = Object.fromEntries(UPGRADES.map(u => [u.id, u]));
+
+function rng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+// 9×9 상권 지도. 한강이 남쪽이나 북쪽을 가로지르고, 역·학교·공원·상가가 흩어져 있다.
+function genMap(seed) {
+  const r = rng(seed);
+  const m = new Array(MAP_N).fill('res');
+  const south = r() < 0.5, lo = south ? 6 : 1, hi = lo + 1;
+  let row = lo + Math.floor(r() * 2);
+  for (let x = 0; x < MAP_W; x++) {
+    m[row * MAP_W + x] = 'river';
+    if (x < MAP_W - 1 && r() < 0.45) {
+      const nr = Math.min(hi, Math.max(lo, row + (r() < 0.5 ? -1 : 1)));
+      if (nr !== row) { m[nr * MAP_W + x] = 'river'; row = nr; }
+    }
+  }
+  const place = (type, count, minDist) => {
+    for (let tries = 0; count > 0 && tries < 2000; tries++) {
+      const i = Math.floor(r() * MAP_N), x = i % MAP_W, y = (i / MAP_W) | 0;
+      if (m[i] !== 'res' || Math.abs(x - 4) + Math.abs(y - 4) < minDist) continue;
+      m[i] = type; count--;
+    }
+  };
+  place('station', 5, 2); place('school', 6, 1); place('park', 6, 2); place('shop', 18, 1);
+  m[HOME] = 'home';
+  return m;
+}
+
+function neighbors(i) {
+  const x = i % MAP_W, y = (i / MAP_W) | 0, out = [];
+  if (x > 0) out.push(i - 1);
+  if (x < MAP_W - 1) out.push(i + 1);
+  if (y > 0) out.push(i - MAP_W);
+  if (y < MAP_W - 1) out.push(i + MAP_W);
+  return out;
+}
+const canBuyTile = (s, i) => !s.tiles.includes(i) && neighbors(i).some(n => s.tiles.includes(n));
+const tileBaseCost = s => Math.round(TILE_BASE * Math.pow(TILE_GROWTH, s.tiles.length - 1));
+const tileCost = (s, map, i) => Math.round(tileBaseCost(s) * (TILES[map[i]].price || 1));
+
+const bulkCost = (base, n, k) => base * Math.pow(GROWTH, n) * (Math.pow(GROWTH, k) - 1) / (GROWTH - 1);
+function maxAffordable(base, n, money) {
+  let k = Math.floor(Math.log(money * (GROWTH - 1) / (base * Math.pow(GROWTH, n)) + 1) / Math.log(GROWTH));
+  k = Math.max(0, k);
+  while (k > 0 && Math.ceil(bulkCost(base, n, k)) > money) k--;
+  return k;
+}
+
+function tierOf(n) { let t = TIERS[0][1]; for (const [at, name] of TIERS) if (n >= at) t = name; return t; }
+const recipesFor = lifetime => Math.floor(Math.cbrt(lifetime / RECIPE_UNIT));
+
+function derive(s, map) {
+  let click = 1, clickPct = 0, auto = 1, all = 1, heatDecay = 1, heatMax = 2, goldDur = 1, goldFreq = 1;
+  const pm = {};
+  for (const id of s.ups) {
+    const e = UP_BY_ID[id] && UP_BY_ID[id].eff;
+    if (!e) continue;
+    if (e.click) click *= e.click;
+    if (e.clickPct) clickPct += e.clickPct;
+    if (e.auto) auto *= e.auto;
+    if (e.all) all *= e.all;
+    if (e.heatDecay) heatDecay *= e.heatDecay;
+    if (e.heatMax) heatMax = Math.max(heatMax, e.heatMax);
+    if (e.goldDur) goldDur *= e.goldDur;
+    if (e.goldFreq) goldFreq *= e.goldFreq;
+    if (e.prod) pm[e.prod] = (pm[e.prod] || 1) * 2;
+  }
+  let tAuto = 0, tAll = TILE_BONUS * s.tiles.length, tClick = 0, tGold = 0;
+  for (const i of s.tiles) {
+    const t = TILES[map[i]];
+    tAuto += t.auto || 0; tAll += t.all || 0; tClick += t.click || 0; tGold += t.gold || 0;
+  }
+  const allMul = all * (1 + tAll) * (1 + RECIPE_BONUS * s.recipes);
+  const autoMul = auto * (1 + tAuto);
+  const prodRate = {};
+  let perSec = 0;
+  for (const p of PRODUCERS) {
+    prodRate[p.id] = p.rate * (pm[p.id] || 1) * autoMul * allMul;
+    perSec += prodRate[p.id] * (s.owned[p.id] || 0);
+  }
+  return {
+    perSec, prodRate, clickPct, heatMax, goldDur, allMul, tAll, tAuto, tClick,
+    clickBase: BASE_CLICK * click * (1 + tClick) * allMul,
+    heatDecay: HEAT_DECAY * heatDecay,
+    goldInterval: goldFreq * Math.max(0.5, 1 - tGold),
+  };
+}
+
+const heatMul = (d, heat) => 1 + (d.heatMax - 1) * heat / 100;
+const clickValue = (d, heat, frenzy) => (d.clickBase + d.clickPct * d.perSec) * heatMul(d, heat) * (frenzy ? 10 : 1);
+
+const KUNITS = [[1e48,'극'],[1e44,'재'],[1e40,'정'],[1e36,'간'],[1e32,'구'],[1e28,'양'],[1e24,'자'],[1e20,'해'],[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 0) return '-' + fmt(-n);
+  if (n < 1e4) return Math.floor(n).toLocaleString('ko-KR');
+  if (n >= 1e52) return n.toExponential(2);
+  for (const [u, name] of KUNITS) {
+    if (n >= u) {
+      const v = n / u;
+      return (v >= 1000 ? Math.floor(v).toLocaleString('ko-KR') : v >= 100 ? v.toFixed(1) : v.toFixed(2)) + name;
+    }
+  }
+}
+const won = n => fmt(n) + '원';
+// 받침 유무에 맞춰 을/를 고르기
+function josa(word, withFinal, without) {
+  const c = word.charCodeAt(word.length - 1) - 0xAC00;
+  return word + (c >= 0 && c < 11172 && c % 28 ? withFinal : without);
+}
+function fmtTime(sec) {
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  if (h) return h + '시간 ' + m + '분';
+  if (m) return m + '분 ' + s + '초';
+  return s + '초';
+}
+</script>
+
+<script>
+"use strict";
+/* ===== 화면과 조작 ===== */
+(() => {
+const SAVE_KEY = 'bungeo-empire-v1';
+const $ = sel => document.querySelector(sel);
+const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const wideMQ = matchMedia('(min-width: 1100px)');
+
+let S, D, MAP;
+let tileEls = [], prodRows = {}, upRows = {}, upKey = '', shopKey = '';
+let selTile = -1, goldenIn = 35, goldenLeft = 0, lastFrame = performance.now(), uiAcc = 1, saveAcc = 0, lastTier = '';
+let confirmPrestige = 0, confirmWipe = 0;
+
+const els = {
+  money: $('#money'), rate: $('#rate'), moneyTop: $('#moneyTop'), rateTop: $('#rateTop'),
+  tier: $('#tier'), bread: $('#bread'), heatFill: $('#heatFill'), heatLabel: $('#heatLabel'),
+  perClick: $('#perClick'), clicks: $('#clicks'), buffs: $('#buffs'), game: $('#game'),
+  prodList: $('#prodList'), upList: $('#upList'), upEmpty: $('#upEmpty'), upCount: $('#upCount'),
+  stats: $('#stats'), prestigeGain: $('#prestigeGain'), prestigeNext: $('#prestigeNext'), prestigeBtn: $('#prestigeBtn'), wipeBtn: $('#wipeBtn'),
+  map: $('#map'), mapCount: $('#mapCount'), mapSub: $('#mapSub'), tileInfo: $('#tileInfo'), legend: $('#legend'),
+  fx: $('#fx'), golden: $('#golden'), toasts: $('#toasts'),
+};
+
+/* --- 상태 --- */
+function fresh(seed) {
+  return {
+    v:1, seed: seed != null ? seed : (Math.random() * 2147483647) | 0,
+    money:0, total:0, lifetime:0, clicks:0, golden:0, owned:{}, ups:[], tiles:[HOME],
+    recipes:0, resets:0, heat:0, buffs:[], playSec:0, lastSeen:Date.now(), bulk:1, tab:'shop',
+  };
+}
+function revive(o) {
+  if (!o || o.v !== 1) return null;
+  const s = Object.assign(fresh(o.seed), o);
+  s.owned = Object.assign({}, o.owned);
+  s.ups = (o.ups || []).filter(id => UP_BY_ID[id]);
+  s.tiles = Array.isArray(o.tiles) && o.tiles.length ? o.tiles.slice() : [HOME];
+  s.buffs = (o.buffs || []).filter(b => b.until > Date.now());
+  return s;
+}
+function load() {
+  try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; }
+}
+function save() {
+  S.lastSeen = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가: 이번 세션만 유지 */ }
+}
+
+const hasBuff = kind => S.buffs.some(b => b.kind === kind);
+const perSecNow = () => D.perSec * (hasBuff('rush') ? 5 : 1);
+const clickNow = () => clickValue(D, S.heat, hasBuff('frenzy'));
+function recompute() { D = derive(S, MAP); }
+function earn(v) { S.money += v; S.total += v; S.lifetime += v; }
+
+/* --- 굽기 --- */
+function bake(x, y) {
+  const v = clickNow();
+  earn(v);
+  S.clicks++;
+  S.heat = Math.min(100, S.heat + HEAT_GAIN);
+  floatText(x, y, '+' + won(v));
+  const b = els.bread;
+  b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit');
+}
+els.bread.addEventListener('pointerdown', e => {
+  if (e.button !== 0) return;
+  e.preventDefault();
+  bake(e.clientX + (Math.random() * 40 - 20), e.clientY - 10);
+});
+els.bread.addEventListener('click', e => {
+  if (e.detail !== 0) return; // 키보드로 누른 경우만
+  const r = els.bread.getBoundingClientRect();
+  bake(r.left + r.width / 2 + (Math.random() * 40 - 20), r.top + r.height / 3);
+});
+els.bread.addEventListener('keydown', e => { if (e.repeat && (e.key === 'Enter' || e.key === ' ')) e.preventDefault(); });
+
+function floatText(x, y, text, big) {
+  if (els.fx.childElementCount > 40) els.fx.firstChild.remove();
+  const f = h('span', 'float' + (big ? ' big' : ''));
+  f.textContent = text;
+  f.style.left = x + 'px'; f.style.top = y + 'px';
+  f.addEventListener('animationend', () => f.remove());
+  els.fx.append(f);
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) setTimeout(() => f.remove(), 700);
+}
+
+function toast(title, body) {
+  const t = h('div', 'toast');
+  t.append(h('b', null), h('span', null));
+  t.firstChild.textContent = title; t.lastChild.textContent = body;
+  els.toasts.append(t);
+  while (els.toasts.childElementCount > 3) els.toasts.firstChild.remove();
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 3800);
+}
+function shake(node) { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); }
+
+/* --- 설비·직원 --- */
+function renderShop() {
+  const n = S.tiles.length;
+  const visible = PRODUCERS.filter(p => p.tiles <= n);
+  const teaser = PRODUCERS.find(p => p.tiles > n);
+  shopKey = visible.length + '|' + S.bulk;
+  els.prodList.textContent = '';
+  prodRows = {};
+  for (const p of visible) {
+    const b = h('button', 'row');
+    b.type = 'button';
+    b.innerHTML = `<span class="chip">${p.sign}</span>
+      <span class="row-main"><span class="row-name">${p.name}</span><span class="row-desc">${p.desc}</span><span class="row-fx"></span></span>
+      <span class="row-side"><span class="row-count">0</span><span class="row-qty"></span><span class="row-cost"></span></span>`;
+    b.addEventListener('click', () => buyProducer(p, b));
+    els.prodList.append(b);
+    prodRows[p.id] = { b, fx:b.querySelector('.row-fx'), count:b.querySelector('.row-count'), qty:b.querySelector('.row-qty'), cost:b.querySelector('.row-cost') };
+  }
+  if (teaser) {
+    const t = h('div', 'row locked');
+    t.innerHTML = `<span class="chip">${teaser.sign}</span>
+      <span class="row-main"><span class="row-name">${teaser.name}</span><span class="row-desc">상권이 ${teaser.tiles}칸이 되면 열려요. 지금 ${n}칸.</span></span>
+      <span class="row-side"><span class="row-cost">${won(teaser.cost)}</span></span>`;
+    els.prodList.append(t);
+  }
+  updateShop();
+}
+function prodPlan(p) {
+  const n = S.owned[p.id] || 0;
+  let k = S.bulk === 'max' ? maxAffordable(p.cost, n, S.money) : S.bulk;
+  if (k < 1) k = 1;
+  return { n, k, cost: Math.ceil(bulkCost(p.cost, n, k)) };
+}
+function updateShop() {
+  if (shopKey !== PRODUCERS.filter(p => p.tiles <= S.tiles.length).length + '|' + S.bulk) return renderShop();
+  for (const p of PRODUCERS) {
+    const r = prodRows[p.id];
+    if (!r) continue;
+    const { n, k, cost } = prodPlan(p);
+    const each = D.prodRate[p.id];
+    const share = D.perSec > 0 ? Math.round(each * n / D.perSec * 100) : 0;
+    r.count.textContent = n;
+    r.qty.textContent = k > 1 ? k + '개' : '';
+    r.cost.textContent = won(cost);
+    r.fx.textContent = `1개당 초당 ${won(each)}` + (n ? ` · 전체의 ${share}%` : '');
+    r.b.classList.toggle('can', cost <= S.money);
+    r.b.setAttribute('aria-label', `${p.name} ${k}개 사기, ${won(cost)}, 보유 ${n}개`);
+  }
+}
+function buyProducer(p, node) {
+  const { n, k, cost } = prodPlan(p);
+  if (cost > S.money) return shake(node);
+  S.money -= cost;
+  S.owned[p.id] = n + k;
+  recompute();
+  updateAll();
+}
+document.querySelectorAll('.bulk button').forEach(b => b.addEventListener('click', () => {
+  S.bulk = b.dataset.bulk === 'max' ? 'max' : +b.dataset.bulk;
+  syncBulk();
+  updateShop();
+}));
+function syncBulk() { document.querySelectorAll('.bulk button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.bulk == S.bulk))); }
+
+/* --- 업그레이드 --- */
+const availableUps = () => UPGRADES.filter(u => !S.ups.includes(u.id) && u.when(S)).sort((a, b) => a.cost - b.cost);
+function renderUps() {
+  const list = availableUps();
+  upKey = list.map(u => u.id).join();
+  els.upList.textContent = '';
+  upRows = {};
+  for (const u of list) {
+    const b = h('button', 'row');
+    b.type = 'button';
+    b.innerHTML = `<span class="chip">${u.sign}</span>
+      <span class="row-main"><span class="row-name">${u.name}</span><span class="row-fx">${u.fx}</span><span class="row-desc">${u.flavor}</span></span>
+      <span class="row-side"><span class="row-cost">${won(u.cost)}</span></span>`;
+    b.setAttribute('aria-label', `${u.name}: ${u.fx}, ${won(u.cost)}`);
+    b.addEventListener('click', () => buyUp(u, b));
+    els.upList.append(b);
+    upRows[u.id] = b;
+  }
+  els.upEmpty.hidden = list.length > 0;
+  els.upCount.textContent = S.ups.length + '개 구매';
+}
+function updateUps() {
+  if (availableUps().map(u => u.id).join() !== upKey) renderUps();
+  for (const id in upRows) upRows[id].classList.toggle('can', UP_BY_ID[id].cost <= S.money);
+}
+function buyUp(u, node) {
+  if (S.ups.includes(u.id)) return;
+  if (u.cost > S.money) return shake(node);
+  S.money -= u.cost;
+  S.ups.push(u.id);
+  recompute();
+  updateAll();
+}
+
+/* --- 상권 지도 --- */
+function buildMap() {
+  els.map.textContent = '';
+  tileEls = MAP.map((type, i) => {
+    const b = h('button', 'tile t-' + type);
+    b.type = 'button';
+    b.textContent = TILES[type].glyph;
+    b.addEventListener('click', () => onTile(i));
+    els.map.append(b);
+    return b;
+  });
+  els.legend.textContent = '';
+  for (const key of ['res','shop','school','station','park','river']) {
+    const t = TILES[key];
+    const li = h('li', 't-' + key);
+    li.innerHTML = `<i>${t.glyph}</i><span><b>${t.name}</b> ${t.note}</span>`;
+    els.legend.append(li);
+  }
+}
+function updateMap(full) {
+  for (let i = 0; i < MAP_N; i++) {
+    const b = tileEls[i], owned = S.tiles.includes(i), buy = !owned && canBuyTile(S, i);
+    b.classList.toggle('owned', owned);
+    b.classList.toggle('buy', buy);
+    b.classList.toggle('fog', !owned && !buy);
+    b.classList.toggle('can', buy && tileCost(S, MAP, i) <= S.money);
+    b.classList.toggle('sel', i === selTile);
+    if (full) b.setAttribute('aria-label', TILES[MAP[i]].name + (owned ? ', 내 상권' : buy ? ', 살 수 있는 땅 ' + won(tileCost(S, MAP, i)) : ', 아직 닿지 않은 땅'));
+  }
+  const n = S.tiles.length;
+  els.mapCount.textContent = `${n} / ${MAP_N}칸`;
+  const next = PRODUCERS.find(p => p.tiles > n);
+  const bonus = Math.round(D.tAll * 100);
+  els.mapSub.innerHTML = `상권 보너스 <b>모든 수입 +${bonus}%</b>` + (next ? ` · ${next.tiles}칸이 되면 <b>${next.name}</b>` : ' · 모든 설비를 열었어요');
+  const btn = document.getElementById('tileBuy');
+  if (btn && selTile >= 0) btn.disabled = tileCost(S, MAP, selTile) > S.money;
+}
+function onTile(i) {
+  if (i === selTile && canBuyTile(S, i)) return buyTile(i);
+  selTile = i;
+  updateMap(false);
+  renderTileInfo();
+}
+function renderTileInfo() {
+  const box = els.tileInfo;
+  box.style.removeProperty('--tc');
+  if (selTile < 0) {
+    box.innerHTML = `<div class="ti-main"><b>다음 땅값 ${won(tileBaseCost(S))}</b><span>내 상권과 맞닿은 땅을 눌러 고르고, 한 번 더 누르면 사요. 땅 한 칸마다 모든 수입 +2%.</span></div>`;
+    return;
+  }
+  const type = MAP[selTile], t = TILES[type], owned = S.tiles.includes(selTile), buy = canBuyTile(S, selTile);
+  const status = owned ? '내 상권' : buy ? '살 수 있는 땅' : '아직 닿지 않은 땅. 맞닿은 땅부터 넓혀 오세요.';
+  box.innerHTML = `<span class="chip t-${type}">${t.glyph}</span><div class="ti-main"><b>${t.name} · ${t.note}</b><span>${status}</span></div>`;
+  if (buy) {
+    const cost = tileCost(S, MAP, selTile);
+    const b = h('button', 'btn');
+    b.type = 'button'; b.id = 'tileBuy';
+    b.textContent = `땅 사기 ${won(cost)}`;
+    b.disabled = cost > S.money;
+    b.addEventListener('click', () => buyTile(selTile));
+    box.append(b);
+  }
+}
+function buyTile(i) {
+  if (!canBuyTile(S, i)) return;
+  const cost = tileCost(S, MAP, i);
+  if (cost > S.money) { shake(tileEls[i]); return; }
+  const before = S.tiles.length;
+  S.money -= cost;
+  S.tiles.push(i);
+  recompute();
+  selTile = -1;
+  tileEls[i].classList.remove('pop'); void tileEls[i].offsetWidth; tileEls[i].classList.add('pop');
+  const opened = PRODUCERS.find(p => p.tiles > before && p.tiles <= S.tiles.length);
+  const tier = tierOf(S.tiles.length);
+  if (tier !== tierOf(before)) toast('새 칭호: ' + tier, `상권 ${S.tiles.length}칸 달성.` + (opened ? ` 이제 ${josa(opened.name, '을', '를')} 열 수 있어요.` : ''));
+  else if (opened) toast('새 설비: ' + opened.name, `상권 ${S.tiles.length}칸이 되어 ${josa(opened.name, '을', '를')} 열 수 있어요.`);
+  updateMap(true);
+  renderTileInfo();
+  updateAll();
+}
+
+/* --- 황금 붕어빵 --- */
+function scheduleGolden() { goldenIn = (50 + Math.random() * 60) * D.goldInterval; }
+function showGolden() {
+  const g = els.golden;
+  g.style.left = (8 + Math.random() * 72) + 'vw';
+  g.style.top = (18 + Math.random() * 58) + 'vh';
+  g.classList.remove('fade');
+  g.hidden = false;
+  goldenLeft = 12;
+}
+function hideGolden() { const g = els.golden; g.classList.add('fade'); setTimeout(() => { if (goldenLeft <= 0) g.hidden = true; }, 400); }
+els.golden.addEventListener('click', e => {
+  if (els.golden.hidden || goldenLeft <= 0) return;
+  goldenLeft = 0;
+  els.golden.hidden = true;
+  S.golden++;
+  const r = Math.random(), dur = D.goldDur;
+  if (r < 0.55) {
+    const g = Math.max(D.perSec * 90, D.clickBase * 40);
+    earn(g);
+    floatText(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, '+' + won(g), true);
+    toast('단골손님 대량 주문', `${won(g)}을 한 번에 벌었어요.`);
+  } else if (r < 0.9) {
+    addBuff('rush', 30 * dur);
+    toast('퇴근길 줄서기', `${30 * dur}초 동안 자동 수입 ×5`);
+  } else {
+    addBuff('frenzy', 15 * dur);
+    toast('손이 안 보여요', `${15 * dur}초 동안 클릭 수입 ×10`);
+  }
+  scheduleGolden();
+  updateAll();
+});
+function addBuff(kind, sec) {
+  S.buffs = S.buffs.filter(b => b.kind !== kind);
+  S.buffs.push({ kind, until: Date.now() + sec * 1000 });
+}
+function renderBuffs() {
+  const now = Date.now();
+  els.buffs.innerHTML = S.buffs.map(b => `<span class="buff">${b.kind === 'rush' ? '줄서기 · 자동 ×5' : '광속 손놀림 · 클릭 ×10'} · ${Math.ceil((b.until - now) / 1000)}초</span>`).join('');
+}
+
+/* --- 기록·물려주기 --- */
+function renderStats() {
+  const rows = [
+    ['이번 가게 총수입', won(S.total)], ['전체 누적 수입', won(S.lifetime)],
+    ['직접 구운 붕어빵', S.clicks.toLocaleString('ko-KR') + '개'], ['잡은 황금 붕어빵', S.golden + '개'],
+    ['보유 설비', Object.values(S.owned).reduce((a, b) => a + b, 0) + '개'], ['상권', S.tiles.length + '칸'],
+    ['비법 레시피', S.recipes + '개 (+' + Math.round(S.recipes * RECIPE_BONUS * 100) + '%)'], ['플레이 시간', fmtTime(S.playSec)],
+  ];
+  els.stats.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  const gain = recipesFor(S.lifetime) - S.recipes;
+  els.prestigeGain.textContent = '지금 물려주면 레시피 +' + Math.max(0, gain) + '개';
+  const nextAt = Math.pow(recipesFor(S.lifetime) + 1, 3) * RECIPE_UNIT;
+  els.prestigeNext.textContent = `누적 수입이 ${won(nextAt)}이 되면 레시피가 하나 더 쌓여요.`;
+  els.prestigeBtn.disabled = gain < 1;
+  if (gain < 1) { confirmPrestige = 0; els.prestigeBtn.classList.remove('warn'); els.prestigeBtn.textContent = '가게 물려주기'; }
+}
+els.prestigeBtn.addEventListener('click', () => {
+  const gain = recipesFor(S.lifetime) - S.recipes;
+  if (gain < 1) return;
+  if (Date.now() - confirmPrestige > 4000) {
+    confirmPrestige = Date.now();
+    els.prestigeBtn.classList.add('warn');
+    els.prestigeBtn.textContent = '한 번 더 누르면 처음부터 다시 시작해요';
+    setTimeout(() => { if (Date.now() - confirmPrestige >= 4000) { els.prestigeBtn.classList.remove('warn'); els.prestigeBtn.textContent = '가게 물려주기'; } }, 4100);
+    return;
+  }
+  confirmPrestige = 0;
+  const keep = { lifetime:S.lifetime, clicks:S.clicks, golden:S.golden, playSec:S.playSec, recipes:S.recipes + gain, resets:S.resets + 1, bulk:S.bulk, tab:'shop' };
+  S = Object.assign(fresh(), keep);
+  boot();
+  toast('새 동네에서 다시 시작', `비법 레시피 ${S.recipes}개. 모든 수입 +${Math.round(S.recipes * RECIPE_BONUS * 100)}%`);
+  save();
+});
+els.wipeBtn.addEventListener('click', () => {
+  if (Date.now() - confirmWipe > 4000) {
+    confirmWipe = Date.now();
+    els.wipeBtn.classList.add('warn');
+    els.wipeBtn.textContent = '한 번 더 누르면 모든 기록이 사라져요';
+    setTimeout(() => { if (Date.now() - confirmWipe >= 4000) { els.wipeBtn.classList.remove('warn'); els.wipeBtn.textContent = '저장 기록 지우기'; } }, 4100);
+    return;
+  }
+  confirmWipe = 0;
+  els.wipeBtn.classList.remove('warn');
+  els.wipeBtn.textContent = '저장 기록 지우기';
+  try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+  S = fresh();
+  boot();
+  toast('기록을 지웠어요', '골목 노점부터 다시 시작해요.');
+});
+
+/* --- 탭 --- */
+const tabs = [...document.querySelectorAll('.tab')];
+function setTab(t) {
+  if (t === 'map' && wideMQ.matches) t = 'shop';
+  S.tab = t;
+  els.game.dataset.tab = t;
+  tabs.forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
+  for (const id of ['shop', 'upgrades', 'stats']) document.getElementById('panel-' + id).hidden = id !== t;
+  if (t === 'stats') renderStats();
+}
+tabs.forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+wideMQ.addEventListener('change', () => setTab(S.tab));
+
+/* --- 화면 갱신 --- */
+let lastMoney = '', lastRate = '';
+function updateTop() {
+  const m = won(S.money), r = won(perSecNow());
+  if (m !== lastMoney) { els.money.textContent = m; els.moneyTop.textContent = m; lastMoney = m; }
+  if (r !== lastRate) { els.rate.textContent = r; els.rateTop.textContent = r; lastRate = r; }
+  els.heatFill.style.width = S.heat.toFixed(1) + '%';
+}
+function updateAll() {
+  updateTop();
+  const mul = heatMul(D, S.heat);
+  const word = S.heat >= 97 ? '최고 화력' : S.heat >= 65 ? '강불' : S.heat >= 30 ? '중불' : S.heat > 0 ? '약불' : '꺼짐';
+  els.heatLabel.textContent = `${word} ×${mul.toFixed(2)}`;
+  els.perClick.textContent = won(clickNow());
+  els.clicks.textContent = S.clicks.toLocaleString('ko-KR') + '개';
+  const tier = tierOf(S.tiles.length);
+  if (tier !== lastTier) { els.tier.textContent = tier; lastTier = tier; }
+  updateShop();
+  updateUps();
+  updateMap(false);
+  renderBuffs();
+  if (S.tab === 'stats') renderStats();
+  // 탭 알림 점
+  const n = S.tiles.length;
+  const canProd = PRODUCERS.some(p => p.tiles <= n && prodPlan(p).cost <= S.money);
+  const canUp = Object.keys(upRows).some(id => UP_BY_ID[id].cost <= S.money);
+  const canTile = S.money >= tileBaseCost(S);
+  $('#tab-shop').classList.toggle('has', canProd && S.tab !== 'shop');
+  $('#tab-upgrades').classList.toggle('has', canUp && S.tab !== 'upgrades');
+  $('#tab-map').classList.toggle('has', canTile && S.tab !== 'map');
+}
+
+/* --- 루프 --- */
+function step(dt) {
+  S.playSec += dt;
+  S.heat *= Math.exp(-D.heatDecay * dt);
+  if (S.heat < 0.5) S.heat = 0;
+  const now = Date.now();
+  if (S.buffs.some(b => b.until <= now)) S.buffs = S.buffs.filter(b => b.until > now);
+  earn(perSecNow() * dt);
+  if (goldenLeft > 0) {
+    goldenLeft -= dt;
+    if (goldenLeft <= 0) { hideGolden(); scheduleGolden(); }
+  } else if ((goldenIn -= dt) <= 0) {
+    goldenIn = Infinity;
+    showGolden();
+  }
+}
+function frame(now) {
+  let dt = (now - lastFrame) / 1000;
+  lastFrame = now;
+  if (dt > 5) {
+    // 탭을 떠나 있던 시간: 가게는 열려 있었으니 자동 수입은 그대로
+    const g = D.perSec * Math.min(dt, 8 * 3600);
+    earn(g);
+    if (dt > 60 && g > 0) toast('다녀오셨어요', `${fmtTime(dt)} 동안 ${won(g)}을 벌었어요.`);
+    dt = 0;
+  }
+  step(dt);
+  updateTop();
+  uiAcc += dt; saveAcc += dt;
+  if (uiAcc > 0.15) { uiAcc = 0; updateAll(); }
+  if (saveAcc > 5) { saveAcc = 0; save(); }
+  requestAnimationFrame(frame);
+}
+
+function boot() {
+  MAP = genMap(S.seed);
+  recompute();
+  selTile = -1; lastTier = ''; upKey = ''; shopKey = '';
+  goldenLeft = 0; els.golden.hidden = true;
+  goldenIn = 35;
+  buildMap();
+  renderShop();
+  renderUps();
+  updateMap(true);
+  renderTileInfo();
+  syncBulk();
+  setTab(S.tab || 'shop');
+  updateAll();
+}
+
+function start(data) {
+  S = (data && data.save && revive(data.save)) || load() || fresh();
+  boot();
+  const away = (Date.now() - S.lastSeen) / 1000;
+  if (away > 60 && D.perSec > 0) {
+    const secs = Math.min(away, 8 * 3600), g = D.perSec * secs * 0.5;
+    earn(g);
+    toast('알바생들이 가게를 지켰어요', `자리를 비운 ${fmtTime(secs)} 동안 ${won(g)}을 벌었어요.`);
+  }
+  addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  addEventListener('pagehide', save);
+  if (window.claude && window.claude.hot && window.claude.hot.snapshot) window.claude.hot.snapshot(() => ({ save: JSON.parse(JSON.stringify(S)) }));
+  lastFrame = performance.now();
+  requestAnimationFrame(frame);
+}
+
+window.claude && window.claude.hot && window.claude.hot.ready
+  ? window.claude.hot.ready(start)
+  : start(window.claude && window.claude.hot && window.claude.hot.data || {});
+})();
+
+/* --- 눈 --- */
+(() => {
+  const c = document.getElementById('snow');
+  if (!c || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const ctx = c.getContext('2d'), dpr = Math.min(2, devicePixelRatio || 1), flakes = [];
+  let w = 0, hgt = 0, last = performance.now();
+  const size = () => { w = c.clientWidth; hgt = c.clientHeight; c.width = w * dpr; c.height = hgt * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0); };
+  size();
+  addEventListener('resize', size);
+  for (let i = 0; i < 60; i++) flakes.push({ x:Math.random() * w, y:Math.random() * hgt, r:Math.random() * 1.8 + 0.6, s:Math.random() * 18 + 12, d:Math.random() * 6.28 });
+  const color = getComputedStyle(document.documentElement).getPropertyValue('--snow').trim() || '#eef1f8';
+  function draw(now) {
+    const dt = Math.min(0.05, (now - last) / 1000); last = now;
+    ctx.clearRect(0, 0, w, hgt);
+    ctx.fillStyle = color; ctx.globalAlpha = 0.5;
+    for (const f of flakes) {
+      f.y += f.s * dt; f.d += dt * 0.8; f.x += Math.sin(f.d) * 8 * dt;
+      if (f.y > hgt + 4) { f.y = -4; f.x = Math.random() * w; }
+      ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
