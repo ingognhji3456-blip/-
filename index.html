@@ -289,7 +289,7 @@ h1,h2,h3{text-wrap:balance}
         <div class="heat-bar" aria-hidden="true"><i id="heatFill"></i></div>
       </div>
       <dl class="quick">
-        <div><dt>클릭당</dt><dd id="perClick">500원</dd></div>
+        <div><dt>클릭당</dt><dd id="perClick">100원</dd></div>
         <div><dt>직접 구운 붕어빵</dt><dd id="clicks">0개</dd></div>
       </dl>
       <div class="buffs" id="buffs"></div>
@@ -352,7 +352,7 @@ h1,h2,h3{text-wrap:balance}
 <script id="core">
 "use strict";
 /* ===== 게임 규칙 (DOM 없음) ===== */
-const BASE_CLICK = 500;          // 붕어빵 한 마리 값
+const BASE_CLICK = 100;          // 클릭 한 번 값
 const GROWTH = 1.15;             // 같은 설비를 살 때마다 값이 15%씩 오름
 const HEAT_GAIN = 6;             // 클릭 한 번에 오르는 화력
 const HEAT_DECAY = 0.55;         // 초당 식는 비율
@@ -398,14 +398,14 @@ const TILES = {
 const TIERS = [[1,'골목 노점'],[4,'동네 맛집'],[9,'구 대표 맛집'],[16,'서울 3대 붕어빵'],[25,'전국 체인'],[36,'국민 간식'],[49,'아시아 진출'],[64,'글로벌 브랜드'],[81,'붕어빵 제국']];
 
 const UPGRADES = [
-  { id:'c1', sign:'손', name:'무쇠 틀', flavor:'묵직한 무쇠라 열이 고르게 퍼져요.', fx:'클릭 수입 ×2', cost:2500, eff:{ click:2 }, when:() => true },
-  { id:'c2', sign:'손', name:'팥 듬뿍', flavor:'꼬리 끝까지 팥이 꽉.', fx:'클릭 수입 ×2', cost:4e4, eff:{ click:2 }, when:s => s.clicks >= 40 },
+  { id:'c1', sign:'손', name:'무쇠 틀', flavor:'묵직한 무쇠라 열이 고르게 퍼져요.', fx:'클릭 수입 ×2', cost:5000, eff:{ click:2 }, when:s => s.clicks >= 30 },
+  { id:'c2', sign:'손', name:'팥 듬뿍', flavor:'꼬리 끝까지 팥이 꽉.', fx:'클릭 수입 ×2', cost:6e4, eff:{ click:2 }, when:s => s.clicks >= 150 },
   { id:'h1', sign:'불', name:'가스 화구 교체', flavor:'불꽃이 고르게, 오래 가요.', fx:'화력이 40% 천천히 식어요', cost:1.2e5, eff:{ heatDecay:0.6 }, when:s => s.clicks >= 120 },
   { id:'c3', sign:'손', name:'슈크림 반반', flavor:'팥파와 슈크림파가 모두 줄을 서요.', fx:'클릭마다 초당 수입의 2% 추가', cost:9e5, eff:{ clickPct:0.02 }, when:s => s.clicks >= 200 },
   { id:'l1', sign:'복', name:'단골 장부', flavor:'황금 붕어빵 손님을 기억해 둬요.', fx:'황금 붕어빵 효과 2배 오래', cost:2e6, eff:{ goldDur:2 }, when:s => s.golden >= 3 },
   { id:'g1', sign:'홍보', name:'배달 앱 입점', flavor:'별점 4.9, 리뷰 이벤트 진행 중.', fx:'자동 수입 ×1.25', cost:4e6, eff:{ auto:1.25 }, when:s => s.tiles.length >= 4 },
   { id:'c4', sign:'손', name:'피자 붕어빵', flavor:'치즈가 쭉 늘어나요.', fx:'클릭 수입 ×3', cost:3e7, eff:{ click:3 }, when:s => s.clicks >= 500 },
-  { id:'h2', sign:'불', name:'숯불 화로', flavor:'겉은 바삭, 속은 촉촉.', fx:'최고 화력 배율 ×2 → ×3', cost:8e7, eff:{ heatMax:3 }, when:s => s.clicks >= 800 },
+  { id:'h2', sign:'불', name:'숯불 화로', flavor:'겉은 바삭, 속은 촉촉.', fx:'최고 화력 배율 ×1.5 → ×2', cost:8e7, eff:{ heatMax:2 }, when:s => s.clicks >= 800 },
   { id:'g2', sign:'홍보', name:'SNS 맛집 등극', flavor:'#붕어빵맛집 게시물 10만 개 돌파.', fx:'자동 수입 ×1.5', cost:4e8, eff:{ auto:1.5 }, when:s => s.tiles.length >= 9 },
   { id:'c5', sign:'손', name:'미니 붕어빵 한 봉지', flavor:'한입 크기라 멈출 수가 없어요.', fx:'클릭마다 초당 수입의 3% 추가', cost:2e9, eff:{ clickPct:0.03 }, when:s => s.clicks >= 1200 },
   { id:'l2', sign:'복', name:'복주머니', flavor:'가게 문 위에 달아 둔 빨간 주머니.', fx:'황금 붕어빵이 25% 더 자주', cost:5e9, eff:{ goldFreq:0.75 }, when:s => s.golden >= 10 },
@@ -482,7 +482,7 @@ function tierOf(n) { let t = TIERS[0][1]; for (const [at, name] of TIERS) if (n 
 const recipesFor = lifetime => Math.floor(Math.cbrt(lifetime / RECIPE_UNIT));
 
 function derive(s, map) {
-  let click = 1, clickPct = 0, auto = 1, all = 1, heatDecay = 1, heatMax = 2, goldDur = 1, goldFreq = 1;
+  let click = 1, clickPct = 0, auto = 1, all = 1, heatDecay = 1, heatMax = 1.5, goldDur = 1, goldFreq = 1;
   const pm = {};
   for (const id of s.ups) {
     const e = UP_BY_ID[id] && UP_BY_ID[id].eff;
