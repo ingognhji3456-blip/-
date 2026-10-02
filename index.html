@@ -14,7 +14,7 @@
   color-scheme:dark;
   --void:#060913; --space:#0c1224; --panel:rgba(14,20,38,.9); --panel-solid:#0f1629; --line:#26304f; --line-2:#3a4672;
   --text:#eef1fb; --muted:#9ba5c7; --dim:#5d6789; --core:#fff3cf; --core-glow:rgba(255,214,110,.55);
-  --b-click:#ffd66e; --b-auto:#7fd8ff; --b-amp:#c39bff; --b-luck:#ff8fb1; --b-meteor:#ffad66; --b-res:#8ff0b5;
+  --b-click:#ffd66e; --b-auto:#7fd8ff; --b-amp:#c39bff; --b-luck:#ff8fb1; --b-meteor:#ffad66; --b-res:#8ff0b5; --b-link:#e2dbff; --b-deep:#fff3cf;
   --good:#8ff0b5; --shadow:rgba(0,0,0,.5);
   --f-display:"Orbit","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -36,6 +36,9 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .edge{stroke:var(--line-2); stroke-width:1.5; vector-effect:non-scaling-stroke; fill:none}
 .edge.ghost{stroke:var(--line); stroke-dasharray:3 5}
 .edge.lit{stroke:var(--c); stroke-width:2.5; opacity:.85}
+.edge.cross{stroke:var(--c); stroke-dasharray:2 5; opacity:.7}
+.edge.cross.lit{stroke-dasharray:6 4; opacity:.9}
+.edge.cross.ghost{stroke:var(--c); opacity:.35}
 .node{cursor:pointer; outline:none}
 .node .halo{fill:var(--c); opacity:0}
 .node .disc{fill:var(--panel-solid); stroke:var(--c); stroke-width:2; stroke-dasharray:4 3}
@@ -54,6 +57,11 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .node:focus-visible .ring{opacity:1; stroke:var(--b-click)}
 .node.ghost{pointer-events:none}
 .node.ghost .disc{fill:var(--line); stroke:none}
+.node.ghost.cross{pointer-events:auto}
+.node.ghost.cross .disc{fill:var(--panel-solid); stroke:var(--c); stroke-dasharray:2 3; stroke-width:1.5}
+.node.ghost.cross .lab{fill:var(--c)}
+.node.fresh .ring{opacity:1; stroke:var(--c); stroke-width:2.5; transform-box:fill-box; transform-origin:center; animation:ping 1.3s ease-out infinite}
+@keyframes ping{0%{transform:scale(.7); opacity:1}100%{transform:scale(1.9); opacity:0}}
 .node.pop .disc{animation:pop .5s ease}
 @keyframes breathe{50%{opacity:.34}}
 @keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
@@ -98,6 +106,10 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .btn:disabled{background:var(--line); color:var(--dim); box-shadow:none; cursor:not-allowed}
 .btn.warn{background:var(--b-luck); color:var(--void)}
 .btn:focus-visible{outline:2px solid var(--text); outline-offset:2px}
+.clues{list-style:none; margin:0; padding:10px 12px; display:flex; flex-direction:column; gap:6px; border-radius:10px; border:1px dashed var(--line-2); font-size:var(--t-sm); color:var(--muted)}
+.clues b{color:var(--text)}
+.clues .ok{color:var(--good)}
+.chip.next{border-color:var(--b-deep); color:var(--b-deep)}
 .legend{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 10px; margin:0; padding:0; list-style:none}
 .legend li{display:flex; align-items:center; gap:6px; font-size:var(--t-xs); color:var(--muted)}
 .legend i{width:8px; height:8px; border-radius:50%; background:var(--c)}
@@ -216,6 +228,8 @@ const BRANCHES = {
   luck:   { name:'행운', color:'var(--b-luck)',   angle:90,  note:'섬광' },
   meteor: { name:'유성', color:'var(--b-meteor)', angle:150, note:'유성' },
   res:    { name:'공명', color:'var(--b-res)',    angle:210, note:'연결' },
+  link:   { name:'연결', color:'var(--b-link)',   angle:0,   note:'두 갈래 사이' },
+  deep:   { name:'심연', color:'var(--b-deep)',   angle:0,   note:'단계를 쌓으면' },
 };
 
 const NODES = [
@@ -264,18 +278,41 @@ const NODES = [
   { id:'f3', br:'res', p:'f2', ring:3, off:-11, name:'기억의 빛',   desc:'자리를 비운 동안에도 더 많이 모아요.', k:'offline', v:0.25, max:2, cost:1e5, g:6 },
   { id:'f4', br:'res', p:'f2', ring:3, off:11,  name:'시간 가속',   desc:'별의 시간이 조금 빨리 흘러요.', k:'allMul', v:1.1, max:5, cost:4e5, g:4 },
   { id:'f5', br:'res', p:'f4', ring:4, off:11,  name:'블랙홀',      desc:'모든 빛이 한곳으로 빨려 들어와요.', k:'allMul', v:2, max:1, cost:5e8, g:1 },
+
+  // 연결 별: 이웃한 두 갈래의 별을 함께 키우면 그 사이에 나타나요
+  { id:'l1',  br:'link', ang:-60, ring:2.5, req:[['a2', 2], ['b2', 2]], name:'궤도 손끝',   desc:'누를 때마다 위성들도 함께 별빛을 보내요.', k:'fromAuto', v:0.03, max:5, cost:3e4, g:3.5 },
+  { id:'l2',  br:'link', ang:-60, ring:4.5, req:[['a5', 2], ['b5', 5]], name:'위성 연타',   desc:'위성이 중심별을 대신 두드려요.', k:'autoClick', v:0.25, max:4, cost:2e7, g:6 },
+  { id:'l3',  br:'link', ang:0,   ring:2.5, req:[['b2', 2], ['c2', 2]], name:'빛 반사판',   desc:'위성에 거울을 달아 빛을 모아요.', k:'autoMul', v:1.1, max:4, cost:3e4, g:4 },
+  { id:'l4',  br:'link', ang:0,   ring:4.5, req:[['b6', 1], ['c5', 1]], name:'항성 엔진',   desc:'위성 궤도가 증폭기를 돌려요.', k:'allMul', v:1.25, max:2, cost:3e7, g:20 },
+  { id:'l5',  br:'link', ang:60,  ring:2.5, req:[['c2', 2], ['d2', 2]], name:'프리즘',      desc:'섬광을 일곱 빛깔로 쪼개 키워요.', k:'critMul', v:1, max:3, cost:3e4, g:4 },
+  { id:'l6',  br:'link', ang:60,  ring:4.5, req:[['c4', 2], ['d4', 3]], name:'무지개 섬광', desc:'섬광이 더 자주 터져요.', k:'critChance', v:0.02, max:3, cost:2e7, g:8 },
+  { id:'l7',  br:'link', ang:120, ring:2.5, req:[['d2', 2], ['e2', 2]], name:'행운의 유성', desc:'운 좋은 날엔 유성도 커요.', k:'meteorMul', v:1.3, max:4, cost:2e4, g:3 },
+  { id:'l8',  br:'link', ang:120, ring:4.5, req:[['d5', 2], ['e6', 1]], name:'별똥 섬광',   desc:'섬광이 터질 때 위성 수입을 더 받아요.', k:'critSec', v:1, max:2, cost:2e7, g:10 },
+  { id:'l9',  br:'link', ang:180, ring:2.5, req:[['e2', 2], ['f2', 3]], name:'유성 신호',   desc:'공명이 유성을 불러와요.', k:'meteorFreq', v:0.9, max:3, cost:2e4, g:3 },
+  { id:'l10', br:'link', ang:180, ring:4.5, req:[['e5', 1], ['f4', 3]], name:'혜성 궤도',   desc:'느린 혜성이 별자리를 한 바퀴 돌아요.', k:'allMul', v:1.1, max:3, cost:2e7, g:8 },
+  { id:'l11', br:'link', ang:240, ring:2.5, req:[['f2', 3], ['a2', 2]], name:'맥박',        desc:'중심별의 맥박에 맞춰 누르면 더 세져요.', k:'combo', v:0.03, max:5, cost:2e4, g:3 },
+  { id:'l12', br:'link', ang:240, ring:4.5, req:[['f5', 1], ['a5', 3]], name:'공명 폭발',   desc:'손끝과 공명이 한꺼번에 터져요.', k:'clickMul', v:1.5, max:2, cost:3e7, g:20 },
+
+  // 심연의 별: 어디든 단계를 많이 쌓으면 먼 곳에서 떠올라요
+  { id:'m1', br:'deep', ang:0,   ring:6,   total:40,  flat:true, name:'초신성 잔해', desc:'오래전에 터진 별의 빛이 아직 남아 있어요.', k:'allMul', v:1.2, max:3, cost:1.6e7, g:10 },
+  { id:'m2', br:'deep', ang:180, ring:6,   total:80,  flat:true, name:'성운의 숨결', desc:'성운이 숨을 쉴 때마다 위성이 빨라져요.', k:'autoMul', v:1.5, max:2, cost:1.6e10, g:20 },
+  { id:'m3', br:'deep', ang:120, ring:6.5, total:120, flat:true, name:'은하의 팔',   desc:'은하가 팔을 뻗어 손끝을 잡아 줘요.', k:'clickMul', v:2, max:2, cost:2.3e12, g:30 },
+  { id:'m4', br:'deep', ang:-60, ring:7.5, total:170, flat:true, name:'우주의 끝',   desc:'가장 먼 곳의 빛까지 중심별로 모여요.', k:'allMul', v:2, max:1, cost:4.5e15, g:1 },
 ];
 const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
 NODES.forEach(n => {
-  n.cost *= Math.pow(3, Math.max(0, n.ring - 2));   // 바깥 고리로 갈수록 값이 3배씩 더 뛰어요
-  const a = (BRANCHES[n.br].angle + n.off) * Math.PI / 180, r = n.ring * RING_GAP;
+  if (!n.flat) n.cost *= Math.pow(n.ring < 3 ? 3 : 6, Math.max(0, n.ring - 2));   // 바깥 고리로 갈수록 값이 가파르게 뛰어요
+  const a = (n.ang != null ? n.ang : BRANCHES[n.br].angle + n.off) * Math.PI / 180, r = n.ring * RING_GAP;
   n.x = Math.cos(a) * r; n.y = Math.sin(a) * r;
   n.kids = NODES.filter(m => m.p === n.id).map(m => m.id);
 });
-const STAGES = [[0, '작은 별'], [5, '별자리'], [12, '성단'], [22, '성운'], [32, '은하'], [NODES.length, '우주']];
+const STAGES = [[0, '작은 별'], [5, '별자리'], [12, '성단'], [24, '성운'], [36, '은하'], [48, '은하단'], [NODES.length, '우주']];
+const MILESTONES = NODES.filter(n => n.total).map(n => n.total).sort((a, b) => a - b);
 
 const lvOf = (s, id) => s.lv[id] || 0;
-const isVisible = (s, n) => !n.p || lvOf(s, n.p) > 0;
+const totalLv = s => { let t = 0; for (const k in s.lv) t += s.lv[k]; return t; };
+const reqMet = (s, n) => (!n.req || n.req.every(([id, l]) => lvOf(s, id) >= l)) && (!n.total || totalLv(s) >= n.total);
+const isVisible = (s, n) => (!n.p || lvOf(s, n.p) > 0) && reqMet(s, n);
 const costOf = (n, lv, d) => Math.ceil(n.cost * Math.pow(n.g, lv) * d.costMul);
 const stageOf = lit => { let t = STAGES[0][1]; for (const [at, name] of STAGES) if (lit >= at) t = name; return t; };
 
@@ -467,11 +504,15 @@ els.core.addEventListener('keydown', e => {
 function buildTree() {
   els.edges.textContent = ''; els.nodes.textContent = '';
   for (const n of NODES) {
-    const p = n.p ? NODE[n.p] : { x:0, y:0 };
-    const e = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'edge' });
-    e.style.setProperty('--c', BRANCHES[n.br].color);
-    els.edges.append(e);
-    edgeEls[n.id] = e;
+    // 선: 부모에서(일반) · 조건 별들에서(연결 별) · 중심별에서(첫 고리) · 없음(심연의 별)
+    const froms = n.p ? [n.p] : n.req ? n.req.map(r => r[0]) : n.total ? [] : [null];
+    edgeEls[n.id] = froms.map(from => {
+      const p = from ? NODE[from] : { x:0, y:0 };
+      const e = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'edge' });
+      e.style.setProperty('--c', BRANCHES[n.br].color);
+      els.edges.append(e);
+      return { el:e, from };
+    });
     const g = sv('g', { class:'node', tabindex:'0', role:'button', 'data-id':n.id });
     g.style.setProperty('--c', BRANCHES[n.br].color);
     g.append(
@@ -506,21 +547,30 @@ function nodeState(n) {
   if (lv >= n.max) return 'max';
   if (lv > 0) return 'lit';
   if (isVisible(S, n)) return 'avail';
+  if (n.req) return n.req.some(([id, l]) => lvOf(S, id) >= l) ? 'ghost' : 'hidden';   // 조건 하나라도 채우면 흐릿하게 보여요
+  if (n.total) return 'hidden';
   if (n.p && isVisible(S, NODE[n.p])) return 'ghost';
   return 'hidden';
 }
+const freshUntil = {};
 function paintNode(n, pop) {
-  const g = nodeEls[n.id], e = edgeEls[n.id], st = nodeState(n), lv = lvOf(S, n.id);
+  const g = nodeEls[n.id], st = nodeState(n), lv = lvOf(S, n.id), cross = !!n.req, mystery = st === 'ghost' && cross;
   const can = (st === 'avail' || st === 'lit') && costOf(n, lv, D) <= S.money;
-  g.setAttribute('class', `node ${st}${can ? ' can' : ''}${sel === n.id ? ' sel' : ''}${pop ? ' pop' : ''}`);
+  const fresh = (freshUntil[n.id] || 0) > Date.now();
+  g.setAttribute('class', `node ${st}${cross ? ' cross' : ''}${can ? ' can' : ''}${sel === n.id ? ' sel' : ''}${pop ? ' pop' : ''}${fresh ? ' fresh' : ''}`);
   g.style.display = st === 'hidden' ? 'none' : '';
-  g.querySelector('.disc').setAttribute('r', st === 'ghost' ? 5 : 20);
-  g.querySelector('.lab').style.display = st === 'ghost' ? 'none' : '';
+  g.querySelector('.disc').setAttribute('r', st === 'ghost' ? (mystery ? 12 : 5) : 20);
+  const lab = g.querySelector('.lab');
+  lab.style.display = st === 'ghost' && !mystery ? 'none' : '';
+  lab.textContent = mystery ? '?' : nodeLabel(n);
   g.querySelector('.prog').setAttribute('stroke-dasharray', `${(lv / n.max) * 100} 100`);
-  g.setAttribute('tabindex', st === 'ghost' ? '-1' : '0');
-  g.setAttribute('aria-label', `${n.name}, ${lv} / ${n.max}단계` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
-  e.setAttribute('class', 'edge' + (st === 'hidden' ? '' : st === 'ghost' ? ' ghost' : lv > 0 ? ' lit' : ''));
-  e.style.display = st === 'hidden' ? 'none' : '';
+  g.setAttribute('tabindex', st === 'ghost' && !mystery ? '-1' : '0');
+  g.setAttribute('aria-label', mystery ? '아직 열리지 않은 연결 별' : `${n.name}, ${lv} / ${n.max}단계` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
+  for (const { el, from } of edgeEls[n.id]) {
+    const show = st !== 'hidden' && !(mystery && from && !n.req.some(([id, l]) => id === from && lvOf(S, id) >= l));
+    el.style.display = show ? '' : 'none';
+    el.setAttribute('class', 'edge' + (cross ? ' cross' : '') + (st === 'ghost' ? ' ghost' : lv > 0 ? ' lit' : ''));
+  }
 }
 function paintAll() { for (const n of NODES) paintNode(n); }
 function updateAffordable() {
@@ -575,7 +625,7 @@ els.svg.addEventListener('pointerdown', e => {
 els.svg.addEventListener('pointermove', e => {
   const prev = pointers.get(e.pointerId);
   if (!prev) {
-    if (e.pointerType === 'mouse') { const ng = e.target.closest('.node'); if (ng && !ng.classList.contains('ghost') && sel !== ng.dataset.id) select(ng.dataset.id); }
+    if (e.pointerType === 'mouse') { const ng = e.target.closest('.node'); if (ng && (!ng.classList.contains('ghost') || ng.classList.contains('cross')) && sel !== ng.dataset.id) select(ng.dataset.id); }
     return;
   }
   const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
@@ -631,10 +681,21 @@ function renderInfo() {
     box.innerHTML = `<div class="kicker">중심별</div>
       <h2>별을 밝혀 바깥으로</h2>
       <p>한가운데 중심별을 눌러 별빛을 모으세요. 둘레의 별을 밝히면 그 바깥에 새 별이 이어져요. 별을 누르면 효과를 볼 수 있어요.</p>
-      <ul class="legend">${Object.values(BRANCHES).map(b => `<li style="--c:${b.color}"><i></i>${b.name} · ${b.note}</li>`).join('')}</ul>`;
+      <ul class="legend">${Object.values(BRANCHES).map(b => `<li style="--c:${b.color}"><i></i>${b.name} · ${b.note}</li>`).join('')}</ul>
+      <p>한 갈래를 키우면 이웃 갈래와의 사이에 <b>연결 별</b>이, 단계를 많이 쌓으면 먼 곳에 <b>심연의 별</b>이 새로 나타나요.</p>`;
     return;
   }
   const n = NODE[sel], br = BRANCHES[n.br], lv = lvOf(S, n.id), st = nodeState(n), maxed = lv >= n.max;
+  if (st === 'ghost' && n.req) {
+    // 아직 안 열린 연결 별: 무엇이 필요한지만 보여 줘요
+    box.style.setProperty('--c', br.color);
+    box.innerHTML = `<div class="kicker"><i></i>연결 별 · 아직 닫혀 있어요</div>
+      <h2>이름 모를 별</h2>
+      <p>두 갈래의 별을 함께 키우면 여기에서 새 별이 열려요.</p>
+      <ul class="clues">${n.req.map(([id, l]) => { const r = NODE[id], have = lvOf(S, id);
+        return `<li class="${have >= l ? 'ok' : ''}">${BRANCHES[r.br].name} <b>${r.name}</b> ${l}단계 · 지금 ${have}${have >= l ? ' ✓' : ''}</li>`; }).join('')}</ul>`;
+    return;
+  }
   box.style.setProperty('--c', br.color);
   const cost = maxed ? 0 : costOf(n, lv, D);
   const bars = Array.from({ length:n.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('');
@@ -643,6 +704,7 @@ function renderInfo() {
     <p>${n.desc}</p>
     <div class="lvbar" aria-hidden="true">${bars}</div>
     <div class="fxline">${lv ? `<span>지금 <b>${effText(n, lv)}</b></span>` : ''}${maxed ? '' : `<span>${lv ? '→ 다음' : '밝히면'} <b>${effText(n, lv + 1)}</b></span>`}</div>
+    ${clueList(n)}
     <div class="actions"></div>`;
   const acts = box.querySelector('.actions');
   if (st === 'ghost' || st === 'hidden') { acts.innerHTML = '<p>안쪽 별을 먼저 밝혀야 해요.</p>'; return; }
@@ -660,6 +722,20 @@ function renderInfo() {
   }
   refreshInfoButtons();
 }
+// 이 별을 키우면 어딘가에서 열릴 연결 별 단서
+function clueList(n) {
+  const items = NODES.filter(m => m.req && !isVisible(S, m) && m.req.some(([id]) => id === n.id)).map(m => {
+    const [, need] = m.req.find(([id]) => id === n.id);
+    const others = m.req.filter(([id, l]) => id !== n.id && lvOf(S, id) < l).map(([id, l]) => `${BRANCHES[NODE[id].br].name} ‘${NODE[id].name}’ ${l}단계`);
+    const mine = lvOf(S, n.id) >= need ? `<span class="ok">이 별은 조건을 채웠어요 ✓</span>` : `<b>${need}단계</b>가 되면`;
+    return { mine, others:others.join(', ') };
+  });
+  // 같은 단서는 하나로 묶어 "새 별 n개"로 보여요
+  const grouped = new Map();
+  for (const it of items) { const key = it.mine + '|' + it.others; grouped.set(key, Object.assign(it, { n:((grouped.get(key) || {}).n || 0) + 1 })); }
+  const lines = [...grouped.values()].map(it => `<li>${it.mine} 어딘가에 새 별${it.n > 1 ? ' ' + it.n + '개' : ''}이 열려요${it.others ? ` · 함께 필요: ${it.others}` : ''}</li>`);
+  return lines.length ? `<ul class="clues">${lines.join('')}</ul>` : '';
+}
 function refreshInfoButtons() {
   if (!sel) return;
   const n = NODE[sel], lv = lvOf(S, n.id);
@@ -672,14 +748,24 @@ function buy(id, quiet) {
   if ((st !== 'avail' && st !== 'lit') || lv >= n.max) return;
   const cost = costOf(n, lv, D);
   if (cost > S.money) { if (!quiet) { const b = document.getElementById('buyOne'); if (b) shake(b); } return; }
+  const before = new Set(NODES.filter(m => nodeState(m) !== 'hidden' && nodeState(m) !== 'ghost').map(m => m.id));
   S.money -= cost;
   S.lv[id] = lv + 1;
   recompute();
+  // 다른 구간에서 새로 열린 별 알리기
+  const opened = NODES.filter(m => !before.has(m.id) && isVisible(S, m) && (m.req || m.total));
+  for (const m of opened) {
+    freshUntil[m.id] = Date.now() + 9000;
+    setTimeout(() => paintNode(m), 9100);
+    const [mx, my] = toScreen(m.x, m.y);
+    burst(mx, my, cssColor(BRANCHES[m.br].color.slice(4, -1)), 18);
+    toast('새 별이 나타났어요: ' + m.name, m.req ? `${m.req.map(([rid]) => BRANCHES[NODE[rid].br].name).join('과 ')} 사이에서 빛나기 시작했어요.` : `단계를 ${m.total}개 쌓자 먼 곳에서 떠올랐어요.`);
+  }
+  paintAll();
   paintNode(n, true);
-  if (lv === 0) {
-    for (const k of n.kids) { paintNode(NODE[k]); for (const g of NODE[k].kids) paintNode(NODE[g]); }
+  if (lv === 0 || opened.length) {
     if (follow) fitTarget();
-    if (n.k === 'meteor') { meteorIn = 8; toast('유성이 보이기 시작했어요', '지나가는 유성을 눌러서 잡으세요.'); }
+    if (lv === 0 && n.k === 'meteor') { meteorIn = 8; toast('유성이 보이기 시작했어요', '지나가는 유성을 눌러서 잡으세요.'); }
   }
   const [sx, sy] = toScreen(n.x, n.y);
   burst(sx, sy, cssColor(BRANCHES[n.br].color.slice(4, -1)), 10);
@@ -800,6 +886,8 @@ function updateHud() {
   if (D.crit > 0) chips.push(`<span class="chip">섬광 ${Math.round(D.crit * 100)}% · ×${D.critMul}</span>`);
   if (D.combo > 0 && combo > 1) chips.push(`<span class="chip">연타 +${Math.round((comboMul() - 1) * 100)}%</span>`);
   if (D.autoClick > 0) chips.push(`<span class="chip">자동 반짝 초당 ${trim(D.autoClick)}번</span>`);
+  const tl = totalLv(S), nextM = MILESTONES.find(t => t > tl);
+  if (nextM) chips.push(`<span class="chip next">심연의 별까지 ${nextM - tl}단계</span>`);
   for (const b of S.buffs) chips.push(`<span class="chip buff">유성우 ×3 · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
   els.chips.innerHTML = chips.join('');
   updateAffordable();
