@@ -3,223 +3,138 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>동심원 도시</title>
-<meta name="description" content="시청 하나에서 시작해 동심원을 따라 한 겹씩 넓혀 가는 도시 클릭 게임.">
+<title>중심별</title>
+<meta name="description" content="중심별을 눌러 별빛을 모으고, 별을 하나씩 밝혀 업그레이드 별자리를 바깥으로 넓혀 가는 클릭 게임.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbit&family=Noto+Sans+KR:wght@400;500;700&display=swap">
 <style>
-/* 레이아웃: 도시계획 도면 한 장 — 왼쪽 시청(클릭), 가운데 원형 도면(확장), 오른쪽 건축 대장(구매). 좁으면 위아래로 쌓는다. */
+/* 레이아웃: 화면 전체가 밤하늘. 한가운데 중심별, 업그레이드 별들이 여섯 갈래로 퍼져 나간다. 왼쪽 위 계기판, 오른쪽(좁으면 아래) 별 정보. */
 :root{
-  --paper:#eef1ec; --paper-2:#e2e7e0; --sheet:#f8faf6; --ink:#1d2a2f; --ink-2:#55646a; --ink-3:#8a979b;
-  --grid:#d5ddd6; --line:#c2ccc4; --accent:#2350b8; --accent-ink:#ffffff; --stamp:#d2372b; --ok:#2f8a57;
-  --shadow:rgba(20,35,40,.16); --shadow-strong:rgba(20,35,40,.32); --scrim:rgba(20,35,40,.35);
-  --z-hall:#ffffff; --z-house:#f1d35a; --z-shop:#ef8f86; --z-factory:#a995d8; --z-office:#82b2e3;
-  --z-mall:#f2a65f; --z-tower:#6189d8; --z-stadium:#6fc493; --z-landmark:#d8b04a; --zone-ink:#1d2a2f;
-  --f-display:"Do Hyeon","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;
-  --f-num:"IBM Plex Mono","IBM Plex Sans KR",ui-monospace,monospace;
-  --t-xs:12px; --t-sm:13px; --t-md:15px; --t-lg:19px; --t-xl:26px; --t-2xl:36px;
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]){
-    --paper:#0e1a2c; --paper-2:#14233a; --sheet:#13213a; --ink:#e7eef6; --ink-2:#a3b4c8; --ink-3:#6c809a;
-    --grid:#1d2f4c; --line:#2b4065; --accent:#86b4ff; --accent-ink:#0e1a2c; --stamp:#ff6b5e; --ok:#6fd49a;
-    --shadow:rgba(0,0,0,.35); --shadow-strong:rgba(0,0,0,.55); --scrim:rgba(4,8,16,.6);
-    --z-hall:#e7eef6; --z-house:#d9b93c; --z-shop:#d9736b; --z-factory:#8f78c9; --z-office:#5f97d4;
-    --z-mall:#e08d45; --z-tower:#4f76cc; --z-stadium:#4fae78; --z-landmark:#c79c33; --zone-ink:#0e1a2c;
-    color-scheme:dark;
-  }
-}
-:root[data-theme="dark"]{
-  --paper:#0e1a2c; --paper-2:#14233a; --sheet:#13213a; --ink:#e7eef6; --ink-2:#a3b4c8; --ink-3:#6c809a;
-  --grid:#1d2f4c; --line:#2b4065; --accent:#86b4ff; --accent-ink:#0e1a2c; --stamp:#ff6b5e; --ok:#6fd49a;
-  --shadow:rgba(0,0,0,.35); --shadow-strong:rgba(0,0,0,.55); --scrim:rgba(4,8,16,.6);
-  --z-hall:#e7eef6; --z-house:#d9b93c; --z-shop:#d9736b; --z-factory:#8f78c9; --z-office:#5f97d4;
-  --z-mall:#e08d45; --z-tower:#4f76cc; --z-stadium:#4fae78; --z-landmark:#c79c33; --zone-ink:#0e1a2c;
   color-scheme:dark;
+  --void:#060913; --space:#0c1224; --panel:rgba(14,20,38,.9); --panel-solid:#0f1629; --line:#26304f; --line-2:#3a4672;
+  --text:#eef1fb; --muted:#9ba5c7; --dim:#5d6789; --core:#fff3cf; --core-glow:rgba(255,214,110,.55);
+  --b-click:#ffd66e; --b-auto:#7fd8ff; --b-amp:#c39bff; --b-luck:#ff8fb1; --b-meteor:#ffad66; --b-res:#8ff0b5;
+  --good:#8ff0b5; --shadow:rgba(0,0,0,.5);
+  --f-display:"Orbit","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --t-xs:12px; --t-sm:13px; --t-md:15px; --t-lg:19px; --t-xl:28px;
 }
 *{box-sizing:border-box}
 [hidden]{display:none !important}
-html,body{min-height:100%}
-body{margin:0; color:var(--ink); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased;
-  background:var(--paper); background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px); background-size:24px 24px}
+html,body{height:100%; overflow:hidden}
+body{margin:0; background:var(--void); color:var(--text); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased}
 button{font:inherit; color:inherit}
 h1,h2,h3{margin:0; text-wrap:balance}
-.eyebrow{font-size:var(--t-xs); font-weight:700; letter-spacing:.12em; color:var(--ink-2)}
-.muted{color:var(--ink-2); font-size:var(--t-sm)}
-.num{font-family:var(--f-num); font-variant-numeric:tabular-nums}
-.h{font-family:var(--f-display); font-weight:400; font-size:var(--t-lg); letter-spacing:.01em}
 
-/* 표제란 */
-.titleblock{display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; max-width:1400px; margin-inline:auto; padding-inline:16px; padding-block:20px 4px}
-.titleblock h1{font-family:var(--f-display); font-weight:400; font-size:var(--t-xl); line-height:1}
-.titleblock .sub{display:flex; gap:10px; align-items:baseline; flex-wrap:wrap}
-.cityname{font-family:var(--f-display); font-size:var(--t-lg); color:var(--accent)}
-.topbar{display:none; position:sticky; top:env(safe-area-inset-top,0px); z-index:6; justify-content:space-between; align-items:baseline; gap:12px; padding:10px 16px; background:var(--sheet); border-bottom:1px solid var(--line)}
-.topbar .money{font-size:var(--t-xl)}
+.stage{position:fixed; inset:0; touch-action:none; background:radial-gradient(70% 70% at 50% 50%,var(--space),var(--void))}
+#sky,#tree{position:absolute; inset:0; width:100%; height:100%; display:block}
+#tree{cursor:grab}
+#tree.panning{cursor:grabbing}
 
-.game{display:grid; gap:18px; max-width:1400px; margin-inline:auto; padding-inline:16px; padding-block:14px 40px;
-  grid-template-columns:minmax(260px,320px) minmax(0,1fr) minmax(320px,420px); grid-template-areas:"hall map shop"; align-items:start}
-.card{background:var(--sheet); border:1px solid var(--line); border-radius:14px; box-shadow:0 1px 0 var(--shadow)}
+/* 별 지도 */
+.edge{stroke:var(--line-2); stroke-width:1.5; vector-effect:non-scaling-stroke; fill:none}
+.edge.ghost{stroke:var(--line); stroke-dasharray:3 5}
+.edge.lit{stroke:var(--c); stroke-width:2.5; opacity:.85}
+.node{cursor:pointer; outline:none}
+.node .halo{fill:var(--c); opacity:0}
+.node .disc{fill:var(--panel-solid); stroke:var(--c); stroke-width:2; stroke-dasharray:4 3}
+.node .prog{fill:none; stroke:var(--c); stroke-width:3; stroke-linecap:round; transform:rotate(-90deg); opacity:.9}
+.node .lab{fill:var(--muted); font-family:var(--f-display); font-size:12px; text-anchor:middle; dominant-baseline:central; pointer-events:none}
+.node.can .disc{stroke-dasharray:none; stroke-width:2.5}
+.node.can .halo{opacity:.18; animation:breathe 1.6s ease-in-out infinite}
+.node.can .lab{fill:var(--text)}
+.node.lit .disc{fill:var(--c); fill-opacity:.22; stroke-dasharray:none}
+.node.lit .lab{fill:var(--text)}
+.node.lit .halo{opacity:.14}
+.node.max .disc{fill:var(--c); fill-opacity:1; stroke:var(--text)}
+.node.max .lab{fill:var(--void)}
+.node.sel .ring{opacity:1}
+.node .ring{fill:none; stroke:var(--text); stroke-width:1.5; opacity:0}
+.node:focus-visible .ring{opacity:1; stroke:var(--b-click)}
+.node.ghost{pointer-events:none}
+.node.ghost .disc{fill:var(--line); stroke:none}
+.node.pop .disc{animation:pop .5s ease}
+@keyframes breathe{50%{opacity:.34}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+.core{cursor:pointer; outline:none}
+.core .body{transform-box:fill-box; transform-origin:center; transition:transform .08s}
+.core.hit .body{animation:press .14s ease}
+@keyframes press{50%{transform:scale(.9)}}
+.core:focus-visible .focus{opacity:1}
+.core .focus{fill:none; stroke:var(--b-click); stroke-width:2; opacity:0}
 
-/* 시청 */
-.hall{grid-area:hall; display:flex; flex-direction:column; gap:14px; padding:16px; position:sticky; top:calc(env(safe-area-inset-top,0px) + 14px)}
-.money-box{display:flex; flex-direction:column; align-items:center; text-align:center; gap:2px}
-.money{font-family:var(--f-num); font-size:var(--t-2xl); line-height:1.1; font-weight:500; word-break:keep-all; font-variant-numeric:tabular-nums}
-.rate{font-size:var(--t-sm); color:var(--ink-2)}
-.rate b{font-family:var(--f-num); font-weight:500; color:var(--accent)}
-.hall-btn{all:unset; position:relative; display:block; width:100%; max-width:260px; margin-inline:auto; cursor:pointer; border-radius:14px; touch-action:manipulation; -webkit-tap-highlight-color:transparent; user-select:none; -webkit-user-select:none; transition:transform .08s}
-.hall-btn svg{display:block; width:100%; height:auto}
-.hall-btn:hover{transform:translateY(-2px)}
-.hall-btn:focus-visible{outline:3px solid var(--accent); outline-offset:4px}
-.hall-btn.hit{animation:press .14s ease}
-@keyframes press{50%{transform:scale(.95)}}
-.hall-btn .s-fill{fill:var(--sheet)} .hall-btn .s-fill2{fill:var(--paper-2)} .hall-btn .s-ink{fill:var(--ink)}
-.hall-btn .s-line{stroke:var(--ink); fill:none} .hall-btn .s-door{fill:var(--accent)} .hall-btn .s-flag{fill:var(--stamp)}
-.hall-btn .s-ground{fill:var(--grid)}
-.hall-hint{text-align:center; font-size:var(--t-xs); font-weight:700; letter-spacing:.08em; color:var(--ink-2); margin:0}
-.quick{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:0}
-.quick div{background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:8px 10px; min-width:0}
-.quick dt{font-size:var(--t-xs); color:var(--ink-2); font-weight:700}
-.quick dd{margin:0; font-family:var(--f-num); font-weight:500; font-size:var(--t-md); overflow-wrap:anywhere}
-.buffs{display:flex; flex-wrap:wrap; gap:6px; justify-content:center}
-.buff{font-size:var(--t-sm); font-weight:700; color:var(--accent-ink); background:var(--accent); border-radius:999px; padding:3px 12px; font-variant-numeric:tabular-nums}
+/* 계기판 */
+.hud{position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:16px; z-index:5; pointer-events:none; display:flex; flex-direction:column; gap:2px; max-width:calc(100% - 140px)}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand h1{font-family:var(--f-display); font-weight:400; font-size:var(--t-lg); letter-spacing:.04em}
+.brand span{font-size:var(--t-sm); color:var(--b-click)}
+.money{font-family:var(--f-display); font-size:var(--t-xl); line-height:1.15; font-variant-numeric:tabular-nums; word-break:keep-all}
+.money small{font-family:var(--f-body); font-size:var(--t-sm); color:var(--muted); margin-left:6px}
+.rates{font-size:var(--t-sm); color:var(--muted)}
+.rates b{font-family:var(--f-display); font-weight:400; color:var(--text)}
+.chips{display:flex; flex-wrap:wrap; gap:6px; margin-top:6px}
+.chip{font-size:var(--t-xs); font-weight:700; border-radius:999px; padding:2px 10px; background:var(--panel); border:1px solid var(--line-2); color:var(--text); font-variant-numeric:tabular-nums}
+.chip.buff{background:var(--b-meteor); color:var(--void); border-color:transparent}
+.tools{position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); right:16px; z-index:5; display:flex; gap:8px}
+.tbtn{border:1px solid var(--line-2); background:var(--panel); color:var(--text); border-radius:10px; padding:7px 12px; font-size:var(--t-sm); font-weight:700; cursor:pointer}
+.tbtn:focus-visible{outline:2px solid var(--b-click); outline-offset:2px}
 
-/* 도면 */
-.mapcol{grid-area:map; display:flex; flex-direction:column; gap:12px; padding:16px; min-width:0}
-.map-head{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
-.map-head p{margin:0}
-.expand{display:flex; align-items:center; gap:10px; border:1px solid var(--accent); background:transparent; color:var(--accent); border-radius:10px; padding:7px 12px; cursor:pointer; font-weight:700; font-size:var(--t-sm)}
-.expand .num{font-size:var(--t-sm)}
-.expand.can{background:var(--accent); color:var(--accent-ink)}
-.expand:disabled{border-color:var(--line); color:var(--ink-3); cursor:default}
-.expand:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.plan{position:relative; width:100%; max-width:560px; margin-inline:auto; padding:10px}
-.rings{position:absolute; inset:10px; width:calc(100% - 20px); height:calc(100% - 20px); pointer-events:none; overflow:visible}
-.rings circle{fill:none; stroke:var(--ink-3); stroke-width:1; stroke-dasharray:4 4; vector-effect:non-scaling-stroke; opacity:.5}
-.rings circle.open{stroke:var(--accent); opacity:.7; stroke-dasharray:none}
-.map{position:relative; display:grid; grid-template-columns:repeat(11,minmax(0,1fr)); gap:3px}
-.tile{--zc:var(--sheet); --lv:0; position:relative; aspect-ratio:1; display:grid; place-items:center; padding:0; border:0; border-radius:5px; background:transparent; cursor:pointer;
-  font-family:var(--f-display); font-size:clamp(11px,2vw,17px); line-height:1; color:var(--zone-ink); transition:transform .12s}
-.tile.void{visibility:hidden; pointer-events:none}
-.tile.locked{box-shadow:inset 0 0 0 1px var(--line); opacity:.45}
-.tile.next{box-shadow:inset 0 0 0 1.5px var(--accent); opacity:.7}
-.tile.lot{background:var(--paper); box-shadow:inset 0 0 0 1px var(--line); color:var(--ink-3)}
-.tile.lot::after{content:""; width:22%; aspect-ratio:1; border-radius:50%; background:var(--line)}
-.tile.b{background:var(--zc); box-shadow:inset 0 0 0 1px var(--shadow-strong),0 calc(1px + var(--lv) * .45px) 0 var(--shadow-strong)}
-.tile.b:hover,.tile.lot:hover{transform:translateY(-1px)}
-.tile.hall-tile{background:var(--z-hall); box-shadow:inset 0 0 0 2px var(--accent),0 3px 0 var(--shadow-strong); color:var(--zone-ink)}
-.tile.sel{outline:2px solid var(--accent); outline-offset:2px; z-index:1; opacity:1}
-.tile:focus-visible{outline:2px solid var(--accent); outline-offset:2px; z-index:1}
-.tile .lvb{position:absolute; right:1px; bottom:0; font-family:var(--f-num); font-size:9px; line-height:1.2; font-weight:500; opacity:.75}
-.tile.pop{animation:pop .45s ease backwards}
-@keyframes pop{0%{transform:scale(.4); opacity:0}60%{transform:scale(1.12)}100%{transform:scale(1)}}
-.z-house{--zc:var(--z-house)} .z-shop{--zc:var(--z-shop)} .z-factory{--zc:var(--z-factory)} .z-office{--zc:var(--z-office)}
-.z-mall{--zc:var(--z-mall)} .z-tower{--zc:var(--z-tower)} .z-stadium{--zc:var(--z-stadium)} .z-landmark{--zc:var(--z-landmark)}
-
-.inspect{display:flex; flex-direction:column; gap:10px; padding:12px 14px; min-height:84px; background:var(--paper); border:1px solid var(--line); border-radius:12px}
-.ins-top{display:flex; align-items:center; gap:12px}
-.ins-top .ti{display:flex; flex-direction:column; min-width:0}
-.ins-top b{font-weight:700}
-.ins-top span{font-size:var(--t-sm); color:var(--ink-2)}
-.ins-actions{display:flex; flex-wrap:wrap; gap:8px}
-.pick{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:6px}
-.pick button{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; border:1px solid var(--line); background:var(--sheet); cursor:pointer; text-align:left; min-width:0}
-.pick button.can{border-color:var(--accent)}
-.pick button:disabled{opacity:.45; cursor:default}
-.pick button span{display:flex; flex-direction:column; line-height:1.25; min-width:0}
-.pick small{font-family:var(--f-num); font-size:var(--t-xs); color:var(--ink-2)}
-.legend{list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:6px 14px}
-.legend li{display:flex; align-items:center; gap:6px; font-size:var(--t-xs); color:var(--ink-2)}
-.legend i{width:12px; height:12px; border-radius:3px; background:var(--zc); box-shadow:inset 0 0 0 1px var(--shadow-strong)}
-
-/* 칩·버튼 */
-.chip{flex:none; width:40px; height:40px; border-radius:9px; display:grid; place-items:center; background:var(--zc,var(--paper-2)); color:var(--zone-ink); font-family:var(--f-display); font-size:16px; line-height:1; box-shadow:inset 0 0 0 1px var(--shadow-strong),0 2px 0 var(--shadow-strong)}
-.chip.sm{width:28px; height:28px; font-size:13px; border-radius:7px}
-.chip.ic{--zc:var(--paper-2); color:var(--ink)}
-.btn{border:0; border-radius:10px; padding:9px 14px; font-weight:700; font-size:var(--t-sm); background:var(--accent); color:var(--accent-ink); cursor:pointer}
-.btn:disabled{background:var(--paper-2); color:var(--ink-3); cursor:not-allowed}
-.btn.ghost{background:transparent; color:var(--ink-2); box-shadow:inset 0 0 0 1px var(--line)}
-.btn.warn{background:var(--stamp); color:#fff}
-.btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+/* 별 정보 */
+.info{position:fixed; z-index:6; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); width:340px; display:flex; flex-direction:column; gap:10px; padding:16px;
+  background:var(--panel); border:1px solid var(--line-2); border-radius:16px; box-shadow:0 18px 40px var(--shadow); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px)}
+.info .kicker{display:flex; align-items:center; gap:8px; font-size:var(--t-xs); font-weight:700; letter-spacing:.08em; color:var(--muted)}
+.info .kicker i{width:10px; height:10px; border-radius:50%; background:var(--c)}
+.info h2{font-family:var(--f-display); font-weight:400; font-size:var(--t-lg); line-height:1.2}
+.info p{margin:0; font-size:var(--t-sm); color:var(--muted)}
+.fxline{display:flex; flex-wrap:wrap; align-items:baseline; gap:6px; font-size:var(--t-sm)}
+.fxline b{color:var(--c,var(--text))}
+.lvbar{display:flex; gap:3px}
+.lvbar i{flex:1; height:5px; border-radius:3px; background:var(--line)}
+.lvbar i.on{background:var(--c)}
+.actions{display:flex; gap:8px; flex-wrap:wrap}
+.btn{flex:1 1 auto; border:0; border-radius:10px; padding:10px 14px; font-weight:700; font-size:var(--t-sm); background:var(--c,var(--b-click)); color:var(--void); cursor:pointer; font-variant-numeric:tabular-nums}
+.btn.ghost{flex:0 1 auto; background:transparent; color:var(--text); box-shadow:inset 0 0 0 1px var(--line-2)}
+.btn:disabled{background:var(--line); color:var(--dim); box-shadow:none; cursor:not-allowed}
+.btn.warn{background:var(--b-luck); color:var(--void)}
+.btn:focus-visible{outline:2px solid var(--text); outline-offset:2px}
+.legend{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:4px 10px; margin:0; padding:0; list-style:none}
+.legend li{display:flex; align-items:center; gap:6px; font-size:var(--t-xs); color:var(--muted)}
+.legend i{width:8px; height:8px; border-radius:50%; background:var(--c)}
 .shake{animation:shake .28s}
 @keyframes shake{25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-2px)}}
 
-/* 건축 대장 */
-.shopcol{grid-area:shop; display:flex; flex-direction:column; gap:12px; padding:12px; min-width:0}
-.tabs{display:flex; gap:4px; padding:4px; background:var(--paper); border:1px solid var(--line); border-radius:12px; overflow-x:auto}
-.tab{position:relative; flex:1 0 auto; border:0; background:transparent; color:var(--ink-2); font-weight:700; font-size:var(--t-sm); padding:9px 12px; border-radius:8px; cursor:pointer}
-.tab[aria-selected="true"]{background:var(--sheet); color:var(--ink); box-shadow:0 1px 0 var(--shadow-strong)}
-.tab:focus-visible{outline:2px solid var(--accent); outline-offset:-2px}
-.tab .dot{position:absolute; top:5px; right:5px; width:7px; height:7px; border-radius:50%; background:var(--stamp); display:none}
-.tab.has .dot{display:block}
-.panel{display:flex; flex-direction:column; gap:10px}
-.panel-head{display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap}
-.list{display:flex; flex-direction:column; gap:8px}
-.row{display:grid; grid-template-columns:40px minmax(0,1fr) auto; gap:12px; align-items:center; width:100%; text-align:left; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:var(--paper); cursor:pointer; transition:border-color .15s,background-color .15s}
-.row.can{border-color:var(--accent); background:var(--sheet)}
-.row:disabled{cursor:default; opacity:.55}
-.row:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-.row-main{display:flex; flex-direction:column; gap:1px; min-width:0}
-.row-name{font-weight:700}
-.row-name small{font-weight:500; color:var(--ink-3); margin-left:4px; font-size:var(--t-xs)}
-.row-desc{font-size:var(--t-xs); color:var(--ink-2)}
-.row-fx{font-size:var(--t-xs); color:var(--accent); font-weight:700}
-.row-side{display:flex; flex-direction:column; align-items:flex-end; gap:2px; text-align:right}
-.row-count{font-family:var(--f-num); font-size:var(--t-lg); line-height:1}
-.row-cost{font-family:var(--f-num); font-size:var(--t-sm); font-weight:500; color:var(--accent); white-space:nowrap}
-.row:not(.can) .row-cost{color:var(--ink-3)}
-.empty{margin:0; padding:12px; border:1px dashed var(--line); border-radius:12px; color:var(--ink-2); font-size:var(--t-sm)}
-.stats{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0}
-.stats div{background:var(--paper); border:1px solid var(--line); border-radius:10px; padding:8px 10px; min-width:0}
-.stats dt{font-size:var(--t-xs); color:var(--ink-2); font-weight:700}
-.stats dd{margin:0; font-family:var(--f-num); font-weight:500; overflow-wrap:anywhere}
-.prestige{display:flex; flex-direction:column; gap:8px; padding:14px; border-radius:12px; border:1px solid var(--accent); background:var(--paper)}
-.prestige p{margin:0; font-size:var(--t-sm); color:var(--ink-2); max-width:60ch}
-.prestige b.big{font-family:var(--f-num); font-weight:500; font-size:var(--t-lg)}
-.prestige .btn,.panel>.btn{align-self:flex-start}
-
 /* 효과 */
-.fx{position:fixed; inset:0; pointer-events:none; z-index:15; overflow:hidden}
-.float{position:absolute; font-family:var(--f-num); font-weight:500; font-size:18px; color:var(--accent); text-shadow:0 1px 0 var(--sheet); white-space:nowrap; animation:rise .9s ease-out forwards}
-.float.big{font-size:24px}
+.fx{position:fixed; inset:0; z-index:7; pointer-events:none; overflow:hidden}
+.float{position:absolute; font-family:var(--f-display); font-size:18px; color:var(--core); text-shadow:0 0 8px var(--core-glow); white-space:nowrap; animation:rise .9s ease-out forwards}
+.float.crit{font-size:26px; color:var(--b-luck); text-shadow:0 0 10px var(--b-luck)}
+.float.big{font-size:26px; color:var(--b-meteor)}
 @keyframes rise{from{opacity:1; transform:translate(-50%,-50%)}to{opacity:0; transform:translate(-50%,calc(-50% - 64px))}}
-.stamp{position:absolute; width:46px; height:46px; margin:-23px 0 0 -23px; border:3px solid var(--stamp); border-radius:50%; color:var(--stamp); display:grid; place-items:center;
-  font-family:var(--f-display); font-size:15px; line-height:1; animation:stamp .5s ease-out forwards}
-@keyframes stamp{0%{transform:scale(1.6) rotate(var(--r)); opacity:0}25%{transform:scale(1) rotate(var(--r)); opacity:.9}100%{transform:scale(1) rotate(var(--r)); opacity:0}}
-.bus{position:fixed; z-index:16; width:96px; padding:0; border:0; background:none; cursor:pointer; animation:bob 1.2s ease-in-out infinite; transition:opacity .4s; filter:drop-shadow(0 6px 8px var(--shadow-strong))}
-.bus svg{display:block; width:100%; height:auto}
-.bus.fade{opacity:0}
-.bus:focus-visible{outline:3px solid var(--accent); outline-offset:4px}
-@keyframes bob{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-8px) rotate(3deg)}}
-.toasts{position:fixed; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); z-index:20; display:flex; flex-direction:column; gap:8px; width:min(calc(100vw - 32px),380px); pointer-events:none}
-.toast{padding:10px 14px; border-radius:12px; border:1px solid var(--accent); background:var(--sheet); box-shadow:0 12px 30px var(--shadow-strong); animation:toast-in .25s ease; transition:opacity .3s,transform .3s}
-.toast b{display:block; color:var(--accent)}
-.toast span{font-size:var(--t-sm); color:var(--ink-2)}
-.toast.out{opacity:0; transform:translateY(8px)}
-@keyframes toast-in{from{opacity:0; transform:translateY(10px)}}
+.meteor{position:fixed; z-index:8; left:0; top:0; width:120px; height:40px; padding:0; border:0; background:none; cursor:pointer}
+.meteor svg{display:block; width:100%; height:100%; overflow:visible}
+.meteor:focus-visible{outline:2px solid var(--b-meteor); outline-offset:4px}
+.toasts{position:fixed; left:50%; top:calc(env(safe-area-inset-top,0px) + 14px); transform:translateX(-50%); z-index:20; display:flex; flex-direction:column; gap:8px; width:min(calc(100vw - 32px),360px); pointer-events:none}
+.toast{padding:10px 14px; border-radius:12px; border:1px solid var(--b-click); background:var(--panel-solid); box-shadow:0 12px 30px var(--shadow); animation:toast-in .25s ease; transition:opacity .3s,transform .3s}
+.toast b{display:block; color:var(--b-click)}
+.toast span{font-size:var(--t-sm); color:var(--muted)}
+.toast.out{opacity:0; transform:translateY(-8px)}
+@keyframes toast-in{from{opacity:0; transform:translateY(-10px)}}
 
-@media (max-width:1099px){
-  .game{grid-template-columns:minmax(0,1fr) minmax(300px,380px); grid-template-areas:"map hall" "map shop"; grid-template-rows:auto 1fr}
-  .hall{position:static}
+.dialog{position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:16px; background:rgba(4,6,14,.7)}
+.dialog .box{width:min(100%,420px); display:flex; flex-direction:column; gap:14px; padding:20px; border-radius:16px; background:var(--panel-solid); border:1px solid var(--line-2)}
+.dialog h2{font-family:var(--f-display); font-weight:400; font-size:var(--t-lg)}
+.stats{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:0}
+.stats div{padding:8px 10px; border-radius:10px; border:1px solid var(--line); min-width:0}
+.stats dt{font-size:var(--t-xs); color:var(--muted); font-weight:700}
+.stats dd{margin:0; font-family:var(--f-display); overflow-wrap:anywhere}
+
+@media (max-width:760px){
+  .info{left:0; right:0; bottom:0; width:auto; border-radius:16px 16px 0 0; padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px); gap:8px; max-height:48%; overflow-y:auto}
+  .info .legend{display:none}
+  .money{font-size:24px}
+  .hud{max-width:calc(100% - 180px)}
+  .tools{flex-direction:column; align-items:flex-end}
 }
-@media (max-width:719px){
-  .game{grid-template-columns:minmax(0,1fr); grid-template-areas:"hall" "map" "shop"; grid-template-rows:auto; gap:12px; padding-block:10px 32px}
-  .topbar{display:flex}
-  .titleblock{padding-block:14px 0}
-  .hall{flex-direction:row; flex-wrap:wrap; align-items:center; padding:12px}
-  .hall .money-box{display:none}
-  .hall-btn{width:42%; max-width:170px; margin:0}
-  .hall-side{flex:1 1 150px; display:flex; flex-direction:column; gap:8px; min-width:0}
-  .hall .quick{grid-template-columns:1fr}
-  .mapcol{padding:12px}
-  .plan{padding:4px}
-  .rings{inset:4px; width:calc(100% - 8px); height:calc(100% - 8px)}
-  .map{gap:2px}
-  .tile .lvb{display:none}
-}
-@media (min-width:720px){ .hall-side{display:flex; flex-direction:column; gap:14px} }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
   .float{animation:none; opacity:.9}
@@ -228,238 +143,223 @@ h1,h2,h3{margin:0; text-wrap:balance}
 </head>
 <body>
 
-<div class="topbar">
-  <span class="money" id="moneyTop">0원</span>
-  <span class="rate">초당 <b id="rateTop">0원</b></span>
+<div class="stage" id="stage">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <svg id="tree" role="group" aria-label="업그레이드 별자리">
+    <defs>
+      <radialGradient id="g-core" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#ffffff"/>
+        <stop offset=".35" stop-color="#fff3cf"/>
+        <stop offset=".7" stop-color="#ffd66e" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#ffd66e" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <g id="world">
+      <g id="coreGlow" pointer-events="none"><circle r="92" fill="url(#g-core)"/></g>
+      <g id="edges"></g>
+      <g id="core" class="core" role="button" tabindex="0" aria-label="중심별 눌러서 별빛 모으기">
+        <g class="body">
+          <circle r="60" fill="transparent"/>
+          <path d="M0 -46 C6 -12 12 -6 46 0 C12 6 6 12 0 46 C-6 12 -12 6 -46 0 C-12 -6 -6 -12 0 -46Z" fill="#fffaf0"/>
+          <circle r="16" fill="#ffffff"/>
+        </g>
+        <circle class="focus" r="58"/>
+      </g>
+      <g id="nodes"></g>
+    </g>
+  </svg>
 </div>
 
-<header class="titleblock">
-  <h1>동심원 도시</h1>
-  <div class="sub"><span class="cityname" id="cityName">동심리</span><span class="muted" id="cityRank">개발 구역 1 / 5</span></div>
+<header class="hud">
+  <div class="brand"><h1>중심별</h1><span id="stageName">작은 별</span></div>
+  <div class="money"><span id="money">0</span><small>별빛</small></div>
+  <div class="rates">초당 <b id="rate">0</b> · 클릭당 <b id="perClick">1</b></div>
+  <div class="chips" id="chips"></div>
 </header>
-
-<main class="game">
-  <section class="hall card" aria-label="시청">
-    <div class="money-box">
-      <span class="eyebrow">시 금고</span>
-      <span class="money" id="money">0원</span>
-      <span class="rate">초당 <b id="rate">0원</b></span>
-    </div>
-    <button class="hall-btn" id="hallBtn" type="button" aria-label="시청에서 세금 걷기">
-      <svg viewBox="0 0 200 150" aria-hidden="true">
-        <rect class="s-ground" x="6" y="136" width="188" height="6" rx="3"/>
-        <rect class="s-fill s-line" x="26" y="124" width="148" height="12" stroke-width="3"/>
-        <rect class="s-fill s-line" x="38" y="70" width="124" height="54" stroke-width="3"/>
-        <g class="s-fill2 s-line" stroke-width="2.5">
-          <rect x="50" y="80" width="9" height="44"/><rect x="71" y="80" width="9" height="44"/>
-          <rect x="120" y="80" width="9" height="44"/><rect x="141" y="80" width="9" height="44"/>
-        </g>
-        <rect class="s-door" x="90" y="96" width="20" height="28" rx="2"/>
-        <path class="s-fill s-line" d="M30 70L100 36L170 70Z" stroke-width="3" stroke-linejoin="round"/>
-        <circle class="s-fill s-line" cx="100" cy="57" r="7" stroke-width="2.5"/>
-        <path class="s-line" d="M100 57V52M100 57h4" stroke-width="2" stroke-linecap="round"/>
-        <path class="s-line" d="M100 36V10" stroke-width="2.5"/>
-        <path class="s-flag" d="M100 10L126 15L100 21Z"/>
-      </svg>
-    </button>
-    <div class="hall-side">
-      <p class="hall-hint">시청을 눌러 세금 걷기</p>
-      <dl class="quick">
-        <div><dt>클릭당</dt><dd id="perClick">10원</dd></div>
-        <div><dt>건물</dt><dd id="bCount">0채</dd></div>
-      </dl>
-      <div class="buffs" id="buffs"></div>
-    </div>
-  </section>
-
-  <section class="mapcol card" aria-label="도시 도면">
-    <div class="map-head">
-      <div><h2 class="h">도시 도면</h2><p class="muted" id="mapSub">시청에서 가까울수록 수입이 커요</p></div>
-      <button class="expand" id="expandBtn" type="button"></button>
-    </div>
-    <div class="plan">
-      <svg class="rings" id="rings" viewBox="0 0 11 11" preserveAspectRatio="none" aria-hidden="true"></svg>
-      <div class="map" id="map"></div>
-    </div>
-    <div class="inspect" id="inspect" aria-live="polite"></div>
-    <ul class="legend" id="legend"></ul>
-  </section>
-
-  <section class="shopcol card" aria-label="건축 대장">
-    <div class="tabs" role="tablist" aria-label="메뉴">
-      <button class="tab" type="button" role="tab" id="tab-build" data-tab="build" aria-selected="true">건물 짓기<i class="dot"></i></button>
-      <button class="tab" type="button" role="tab" id="tab-ups" data-tab="ups" aria-selected="false">정책<i class="dot"></i></button>
-      <button class="tab" type="button" role="tab" id="tab-stats" data-tab="stats" aria-selected="false">기록<i class="dot"></i></button>
-    </div>
-    <div class="panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build">
-      <div class="panel-head"><h2 class="h">건물 짓기</h2><span class="muted" id="freeCount">빈 땅 8칸</span></div>
-      <p class="muted" style="margin:0">누르면 시청에서 가장 가까운 빈 땅에 지어요. 빈 땅이 없으면 가장 효과가 큰 자리를 재개발하고, 원래 건물 값의 절반을 돌려받아요.</p>
-      <div class="list" id="buildList"></div>
-    </div>
-    <div class="panel" id="panel-ups" role="tabpanel" aria-labelledby="tab-ups" hidden>
-      <div class="panel-head"><h2 class="h">정책</h2><span class="muted" id="upCount">0개 시행</span></div>
-      <div class="list" id="upList"></div>
-      <p class="empty" id="upEmpty" hidden>지금 시행할 수 있는 정책이 없어요. 건물을 늘리고 구역을 넓히면 새 정책이 올라와요.</p>
-    </div>
-    <div class="panel" id="panel-stats" role="tabpanel" aria-labelledby="tab-stats" hidden>
-      <div class="panel-head"><h2 class="h">기록</h2></div>
-      <dl class="stats" id="stats"></dl>
-      <div class="prestige">
-        <h3 class="h">새 도시 계획</h3>
-        <p>지금 도시를 다음 세대에 넘기고 빈 땅의 시청 하나에서 다시 시작해요. 쌓인 도시 계획 노하우 하나마다 모든 수입이 영구히 5% 늘어요.</p>
-        <b class="big" id="knowGain">노하우 +0</b>
-        <p id="knowNext"></p>
-        <button class="btn" type="button" id="knowBtn" disabled>새 도시 계획 세우기</button>
-      </div>
-      <button class="btn ghost" type="button" id="wipeBtn">저장 기록 지우기</button>
-    </div>
-  </section>
-</main>
-
+<div class="tools">
+  <button class="tbtn" type="button" id="fitBtn">가운데로</button>
+  <button class="tbtn" type="button" id="statsBtn">기록</button>
+</div>
+<aside class="info" id="info" aria-live="polite"></aside>
 <div class="fx" id="fx" aria-hidden="true"></div>
-<button class="bus" id="bus" type="button" hidden aria-label="관광버스 맞이하기">
-  <svg viewBox="0 0 120 70" aria-hidden="true">
-    <rect x="4" y="8" width="112" height="46" rx="10" fill="var(--z-mall)" stroke="var(--zone-ink)" stroke-width="3"/>
-    <rect x="14" y="16" width="18" height="16" rx="3" fill="var(--sheet)"/><rect x="38" y="16" width="18" height="16" rx="3" fill="var(--sheet)"/>
-    <rect x="62" y="16" width="18" height="16" rx="3" fill="var(--sheet)"/><rect x="86" y="16" width="22" height="26" rx="3" fill="var(--sheet)"/>
-    <rect x="4" y="38" width="76" height="5" fill="var(--zone-ink)" opacity=".25"/>
-    <circle cx="28" cy="56" r="9" fill="var(--zone-ink)"/><circle cx="28" cy="56" r="3.5" fill="var(--sheet)"/>
-    <circle cx="92" cy="56" r="9" fill="var(--zone-ink)"/><circle cx="92" cy="56" r="3.5" fill="var(--sheet)"/>
+<button class="meteor" id="meteor" type="button" hidden aria-label="유성 잡기">
+  <svg viewBox="0 0 120 40" aria-hidden="true">
+    <defs><linearGradient id="g-tail" x1="0" x2="1"><stop offset="0" stop-color="#ffad66" stop-opacity="0"/><stop offset="1" stop-color="#ffd66e"/></linearGradient></defs>
+    <path d="M0 20 L100 13 L100 27 Z" fill="url(#g-tail)"/>
+    <circle cx="102" cy="20" r="10" fill="#fff3cf"/>
+    <circle cx="102" cy="20" r="16" fill="#ffd66e" opacity=".3"/>
   </svg>
 </button>
+<div class="dialog" id="statsDialog" hidden role="dialog" aria-modal="true" aria-labelledby="statsTitle">
+  <div class="box">
+    <h2 id="statsTitle">기록</h2>
+    <dl class="stats" id="stats"></dl>
+    <div class="actions">
+      <button class="btn ghost" type="button" id="wipeBtn">처음부터 다시 하기</button>
+      <button class="btn" type="button" id="closeStats">닫기</button>
+    </div>
+  </div>
+</div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
-<script id="core">
+<script id="core-rules">
 "use strict";
-/* ===== 도시 규칙 (DOM 없음) ===== */
-const CLICK_BASE = 10;         // 시청 한 번 누를 때 걷는 세금
-const GROWTH = 1.15;           // 같은 건물을 지을 때마다 값이 15%씩 오름
-const LV_MAX = 10;
-const KNOW_BONUS = 0.05, KNOW_UNIT = 1e11;
-const N = 11, MID = 5, HALL = MID * N + MID;
+/* ===== 규칙 (DOM 없음) ===== */
+const RING_GAP = 120;      // 고리 하나 사이 거리
+const CRIT_BASE = 3;       // 섬광 기본 배율
+const COMBO_WINDOW = 0.5;  // 이 시간 안에 다시 누르면 연타가 이어짐
 
-const RINGS = [
-  { name:'시청',   cost:0,     bonus:0 },
-  { name:'도심',   cost:0,     bonus:2 },
-  { name:'부도심', cost:1e4,   bonus:1.6 },
-  { name:'생활권', cost:6e5,   bonus:1.3 },
-  { name:'신도시', cost:2.5e7, bonus:1.15 },
-  { name:'광역권', cost:3e9,   bonus:1 },
+const BRANCHES = {
+  click:  { name:'손끝', color:'var(--b-click)',  angle:-90, note:'클릭' },
+  auto:   { name:'위성', color:'var(--b-auto)',   angle:-30, note:'자동 수입' },
+  amp:    { name:'증폭', color:'var(--b-amp)',    angle:30,  note:'전체 배율' },
+  luck:   { name:'행운', color:'var(--b-luck)',   angle:90,  note:'섬광' },
+  meteor: { name:'유성', color:'var(--b-meteor)', angle:150, note:'유성' },
+  res:    { name:'공명', color:'var(--b-res)',    angle:210, note:'연결' },
+};
+
+const NODES = [
+  { id:'a1', br:'click', p:null, ring:1, off:0,   name:'첫 반짝임',   desc:'중심별을 누를 때마다 별빛을 더 모아요.', k:'clickAdd', v:1, max:10, cost:10, g:1.5 },
+  { id:'a2', br:'click', p:'a1', ring:2, off:0,   name:'단단한 손끝', desc:'누르는 힘이 두 배가 돼요.', k:'clickMul', v:2, max:3, cost:400, g:12 },
+  { id:'a3', br:'click', p:'a2', ring:3, off:-11, name:'연타 리듬',   desc:'쉬지 않고 누를수록 별빛이 늘어요.', k:'combo', v:0.05, max:5, cost:1.5e4, g:3 },
+  { id:'a4', br:'click', p:'a2', ring:3, off:11,  name:'빛 모으기',   desc:'한 번에 모으는 별빛이 크게 늘어요.', k:'clickAdd', v:8, max:10, cost:6000, g:1.6 },
+  { id:'a5', br:'click', p:'a4', ring:4, off:11,  name:'불꽃 손가락', desc:'손끝에서 불꽃이 튀어요.', k:'clickMul', v:2, max:3, cost:1e6, g:15 },
+  { id:'a6', br:'click', p:'a5', ring:5, off:9,   name:'공명 터치',   desc:'누를 때마다 위성들이 함께 빛나요.', k:'fromAuto', v:0.01, max:5, cost:2e7, g:4 },
+  { id:'a7', br:'click', p:'a6', ring:6, off:5,   name:'초신성 손끝', desc:'한 번 누르면 별 하나가 터지는 만큼.', k:'clickMul', v:3, max:2, cost:5e9, g:40 },
+  { id:'a8', br:'click', p:'a7', ring:7, off:0,   name:'빅뱅 탭',     desc:'모든 것이 시작된 한 번의 누름.', k:'clickMul', v:5, max:1, cost:1e13, g:1 },
+
+  { id:'b1', br:'auto', p:null, ring:1, off:0,   name:'작은 위성',   desc:'중심별 곁을 돌며 별빛을 모아 와요.', k:'autoAdd', v:1, max:10, cost:25, g:1.45 },
+  { id:'b2', br:'auto', p:'b1', ring:2, off:0,   name:'궤도 정렬',   desc:'위성들이 같은 궤도를 돌아 효율이 두 배.', k:'autoMul', v:2, max:3, cost:800, g:12 },
+  { id:'b3', br:'auto', p:'b2', ring:3, off:-11, name:'쌍둥이 위성', desc:'짝을 지어 도는 위성.', k:'autoAdd', v:10, max:10, cost:1e4, g:1.5 },
+  { id:'b4', br:'auto', p:'b2', ring:3, off:11,  name:'태양풍',      desc:'별바람이 위성을 밀어 줘요.', k:'autoMul', v:1.5, max:4, cost:6e4, g:8 },
+  { id:'b5', br:'auto', p:'b3', ring:4, off:-11, name:'위성 고리',   desc:'고리 모양으로 늘어선 위성 무리.', k:'autoAdd', v:200, max:10, cost:5e5, g:1.5 },
+  { id:'b6', br:'auto', p:'b5', ring:5, off:-9,  name:'자동 궤도',   desc:'궤도를 스스로 고치는 위성.', k:'autoMul', v:2, max:2, cost:5e7, g:30 },
+  { id:'b7', br:'auto', p:'b6', ring:6, off:-5,  name:'행성 공장',   desc:'위성이 위성을 만들어요.', k:'autoAdd', v:1.5e4, max:10, cost:2e8, g:1.5 },
+  { id:'b8', br:'auto', p:'b7', ring:7, off:0,   name:'다이슨 구',   desc:'별 전체를 감싸 모든 빛을 모아요.', k:'autoMul', v:5, max:1, cost:5e12, g:1 },
+
+  { id:'c1', br:'amp', p:null, ring:1, off:0,   name:'밝기',      desc:'모든 별빛이 조금씩 밝아져요.', k:'allMul', v:1.1, max:5, cost:100, g:3 },
+  { id:'c2', br:'amp', p:'c1', ring:2, off:0,   name:'렌즈',      desc:'빛을 한곳으로 모아요.', k:'allMul', v:1.2, max:4, cost:5000, g:5 },
+  { id:'c3', br:'amp', p:'c2', ring:3, off:0,   name:'망원경',    desc:'더 먼 빛까지 끌어와요.', k:'allMul', v:1.3, max:3, cost:3e5, g:10 },
+  { id:'c4', br:'amp', p:'c3', ring:4, off:-11, name:'효율 설계', desc:'별을 밝히는 데 드는 별빛이 줄어요.', k:'costDown', v:0.04, max:5, cost:2e6, g:4 },
+  { id:'c5', br:'amp', p:'c3', ring:4, off:11,  name:'성간 증폭', desc:'별과 별 사이의 빛까지 모아요.', k:'allMul', v:1.5, max:2, cost:2e7, g:30 },
+  { id:'c6', br:'amp', p:'c5', ring:5, off:9,   name:'중력 렌즈', desc:'중력이 빛을 휘게 해 모아 줘요.', k:'allMul', v:2, max:1, cost:1e9, g:1 },
+  { id:'c7', br:'amp', p:'c6', ring:6, off:5,   name:'우주 상수', desc:'우주가 커질수록 빛도 커져요.', k:'allMul', v:3, max:1, cost:2e11, g:1 },
+
+  { id:'d1', br:'luck', p:null, ring:1, off:0,   name:'반짝 행운',   desc:'가끔 누른 별빛이 섬광처럼 터져요.', k:'critChance', v:0.01, max:10, cost:150, g:1.7 },
+  { id:'d2', br:'luck', p:'d1', ring:2, off:0,   name:'강한 섬광',   desc:'섬광이 터질 때 더 크게 터져요.', k:'critMul', v:1, max:5, cost:3000, g:4 },
+  { id:'d3', br:'luck', p:'d2', ring:3, off:-11, name:'연쇄 섬광',   desc:'섬광이 더 자주 터져요.', k:'critChance', v:0.02, max:5, cost:1e5, g:3 },
+  { id:'d4', br:'luck', p:'d2', ring:3, off:11,  name:'섬광 증폭',   desc:'섬광 배율이 크게 올라요.', k:'critMul', v:2, max:5, cost:2e5, g:4.5 },
+  { id:'d5', br:'luck', p:'d3', ring:4, off:-11, name:'행운의 별',   desc:'섬광이 터지면 위성 수입까지 함께 받아요.', k:'critSec', v:1, max:5, cost:5e6, g:5 },
+  { id:'d6', br:'luck', p:'d5', ring:5, off:-9,  name:'운명의 섬광', desc:'섬광 확률이 크게 올라요.', k:'critChance', v:0.05, max:2, cost:1e9, g:30 },
+
+  { id:'e1', br:'meteor', p:null, ring:1, off:0,   name:'유성 관측',   desc:'가끔 유성이 지나가요. 눌러서 잡으세요.', k:'meteor', v:1, max:1, cost:500, g:1 },
+  { id:'e2', br:'meteor', p:'e1', ring:2, off:0,   name:'유성우',      desc:'유성이 더 자주 지나가요.', k:'meteorFreq', v:0.88, max:5, cost:6000, g:2.6 },
+  { id:'e3', br:'meteor', p:'e2', ring:3, off:-11, name:'큰 유성',     desc:'유성이 주는 별빛이 늘어요.', k:'meteorMul', v:1.5, max:5, cost:8e4, g:3 },
+  { id:'e4', br:'meteor', p:'e2', ring:3, off:11,  name:'긴 꼬리',     desc:'유성 효과가 더 오래가요.', k:'meteorDur', v:10, max:4, cost:1.5e5, g:3.5 },
+  { id:'e5', br:'meteor', p:'e4', ring:4, off:11,  name:'느린 유성',   desc:'유성이 천천히 지나가 잡기 쉬워요.', k:'meteorSlow', v:2, max:1, cost:1e6, g:1 },
+  { id:'e6', br:'meteor', p:'e3', ring:4, off:-11, name:'별똥별 소원', desc:'유성이 주는 별빛이 크게 늘어요.', k:'meteorMul', v:3, max:2, cost:5e7, g:30 },
+
+  { id:'f1', br:'res', p:null, ring:1, off:0,   name:'별자리 잇기', desc:'밝힌 별끼리 이어져 서로를 밝혀 줘요.', k:'perNode', v:0.005, max:3, cost:1000, g:15 },
+  { id:'f2', br:'res', p:'f1', ring:2, off:0,   name:'자동 반짝임', desc:'중심별이 저절로 반짝여요. 누른 것처럼 별빛을 모아요.', k:'autoClick', v:0.25, max:10, cost:8000, g:1.8 },
+  { id:'f3', br:'res', p:'f2', ring:3, off:-11, name:'기억의 빛',   desc:'자리를 비운 동안에도 더 많이 모아요.', k:'offline', v:0.25, max:2, cost:1e5, g:6 },
+  { id:'f4', br:'res', p:'f2', ring:3, off:11,  name:'시간 가속',   desc:'별의 시간이 조금 빨리 흘러요.', k:'allMul', v:1.1, max:5, cost:4e5, g:4 },
+  { id:'f5', br:'res', p:'f4', ring:4, off:11,  name:'블랙홀',      desc:'모든 빛이 한곳으로 빨려 들어와요.', k:'allMul', v:2, max:1, cost:5e8, g:1 },
 ];
-const RANKS = ['리', '읍', '시', '광역시', '특별시'];
+const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
+NODES.forEach(n => {
+  n.cost *= Math.pow(3, Math.max(0, n.ring - 2));   // 바깥 고리로 갈수록 값이 3배씩 더 뛰어요
+  const a = (BRANCHES[n.br].angle + n.off) * Math.PI / 180, r = n.ring * RING_GAP;
+  n.x = Math.cos(a) * r; n.y = Math.sin(a) * r;
+  n.kids = NODES.filter(m => m.p === n.id).map(m => m.id);
+});
+const STAGES = [[0, '작은 별'], [5, '별자리'], [12, '성단'], [22, '성운'], [32, '은하'], [NODES.length, '우주']];
 
-// 시청을 중심으로 한 원형 도면. 거리를 반올림한 값이 몇 번째 고리인지.
-const RING_OF = new Array(N * N).fill(-1);
-const TILE_LIST = [];
-for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-  const d = Math.hypot(x - MID, y - MID);
-  if (d <= MID + 0.5) { RING_OF[y * N + x] = Math.round(d); TILE_LIST.push({ i:y * N + x, d, a:Math.atan2(y - MID, x - MID) }); }
-}
-const SPIRAL = TILE_LIST.slice().sort((p, q) => p.d - q.d || p.a - q.a).map(t => t.i);
-const RING_SIZE = RINGS.map((_, r) => RING_OF.filter(v => v === r).length);
-
-const BUILDINGS = [
-  { id:'house',    glyph:'주', name:'주택',          zone:'주거', cost:100,    rate:2,      ring:1, desc:'골목마다 불이 켜지는 동네의 시작.',
-    ups:['단열 리모델링', '옥상 텃밭', '스마트홈'] },
-  { id:'shop',     glyph:'상', name:'상점',          zone:'상업', cost:1500,   rate:10,     ring:1, desc:'편의점, 분식집, 세탁소.',
-    ups:['간판 정비', '배달 앱 연동', '야간 상권'] },
-  { id:'factory',  glyph:'공', name:'공장',          zone:'공업', cost:22000,  rate:50,     ring:2, desc:'산업단지의 첫 굴뚝.',
-    ups:['자동화 라인', '물류 센터', '친환경 설비'] },
-  { id:'office',   glyph:'사', name:'사무실',        zone:'업무', cost:3.3e5,  rate:250,    ring:3, desc:'출근길 지하철이 붐비기 시작해요.',
-    ups:['공유 오피스', '창업 지원', '대기업 본사 유치'] },
-  { id:'mall',     glyph:'몰', name:'쇼핑몰',        zone:'상업', cost:5e6,    rate:1250,   ring:3, desc:'주말이면 주차장이 꽉 차요.',
-    ups:['푸드코트', '멀티플렉스', '면세 구역'] },
-  { id:'tower',    glyph:'빌', name:'고층 빌딩',     zone:'업무', cost:7.5e7,  rate:6250,   ring:4, desc:'도시에 스카이라인이 생겨요.',
-    ups:['스카이라운지', '옥상 헬리패드', '초고속 엘리베이터'] },
-  { id:'stadium',  glyph:'경', name:'경기장',        zone:'체육', cost:1.1e9,  rate:31250,  ring:5, desc:'경기 날엔 도시 전체가 들썩여요.',
-    ups:['야간 조명', '프로 구단 유치', '국제 대회 개최'] },
-  { id:'landmark', glyph:'탑', name:'랜드마크 타워', zone:'특별', cost:1.7e10, rate:1.6e5,  ring:5, desc:'엽서에 실리는 도시의 얼굴.',
-    ups:['전망대', '야경 조명쇼', '세계 명소 등재'] },
-];
-const B = Object.fromEntries(BUILDINGS.map(b => [b.id, b]));
-const TYPE_TIERS = [{ at:3, mul:10 }, { at:8, mul:80 }, { at:16, mul:1000 }];
-
-const UPGRADES = [
-  { id:'c1', sign:'도장', name:'민원 창구 하나 더', flavor:'기다리는 줄이 반으로 줄어요.', fx:'클릭 수입 ×2', cost:300, eff:{ click:2 }, when:s => s.clicks >= 20 },
-  { id:'c2', sign:'도장', name:'전자 결재', flavor:'종이 서류 없이 바로 승인.', fx:'클릭 수입 ×2', cost:6000, eff:{ click:2 }, when:s => s.clicks >= 120 },
-  { id:'g1', sign:'교통', name:'시내버스 노선 개통', flavor:'정류장마다 사람이 모여요.', fx:'건물 수입 ×1.25', cost:5e4, eff:{ auto:1.25 }, when:s => s.rings >= 2 },
-  { id:'c3', sign:'도장', name:'모바일 납부', flavor:'버스 안에서도 세금을 내요.', fx:'클릭마다 초당 수입의 2% 추가', cost:1.5e5, eff:{ clickPct:0.02 }, when:s => s.clicks >= 300 },
-  { id:'e1', sign:'관광', name:'관광 안내소', flavor:'버스 기사님께 지도를 나눠 드려요.', fx:'관광버스 효과 2배 오래', cost:2e5, eff:{ goldDur:2 }, when:s => s.events >= 3 },
-  { id:'g2', sign:'교통', name:'지하철 개통', flavor:'역세권이 생겨요.', fx:'모든 수입 ×1.5', cost:2e6, eff:{ all:1.5 }, when:s => s.rings >= 3 },
-  { id:'c4', sign:'도장', name:'세무 AI', flavor:'계산 실수가 사라져요.', fx:'클릭 수입 ×3', cost:2e7, eff:{ click:3 }, when:s => s.clicks >= 800 },
-  { id:'e2', sign:'관광', name:'축제 위원회', flavor:'달마다 새 축제가 열려요.', fx:'관광버스가 25% 더 자주', cost:5e7, eff:{ goldFreq:0.75 }, when:s => s.events >= 10 },
-  { id:'g3', sign:'홍보', name:'도시 브랜드', flavor:'로고가 박힌 기념품이 팔려요.', fx:'모든 수입 ×2', cost:1e8, eff:{ all:2 }, when:s => s.rings >= 4 },
-  { id:'c5', sign:'도장', name:'스마트 행정', flavor:'민원이 접수되기 전에 해결돼요.', fx:'클릭마다 초당 수입의 4% 추가', cost:3e9, eff:{ clickPct:0.04 }, when:s => s.clicks >= 2000 },
-  { id:'g4', sign:'교통', name:'국제공항', flavor:'해외 관광객이 몰려와요.', fx:'모든 수입 ×2', cost:8e9, eff:{ all:2 }, when:s => s.rings >= 5 },
-  { id:'g5', sign:'홍보', name:'올림픽 유치', flavor:'전 세계가 이 도시를 봐요.', fx:'모든 수입 ×3', cost:5e11, eff:{ all:3 }, when:s => s.rings >= 5 && Object.keys(s.grid).length >= 90 },
-];
-BUILDINGS.forEach(b => b.ups.forEach((name, k) => UPGRADES.push({
-  id:b.id + (k + 1), sign:b.glyph, zone:b.id, name, flavor:`${b.name} ${TYPE_TIERS[k].at}채부터`, fx:`${b.name} 수입 ×2`,
-  cost:b.cost * TYPE_TIERS[k].mul, eff:{ type:b.id }, when:s => countOf(s, b.id) >= TYPE_TIERS[k].at,
-})));
-const UP_BY_ID = Object.fromEntries(UPGRADES.map(u => [u.id, u]));
-
-function countOf(s, type) { let n = 0; for (const k in s.grid) if (s.grid[k].t === type) n++; return n; }
-const buildCost = (s, b) => Math.ceil(b.cost * Math.pow(GROWTH, countOf(s, b.id)));
-const lvCost = (b, lv) => Math.ceil(b.cost * 2 * Math.pow(1.6, lv - 1));      // lv → lv+1
-const isOpen = (s, i) => RING_OF[i] >= 1 && RING_OF[i] <= s.rings;
-const freeTiles = s => SPIRAL.filter(i => isOpen(s, i) && !s.grid[i]);
-// 빈 땅이 없을 때 b를 다시 지어 수입이 가장 크게 느는 자리 (없으면 null)
-function redevelopTile(s, d, b) {
-  let best = null, bestGain = 0;
-  for (const k in s.grid) {
-    const gain = d.unit[b.id] * RINGS[RING_OF[k]].bonus - d.tileRate[k];
-    if (gain > bestGain) { bestGain = gain; best = +k; }
-  }
-  return best;
-}
-const refundOf = g => g ? Math.floor(g.spent * 0.5) : 0;
-const nextRingCost = s => s.rings < RINGS.length - 1 ? RINGS[s.rings + 1].cost : Infinity;
-const cityName = s => '동심' + RANKS[s.rings - 1];
-const knowFor = lifetime => Math.floor(Math.cbrt(lifetime / KNOW_UNIT));
+const lvOf = (s, id) => s.lv[id] || 0;
+const isVisible = (s, n) => !n.p || lvOf(s, n.p) > 0;
+const costOf = (n, lv, d) => Math.ceil(n.cost * Math.pow(n.g, lv) * d.costMul);
+const stageOf = lit => { let t = STAGES[0][1]; for (const [at, name] of STAGES) if (lit >= at) t = name; return t; };
 
 function derive(s) {
-  let click = 1, clickPct = 0, auto = 1, all = 1, goldDur = 1, goldFreq = 1;
-  const tm = {};
-  for (const id of s.ups) {
-    const e = UP_BY_ID[id] && UP_BY_ID[id].eff;
-    if (!e) continue;
-    if (e.click) click *= e.click;
-    if (e.clickPct) clickPct += e.clickPct;
-    if (e.auto) auto *= e.auto;
-    if (e.all) all *= e.all;
-    if (e.goldDur) goldDur *= e.goldDur;
-    if (e.goldFreq) goldFreq *= e.goldFreq;
-    if (e.type) tm[e.type] = (tm[e.type] || 1) * 2;
+  const r = { clickAdd:1, clickMul:1, autoAdd:0, autoMul:1, all:1, combo:0, crit:0, critMul:CRIT_BASE, critSec:0, fromAuto:0, costMul:1,
+    meteor:false, meteorFreq:1, meteorMul:1, meteorDur:0, meteorSlow:1, perNode:0, autoClick:0, offline:0.5, lit:0 };
+  for (const n of NODES) {
+    const lv = lvOf(s, n.id);
+    if (!lv) continue;
+    r.lit++;
+    switch (n.k) {
+      case 'clickAdd': r.clickAdd += n.v * lv; break;
+      case 'clickMul': r.clickMul *= Math.pow(n.v, lv); break;
+      case 'autoAdd': r.autoAdd += n.v * lv; break;
+      case 'autoMul': r.autoMul *= Math.pow(n.v, lv); break;
+      case 'allMul': r.all *= Math.pow(n.v, lv); break;
+      case 'combo': r.combo += n.v * lv; break;
+      case 'critChance': r.crit += n.v * lv; break;
+      case 'critMul': r.critMul += n.v * lv; break;
+      case 'critSec': r.critSec += n.v * lv; break;
+      case 'fromAuto': r.fromAuto += n.v * lv; break;
+      case 'costDown': r.costMul = 1 - n.v * lv; break;
+      case 'meteor': r.meteor = true; break;
+      case 'meteorFreq': r.meteorFreq *= Math.pow(n.v, lv); break;
+      case 'meteorMul': r.meteorMul *= Math.pow(n.v, lv); break;
+      case 'meteorDur': r.meteorDur += n.v * lv; break;
+      case 'meteorSlow': r.meteorSlow = n.v; break;
+      case 'perNode': r.perNode += n.v * lv; break;
+      case 'autoClick': r.autoClick += n.v * lv; break;
+      case 'offline': r.offline += n.v * lv; break;
+    }
   }
-  all *= (1 + 0.1 * (s.rings - 1)) * (1 + KNOW_BONUS * s.know);   // 구역 하나 넓힐 때마다 +10%
-  const unit = {};
-  for (const b of BUILDINGS) unit[b.id] = b.rate * (tm[b.id] || 1) * auto * all;
-  const tileRate = {};
-  let perSec = 0;
-  for (const k in s.grid) {
-    const g = s.grid[k];
-    perSec += tileRate[k] = unit[g.t] * g.lv * RINGS[RING_OF[k]].bonus;
-  }
-  return { perSec, tileRate, unit, clickPct, goldDur, goldFreq, all, clickBase:CLICK_BASE * click * all };
+  r.all *= 1 + r.perNode * r.lit;
+  r.crit = Math.min(1, r.crit);
+  r.auto = r.autoAdd * r.autoMul * r.all;                                   // 위성 수입
+  r.click = r.clickAdd * r.clickMul * r.all + r.fromAuto * r.auto;          // 섬광 전 한 번
+  r.clickAvg = r.click * (1 + r.crit * (r.critMul - 1)) + r.crit * r.critSec * r.auto;
+  r.perSec = r.auto + r.autoClick * r.clickAvg;                             // 가만히 있어도 들어오는 별빛
+  return r;
 }
-const clickValue = (d, frenzy) => (d.clickBase + d.clickPct * d.perSec) * (frenzy ? 10 : 1);
+
+// 별 효과를 사람이 읽는 말로
+function effText(n, lv) {
+  const v = n.v, f = x => fmt(x);
+  switch (n.k) {
+    case 'clickAdd': return `클릭당 +${f(v * lv)}`;
+    case 'clickMul': return `클릭 ×${f(Math.pow(v, lv))}`;
+    case 'autoAdd': return `초당 +${f(v * lv)}`;
+    case 'autoMul': return `위성 수입 ×${trim(Math.pow(v, lv))}`;
+    case 'allMul': return `모든 별빛 ×${trim(Math.pow(v, lv))}`;
+    case 'combo': return `연타 보너스 최대 +${Math.round(v * lv * 100)}%`;
+    case 'critChance': return `섬광 확률 +${Math.round(v * lv * 100)}%`;
+    case 'critMul': return `섬광 배율 ×${CRIT_BASE + v * lv}`;
+    case 'critSec': return `섬광 때 위성 수입 ${v * lv}초치 추가`;
+    case 'fromAuto': return `클릭마다 위성 수입의 ${Math.round(v * lv * 100)}% 추가`;
+    case 'costDown': return `별 밝히는 값 −${Math.round(v * lv * 100)}%`;
+    case 'meteor': return lv ? '유성이 지나가요' : '유성이 아직 없어요';
+    case 'meteorFreq': return `유성 간격 −${Math.round((1 - Math.pow(v, lv)) * 100)}%`;
+    case 'meteorMul': return `유성 별빛 ×${trim(Math.pow(v, lv))}`;
+    case 'meteorDur': return `유성 효과 +${v * lv}초`;
+    case 'meteorSlow': return lv ? '유성이 두 배 천천히' : '보통 속도';
+    case 'perNode': return `밝힌 별 하나마다 모든 별빛 +${Math.round(v * lv * 100)}%`;
+    case 'autoClick': return `초당 ${trim(v * lv)}번 저절로 반짝`;
+    case 'offline': return `자리 비운 동안 ${Math.round((0.5 + v * lv) * 100)}% 모으기`;
+  }
+}
+function nodeLabel(n) {
+  return { clickAdd:'+' + fmt(n.v), clickMul:'×' + n.v, autoAdd:'+' + fmt(n.v) + '/s', autoMul:'×' + n.v, allMul:'×' + n.v, combo:'연타',
+    critChance:Math.round(n.v * 100) + '%', critMul:'+' + n.v + '배', critSec:'+' + n.v + '초', fromAuto:Math.round(n.v * 100) + '%', costDown:'−' + Math.round(n.v * 100) + '%',
+    meteor:'유성', meteorFreq:'자주', meteorMul:'×' + n.v, meteorDur:'+' + n.v + '초', meteorSlow:'느리게', perNode:'+' + Math.round(n.v * 100) + '%',
+    autoClick:'자동', offline:'기억' }[n.k];
+}
+const trim = x => (Math.round(x * 100) / 100).toLocaleString('ko-KR');
 
 const KUNITS = [[1e44,'재'],[1e40,'정'],[1e36,'간'],[1e32,'구'],[1e28,'양'],[1e24,'자'],[1e20,'해'],[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];
 function fmt(n) {
   if (!isFinite(n)) return '∞';
-  if (n < 1e4) return Math.floor(n).toLocaleString('ko-KR');
+  if (n < 1e4) return (n < 100 && n % 1 ? Math.round(n * 10) / 10 : Math.floor(n)).toLocaleString('ko-KR');
   if (n >= 1e48) return n.toExponential(2);
   for (const [u, name] of KUNITS) if (n >= u) {
     const v = n / u;
     return (v >= 1000 ? Math.floor(v).toLocaleString('ko-KR') : v >= 100 ? v.toFixed(1) : v.toFixed(2)) + name;
   }
 }
-const won = n => fmt(n) + '원';
-// 받침에 맞춰 조사 고르기
-const hasFinal = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return c >= 0 && c < 11172 && c % 28 !== 0; };
-const eul = w => w + (hasFinal(w) ? '을' : '를');
-const euro = w => { const c = w.charCodeAt(w.length - 1) - 0xAC00; return w + (hasFinal(w) && c % 28 !== 8 ? '으로' : '로'); };
 function fmtTime(sec) {
   sec = Math.floor(sec);
   const hh = Math.floor(sec / 3600), mm = Math.floor(sec % 3600 / 60), ss = sec % 60;
@@ -471,62 +371,62 @@ function fmtTime(sec) {
 "use strict";
 /* ===== 화면과 조작 ===== */
 (() => {
-const SAVE_KEY = 'dongsim-city-v1';
+const SAVE_KEY = 'center-star-v1';
+const SVGNS = 'http://www.w3.org/2000/svg';
 const $ = sel => document.querySelector(sel);
 const h = (tag, cls, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; };
+const sv = (tag, attrs) => { const e = document.createElementNS(SVGNS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
 
-let S, D, tileEls = [], buildRows = {}, upRows = {}, upKey = '';
-let sel = -1, busIn = 40, busLeft = 0, last = performance.now(), uiAcc = 1, saveAcc = 0;
-let confirmDemolish = -1, confirmKnow = 0, confirmWipe = 0;
+let S, D;
+let sel = null, combo = 0, lastClickAt = 0, meteorIn = 45, meteorAlive = false, meteorAnim = null;
+let last = performance.now(), uiAcc = 1, saveAcc = 0, lastStage = '', confirmWipe = 0;
+const view = { x:0, y:0, s:1 }, target = { x:0, y:0, s:1 };
+let follow = true;
+const nodeEls = {}, edgeEls = {};
+const particles = [];
 
 const els = {
-  money:$('#money'), rate:$('#rate'), moneyTop:$('#moneyTop'), rateTop:$('#rateTop'), perClick:$('#perClick'), bCount:$('#bCount'),
-  cityName:$('#cityName'), cityRank:$('#cityRank'), hallBtn:$('#hallBtn'), buffs:$('#buffs'),
-  map:$('#map'), rings:$('#rings'), mapSub:$('#mapSub'), expandBtn:$('#expandBtn'), inspect:$('#inspect'), legend:$('#legend'),
-  buildList:$('#buildList'), freeCount:$('#freeCount'), upList:$('#upList'), upEmpty:$('#upEmpty'), upCount:$('#upCount'),
-  stats:$('#stats'), knowGain:$('#knowGain'), knowNext:$('#knowNext'), knowBtn:$('#knowBtn'), wipeBtn:$('#wipeBtn'),
-  fx:$('#fx'), bus:$('#bus'), toasts:$('#toasts'),
+  stage:$('#stage'), sky:$('#sky'), svg:$('#tree'), world:$('#world'), edges:$('#edges'), nodes:$('#nodes'), core:$('#core'), coreGlow:$('#coreGlow'),
+  money:$('#money'), rate:$('#rate'), perClick:$('#perClick'), stageName:$('#stageName'), chips:$('#chips'),
+  info:$('#info'), fx:$('#fx'), meteor:$('#meteor'), toasts:$('#toasts'),
+  statsDialog:$('#statsDialog'), stats:$('#stats'), wipeBtn:$('#wipeBtn'),
 };
 
 /* --- 상태 --- */
-function fresh() {
-  return { v:1, money:0, total:0, lifetime:0, clicks:0, events:0, rings:1, grid:{}, ups:[], know:0, resets:0,
-    buffs:[], playSec:0, lastSeen:Date.now(), tab:'build' };
-}
+function fresh() { return { v:1, money:0, total:0, clicks:0, crits:0, meteors:0, lv:{}, buffs:[], playSec:0, lastSeen:Date.now() }; }
 function revive(o) {
   if (!o || o.v !== 1) return null;
   const s = Object.assign(fresh(), o);
-  s.grid = {};
-  for (const k in o.grid || {}) if (B[o.grid[k].t] && RING_OF[k] >= 1) s.grid[k] = Object.assign({}, o.grid[k]);
-  s.ups = (o.ups || []).filter(id => UP_BY_ID[id]);
+  s.lv = {};
+  for (const id in o.lv || {}) if (NODE[id]) s.lv[id] = Math.min(NODE[id].max, o.lv[id] | 0);
   s.buffs = (o.buffs || []).filter(b => b.until > Date.now());
   return s;
 }
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; } }
 function save() { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가: 이번 세션만 유지 */ } }
 
-const hasBuff = k => S.buffs.some(b => b.kind === k);
-const perSecNow = () => D.perSec * (hasBuff('festival') ? 5 : 1);
-const clickNow = () => clickValue(D, hasBuff('rush'));
+const shower = () => S.buffs.some(b => b.kind === 'shower');
+const buffMul = () => shower() ? 3 : 1;
+const perSecNow = () => D.perSec * buffMul();
+const comboMul = () => 1 + Math.min(D.combo, Math.max(0, combo - 1) * 0.01);
 function recompute() { D = derive(S); }
-function earn(v) { S.money += v; S.total += v; S.lifetime += v; }
+function earn(v) { S.money += v; S.total += v; }
 
 /* --- 효과 --- */
-function floatText(x, y, text, big) {
+function floatText(x, y, text, cls) {
   if (els.fx.childElementCount > 40) els.fx.firstChild.remove();
-  const f = h('span', 'float' + (big ? ' big' : ''));
+  const f = h('span', 'float' + (cls ? ' ' + cls : ''));
   f.textContent = text;
   f.style.left = x + 'px'; f.style.top = y + 'px';
   els.fx.append(f);
   setTimeout(() => f.remove(), 950);
 }
-function stampAt(x, y) {
-  if (els.fx.childElementCount > 40) els.fx.firstChild.remove();
-  const s = h('span', 'stamp', '납부');
-  s.style.left = x + 'px'; s.style.top = y + 'px';
-  s.style.setProperty('--r', (Math.random() * 40 - 20).toFixed(0) + 'deg');
-  els.fx.append(s);
-  setTimeout(() => s.remove(), 520);
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    if (particles.length > 160) particles.shift();
+    const a = Math.random() * Math.PI * 2, sp = 60 + Math.random() * 160;
+    particles.push({ x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp, life:0.6 + Math.random() * 0.5, age:0, color });
+  }
 }
 function toast(title, body) {
   const t = h('div', 'toast');
@@ -534,475 +434,433 @@ function toast(title, body) {
   t.firstChild.textContent = title; t.lastChild.textContent = body;
   els.toasts.append(t);
   while (els.toasts.childElementCount > 3) els.toasts.firstChild.remove();
-  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 3600);
+  setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 3400);
 }
 function shake(node) { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); }
+const cssColor = name => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+const toScreen = (wx, wy) => [view.x + wx * view.s, view.y + wy * view.s];
 
-/* --- 세금 걷기(클릭) --- */
+/* --- 중심별 누르기 --- */
 function collect(x, y) {
-  const v = clickNow();
+  const now = performance.now() / 1000;
+  combo = now - lastClickAt < COMBO_WINDOW ? combo + 1 : 1;
+  lastClickAt = now;
+  const isCrit = Math.random() < D.crit;
+  let v = D.click * comboMul() * buffMul();
+  if (isCrit) { v = v * D.critMul + D.critSec * D.auto * buffMul(); S.crits++; }
   earn(v);
   S.clicks++;
-  floatText(x, y - 18, '+' + won(v));
-  if (S.clicks % 3 === 1) stampAt(x, y);
-  const b = els.hallBtn;
-  b.classList.remove('hit'); void b.offsetWidth; b.classList.add('hit');
+  floatText(x + (Math.random() * 40 - 20), y - 30, (isCrit ? '섬광! +' : '+') + fmt(v), isCrit ? 'crit' : '');
+  const [cx, cy] = toScreen(0, 0);
+  burst(cx, cy, isCrit ? cssColor('--b-luck') : cssColor('--core'), isCrit ? 14 : 5);
+  els.core.classList.remove('hit'); void els.core.getBBox(); els.core.classList.add('hit');
 }
-els.hallBtn.addEventListener('pointerdown', e => {
-  if (e.button !== 0) return;
+els.core.addEventListener('keydown', e => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
   e.preventDefault();
-  collect(e.clientX, e.clientY);
+  if (e.repeat) return;
+  const [cx, cy] = toScreen(0, 0);
+  collect(cx, cy);
 });
-els.hallBtn.addEventListener('click', e => {
-  if (e.detail !== 0) return;   // 키보드로 누른 경우만
-  const r = els.hallBtn.getBoundingClientRect();
-  collect(r.left + r.width / 2, r.top + r.height / 2);
-});
-els.hallBtn.addEventListener('keydown', e => { if (e.repeat && (e.key === 'Enter' || e.key === ' ')) e.preventDefault(); });
 
-/* --- 도면 --- */
-function buildMap() {
-  els.map.textContent = '';
-  tileEls = [];
-  for (let i = 0; i < N * N; i++) {
-    const t = h('button', 'tile');
-    t.type = 'button';
-    if (RING_OF[i] < 0) { t.classList.add('void'); t.tabIndex = -1; t.setAttribute('aria-hidden', 'true'); }
-    else t.addEventListener('click', e => onTile(i, e));
-    els.map.append(t);
-    tileEls.push(t);
+/* --- 별자리 그리기 --- */
+function buildTree() {
+  els.edges.textContent = ''; els.nodes.textContent = '';
+  for (const n of NODES) {
+    const p = n.p ? NODE[n.p] : { x:0, y:0 };
+    const e = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'edge' });
+    e.style.setProperty('--c', BRANCHES[n.br].color);
+    els.edges.append(e);
+    edgeEls[n.id] = e;
+    const g = sv('g', { class:'node', tabindex:'0', role:'button', 'data-id':n.id });
+    g.style.setProperty('--c', BRANCHES[n.br].color);
+    g.append(
+      sv('circle', { class:'halo', r:30 }),
+      sv('circle', { class:'disc', r:20 }),
+      sv('circle', { class:'prog', r:24, pathLength:100, 'stroke-dasharray':'0 100' }),
+      sv('circle', { class:'ring', r:29 }),
+    );
+    const t = sv('text', { class:'lab' });
+    t.textContent = nodeLabel(n);
+    g.append(t);
+    g.addEventListener('focus', () => select(n.id));
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); buy(n.id); } });
+    els.nodes.append(g);
+    nodeEls[n.id] = g;
   }
-  els.legend.innerHTML = BUILDINGS.filter((b, k) => BUILDINGS.findIndex(x => x.zone === b.zone) === k)
-    .map(b => `<li class="z-${b.id}"><i></i>${b.zone}</li>`).join('');
+  placeNodes();
 }
-function paintTile(i, pop) {
-  const t = tileEls[i], r = RING_OF[i];
-  if (r < 0) return;
-  const g = S.grid[i];
-  let cls = 'tile', label;
-  t.style.removeProperty('--lv');
-  t.style.animationDelay = '';
-  if (i === HALL) { cls += ' hall-tile'; t.textContent = '청'; label = '시청, 눌러서 세금 걷기'; }
-  else if (g) {
-    const b = B[g.t];
-    cls += ' b z-' + g.t;
-    t.innerHTML = b.glyph + (g.lv > 1 ? `<span class="lvb">${g.lv}</span>` : '');
-    t.style.setProperty('--lv', g.lv);
-    label = `${b.name} ${g.lv}단계, ${RINGS[r].name}`;
-  } else if (r <= S.rings) { cls += ' lot'; t.textContent = ''; label = `빈 땅, ${RINGS[r].name}`; }
-  else { cls += r === S.rings + 1 ? ' next' : ' locked'; t.textContent = ''; label = `${RINGS[r].name}, 아직 개발 전`; }
-  if (i === sel) cls += ' sel';
-  if (pop) cls += ' pop';
-  t.className = cls;
-  t.setAttribute('aria-label', label);
+// 별과 중심별은 확대·축소와 상관없이 화면에서 거의 같은 크기로 보여요
+const narrow = () => innerWidth <= 760;
+function placeNodes() {
+  const k = (narrow() ? 0.85 : 1) / view.s;
+  for (const n of NODES) nodeEls[n.id].setAttribute('transform', `translate(${n.x} ${n.y}) scale(${k})`);
+  const star = Math.max(22, Math.min(46, RING_GAP * view.s * 0.36));   // 첫 고리와 겹치지 않는 크기
+  const c = star / 46 / view.s;
+  els.core.setAttribute('transform', `scale(${c})`);
+  els.coreGlow.setAttribute('transform', `scale(${c})`);
 }
-function paintMap() { for (let i = 0; i < N * N; i++) paintTile(i); paintRings(); }
-function paintRings() {
-  let svg = '';
-  for (let r = 1; r < RINGS.length; r++) svg += `<circle class="${r <= S.rings ? 'open' : ''}" cx="5.5" cy="5.5" r="${r + 0.5}"/>`;
-  els.rings.innerHTML = svg;
+// 상태: hidden(안 보임) · ghost(다음에 열릴 자리) · avail · lit · max
+function nodeState(n) {
+  const lv = lvOf(S, n.id);
+  if (lv >= n.max) return 'max';
+  if (lv > 0) return 'lit';
+  if (isVisible(S, n)) return 'avail';
+  if (n.p && isVisible(S, NODE[n.p])) return 'ghost';
+  return 'hidden';
 }
-function onTile(i, e) {
-  if (i === HALL) {
-    const r = tileEls[i].getBoundingClientRect();
-    collect(e.clientX || r.left + r.width / 2, e.clientY || r.top + r.height / 2);
+function paintNode(n, pop) {
+  const g = nodeEls[n.id], e = edgeEls[n.id], st = nodeState(n), lv = lvOf(S, n.id);
+  const can = (st === 'avail' || st === 'lit') && costOf(n, lv, D) <= S.money;
+  g.setAttribute('class', `node ${st}${can ? ' can' : ''}${sel === n.id ? ' sel' : ''}${pop ? ' pop' : ''}`);
+  g.style.display = st === 'hidden' ? 'none' : '';
+  g.querySelector('.disc').setAttribute('r', st === 'ghost' ? 5 : 20);
+  g.querySelector('.lab').style.display = st === 'ghost' ? 'none' : '';
+  g.querySelector('.prog').setAttribute('stroke-dasharray', `${(lv / n.max) * 100} 100`);
+  g.setAttribute('tabindex', st === 'ghost' ? '-1' : '0');
+  g.setAttribute('aria-label', `${n.name}, ${lv} / ${n.max}단계` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
+  e.setAttribute('class', 'edge' + (st === 'hidden' ? '' : st === 'ghost' ? ' ghost' : lv > 0 ? ' lit' : ''));
+  e.style.display = st === 'hidden' ? 'none' : '';
+}
+function paintAll() { for (const n of NODES) paintNode(n); }
+function updateAffordable() {
+  for (const n of NODES) {
+    const st = nodeState(n);
+    if (st !== 'avail' && st !== 'lit') continue;
+    nodeEls[n.id].classList.toggle('can', costOf(n, lvOf(S, n.id), D) <= S.money);
+  }
+}
+
+/* --- 보기(이동·확대) --- */
+function area() {
+  const W = innerWidth, H = innerHeight, nr = narrow();
+  const infoH = nr ? els.info.offsetHeight : 0, infoW = nr ? 0 : els.info.offsetWidth + 32;
+  const top = nr ? 120 : 20;
+  return { x:0, y:top, w:W - infoW, h:H - top - infoH };
+}
+function fitTarget() {
+  let R = 0;
+  for (const n of NODES) { const st = nodeState(n); if (st !== 'hidden') R = Math.max(R, Math.hypot(n.x, n.y)); }
+  R = Math.max(R, RING_GAP) + 50;
+  const a = area();
+  const minS = (narrow() ? 66 : 56) / RING_GAP, maxS = 1.15;   // 고리 사이가 이보다 좁아지면 대신 끌어서 봐요
+  target.s = Math.max(minS, Math.min(maxS, Math.min(a.w, a.h) / (2 * R)));
+  target.x = a.x + a.w / 2; target.y = a.y + a.h / 2;
+}
+function applyView() { els.world.setAttribute('transform', `translate(${view.x} ${view.y}) scale(${view.s})`); }
+function zoomAt(cx, cy, ns) {
+  ns = Math.max(0.2, Math.min(2, ns));
+  const wx = (cx - view.x) / view.s, wy = (cy - view.y) / view.s;
+  view.s = ns; view.x = cx - wx * ns; view.y = cy - wy * ns;
+  applyView(); placeNodes();
+}
+$('#fitBtn').addEventListener('click', () => { follow = true; fitTarget(); });
+addEventListener('resize', () => { sizeSky(); if (follow) fitTarget(); });
+
+const pointers = new Map();
+let drag = null, pinch = null;
+els.svg.addEventListener('pointerdown', e => {
+  if (e.target.closest('#core')) { e.preventDefault(); if (e.button === 0) collect(e.clientX, e.clientY); return; }
+  els.svg.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (pointers.size === 1) {
+    const ng = e.target.closest('.node');
+    drag = { sx:e.clientX, sy:e.clientY, moved:false, node:ng ? ng.dataset.id : null, type:e.pointerType };
+  } else if (pointers.size === 2) {
+    if (drag) drag.moved = true;
+    const [p, q] = [...pointers.values()];
+    pinch = { d:Math.hypot(p.x - q.x, p.y - q.y), s:view.s };
+  }
+});
+els.svg.addEventListener('pointermove', e => {
+  const prev = pointers.get(e.pointerId);
+  if (!prev) {
+    if (e.pointerType === 'mouse') { const ng = e.target.closest('.node'); if (ng && !ng.classList.contains('ghost') && sel !== ng.dataset.id) select(ng.dataset.id); }
     return;
   }
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (pointers.size === 2 && pinch) {
+    const [p, q] = [...pointers.values()];
+    const d = Math.hypot(p.x - q.x, p.y - q.y);
+    follow = false;
+    zoomAt((p.x + q.x) / 2, (p.y + q.y) / 2, pinch.s * d / pinch.d);
+    return;
+  }
+  if (!drag) return;
+  if (!drag.moved && Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) > 6) { drag.moved = true; els.svg.classList.add('panning'); }
+  if (drag.moved) { follow = false; view.x += dx; view.y += dy; applyView(); }
+});
+function endPointer(e) {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinch = null;
+  if (pointers.size === 0) {
+    if (drag && !drag.moved && drag.node && e.type === 'pointerup') tapNode(drag.node, drag.type);
+    else if (drag && !drag.moved && !drag.node && e.type === 'pointerup') select(null);
+    drag = null;
+    els.svg.classList.remove('panning');
+  }
+}
+els.svg.addEventListener('pointerup', endPointer);
+els.svg.addEventListener('pointercancel', endPointer);
+els.svg.addEventListener('wheel', e => { e.preventDefault(); follow = false; zoomAt(e.clientX, e.clientY, view.s * Math.exp(-e.deltaY * 0.0015)); }, { passive:false });
+
+function tapNode(id, type) {
+  if (type === 'mouse' || sel === id) { select(id); buy(id); }
+  else select(id);
+}
+
+/* --- 별 정보·밝히기 --- */
+function select(id) {
   const prev = sel;
-  sel = sel === i ? -1 : i;
-  confirmDemolish = -1;
-  if (prev >= 0) paintTile(prev);
-  paintTile(i);
-  renderInspect();
+  sel = id;
+  if (prev && NODE[prev]) paintNode(NODE[prev]);
+  if (id) paintNode(NODE[id]);
+  renderInfo();
 }
-
-/* --- 살펴보기 --- */
-function renderInspect() {
-  const box = els.inspect;
-  confirmDemolish = confirmDemolish === sel ? sel : -1;
-  if (sel < 0) {
-    box.innerHTML = `<div class="ins-top"><span class="chip ic">도</span><div class="ti"><b>도면에서 땅을 눌러 보세요</b>
-      <span>빈 땅엔 원하는 건물을 짓고, 지은 건물은 키우거나 허물 수 있어요. 안쪽 고리일수록 수입이 커요.</span></div></div>`;
+function maxBuy(n) {
+  let lv = lvOf(S, n.id), money = S.money, k = 0, total = 0;
+  while (lv < n.max) { const c = costOf(n, lv, D); if (c > money) break; money -= c; total += c; lv++; k++; }
+  return { k, total };
+}
+function renderInfo() {
+  const box = els.info;
+  if (!sel) {
+    box.style.removeProperty('--c');
+    box.innerHTML = `<div class="kicker">중심별</div>
+      <h2>별을 밝혀 바깥으로</h2>
+      <p>한가운데 중심별을 눌러 별빛을 모으세요. 둘레의 별을 밝히면 그 바깥에 새 별이 이어져요. 별을 누르면 효과를 볼 수 있어요.</p>
+      <ul class="legend">${Object.values(BRANCHES).map(b => `<li style="--c:${b.color}"><i></i>${b.name} · ${b.note}</li>`).join('')}</ul>`;
     return;
   }
-  const r = RING_OF[sel], ring = RINGS[r], g = S.grid[sel];
-  if (g) {
-    const b = B[g.t], max = g.lv >= LV_MAX, cost = max ? 0 : lvCost(b, g.lv);
-    box.innerHTML = `<div class="ins-top"><span class="chip z-${b.id}">${b.glyph}</span><div class="ti">
-      <b>${b.name} · ${g.lv}단계</b><span>${ring.name}(수입 ×${ring.bonus}) · 초당 <span class="num">${won(D.tileRate[sel])}</span></span></div></div>
-      <div class="ins-actions"></div>`;
-    const acts = box.querySelector('.ins-actions');
-    const up = h('button', 'btn');
-    up.type = 'button'; up.id = 'insUp';
-    up.textContent = max ? '최고 단계예요' : `${g.lv + 1}단계로 키우기 · ${won(cost)}`;
-    up.disabled = max || cost > S.money;
-    up.addEventListener('click', () => levelUp(sel));
-    const dm = h('button', 'btn ghost');
-    dm.type = 'button';
-    const refund = Math.floor(g.spent * 0.5);
-    dm.textContent = confirmDemolish === sel ? `한 번 더 누르면 허물어요 · ${won(refund)} 돌려받기` : '허물기';
-    if (confirmDemolish === sel) dm.classList.add('warn');
-    dm.addEventListener('click', () => demolish(sel));
-    acts.append(up, dm);
-    box.insertAdjacentHTML('beforeend', `<span class="muted">이 자리에 다시 짓기 · 지금 건물 값의 절반 <span class="num">${won(refundOf(g))}</span>을 돌려받아요</span><div class="pick"></div>`);
-    fillPick(box.querySelector('.pick'), sel, g.t);
-    return;
+  const n = NODE[sel], br = BRANCHES[n.br], lv = lvOf(S, n.id), st = nodeState(n), maxed = lv >= n.max;
+  box.style.setProperty('--c', br.color);
+  const cost = maxed ? 0 : costOf(n, lv, D);
+  const bars = Array.from({ length:n.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('');
+  box.innerHTML = `<div class="kicker"><i></i>${br.name} · ${lv} / ${n.max}단계</div>
+    <h2>${n.name}</h2>
+    <p>${n.desc}</p>
+    <div class="lvbar" aria-hidden="true">${bars}</div>
+    <div class="fxline">${lv ? `<span>지금 <b>${effText(n, lv)}</b></span>` : ''}${maxed ? '' : `<span>${lv ? '→ 다음' : '밝히면'} <b>${effText(n, lv + 1)}</b></span>`}</div>
+    <div class="actions"></div>`;
+  const acts = box.querySelector('.actions');
+  if (st === 'ghost' || st === 'hidden') { acts.innerHTML = '<p>안쪽 별을 먼저 밝혀야 해요.</p>'; return; }
+  const b1 = h('button', 'btn');
+  b1.type = 'button'; b1.id = 'buyOne';
+  b1.textContent = maxed ? '다 밝혔어요' : `${lv ? '한 단계 더' : '밝히기'} · ${fmt(cost)} 별빛`;
+  b1.disabled = maxed || cost > S.money;
+  b1.addEventListener('click', () => buy(n.id));
+  acts.append(b1);
+  if (!maxed && n.max - lv > 1) {
+    const b2 = h('button', 'btn ghost');
+    b2.type = 'button'; b2.id = 'buyMax';
+    b2.addEventListener('click', () => { const m = maxBuy(n); for (let i = 0; i < m.k; i++) buy(n.id, true); renderInfo(); });
+    acts.append(b2);
   }
-  if (r <= S.rings) {
-    box.innerHTML = `<div class="ins-top"><span class="chip ic">${r}</span><div class="ti"><b>빈 땅 · ${ring.name}</b>
-      <span>여기 지으면 수입 ×${ring.bonus}. 지을 건물을 고르세요.</span></div></div><div class="pick"></div>`;
-    fillPick(box.querySelector('.pick'), sel, null);
-    return;
-  }
-  const next = r === S.rings + 1;
-  box.innerHTML = `<div class="ins-top"><span class="chip ic">${r}</span><div class="ti"><b>${ring.name} · 아직 개발 전</b>
-    <span>${next ? `개발을 승인하면 이 고리의 땅 ${RING_SIZE[r]}칸에 지을 수 있어요. 수입 ×${ring.bonus}.` : '안쪽 구역부터 차례로 넓혀야 해요.'}</span></div></div>`;
-  if (next) {
-    const b = h('button', 'btn');
-    b.type = 'button'; b.id = 'insExpand';
-    b.textContent = `개발 승인 · ${won(ring.cost)}`;
-    b.disabled = ring.cost > S.money;
-    b.addEventListener('click', expand);
-    const acts = h('div', 'ins-actions'); acts.append(b); box.append(acts);
-  }
+  refreshInfoButtons();
 }
-function fillPick(pick, at, current) {
-  const refund = refundOf(S.grid[at]);
-  for (const b of BUILDINGS) {
-    if (b.id === current) continue;
-    const open = b.ring <= S.rings, net = buildCost(S, b) - refund;
-    const btn = h('button', 'z-' + b.id, `<span class="chip sm">${b.glyph}</span><span><b>${b.name}</b><small>${open ? (net < 0 ? '+' + won(-net) : won(net)) : RINGS[b.ring].name + '부터'}</small></span>`);
-    btn.type = 'button';
-    btn.dataset.id = b.id;
-    btn.disabled = !open;
-    btn.classList.toggle('can', open && net <= S.money);
-    btn.addEventListener('click', () => build(b, at, btn));
-    pick.append(btn);
-  }
+function refreshInfoButtons() {
+  if (!sel) return;
+  const n = NODE[sel], lv = lvOf(S, n.id);
+  const b1 = document.getElementById('buyOne'), b2 = document.getElementById('buyMax');
+  if (b1 && lv < n.max) b1.disabled = costOf(n, lv, D) > S.money;
+  if (b2) { const m = maxBuy(n); b2.textContent = m.k > 1 ? `${m.k}단계 한 번에 · ${fmt(m.total)}` : '여러 단계 한 번에'; b2.disabled = m.k < 2; }
 }
-function refreshInspectButtons() {
-  const up = document.getElementById('insUp');
-  if (up && sel >= 0 && S.grid[sel]) { const g = S.grid[sel]; up.disabled = g.lv >= LV_MAX || lvCost(B[g.t], g.lv) > S.money; }
-  const ex = document.getElementById('insExpand');
-  if (ex) ex.disabled = nextRingCost(S) > S.money;
-  const refund = sel >= 0 ? refundOf(S.grid[sel]) : 0;
-  els.inspect.querySelectorAll('.pick button').forEach(btn => {
-    const b = B[btn.dataset.id];
-    if (b.ring <= S.rings) btn.classList.toggle('can', buildCost(S, b) - refund <= S.money);
-  });
-}
-
-/* --- 짓기·키우기·허물기·넓히기 --- */
-function autoTile(b) { const f = freeTiles(S); return f.length ? f[0] : redevelopTile(S, D, b); }
-function build(b, at, node) {
-  if (b.ring > S.rings) return;
-  const tile = at != null ? at : autoTile(b);
-  if (tile == null || !isOpen(S, tile) || (S.grid[tile] && S.grid[tile].t === b.id)) {
-    if (node) shake(node);
-    if (at == null) toast('더 나은 자리가 없어요', `지금 있는 건물이 모두 새 ${b.name}보다 벌이가 좋아요. 구역을 넓혀 보세요.`);
-    return;
-  }
-  const old = S.grid[tile], cost = buildCost(S, b), net = cost - refundOf(old);
-  if (net > S.money) { if (node) shake(node); return; }
-  S.money -= net;
-  S.grid[tile] = { t:b.id, lv:1, spent:cost };
-  if (old) toast('재개발했어요', `${eul(B[old.t].name)} 허물고 ${eul(b.name)} 지었어요.`);
-  recompute();
-  paintTile(tile, true);
-  renderInspect();
-  updateAll();
-}
-function levelUp(i) {
-  const g = S.grid[i];
-  if (!g || g.lv >= LV_MAX) return;
-  const cost = lvCost(B[g.t], g.lv);
-  if (cost > S.money) return;
-  S.money -= cost; g.lv++; g.spent += cost;
-  recompute();
-  paintTile(i, true);
-  renderInspect();
-  updateAll();
-}
-function demolish(i) {
-  const g = S.grid[i];
-  if (!g) return;
-  if (confirmDemolish !== i) { confirmDemolish = i; renderInspect(); confirmDemolish = i; return; }
-  const refund = Math.floor(g.spent * 0.5);
-  delete S.grid[i];
-  S.money += refund;
-  confirmDemolish = -1;
-  recompute();
-  paintTile(i);
-  renderInspect();
-  updateAll();
-  toast(`${eul(B[g.t].name)} 허물었어요`, `${won(refund)}을 돌려받았어요.`);
-}
-function expand() {
-  const cost = nextRingCost(S);
-  if (cost > S.money) { shake(els.expandBtn); return; }
+function buy(id, quiet) {
+  const n = NODE[id], lv = lvOf(S, id), st = nodeState(n);
+  if ((st !== 'avail' && st !== 'lit') || lv >= n.max) return;
+  const cost = costOf(n, lv, D);
+  if (cost > S.money) { if (!quiet) { const b = document.getElementById('buyOne'); if (b) shake(b); } return; }
   S.money -= cost;
-  S.rings++;
+  S.lv[id] = lv + 1;
   recompute();
-  const r = S.rings, opened = BUILDINGS.filter(b => b.ring === r);
-  SPIRAL.filter(i => RING_OF[i] === r).forEach((i, k) => { paintTile(i); tileEls[i].style.animationDelay = (k * 18) + 'ms'; tileEls[i].classList.add('pop'); });
-  SPIRAL.filter(i => RING_OF[i] === r + 1).forEach(i => paintTile(i));
-  paintRings();
-  toast(`${euro(cityName(S))} 승격`, `${RINGS[r].name} 땅 ${RING_SIZE[r]}칸이 열렸어요.` + (opened.length ? ` 새 건물: ${opened.map(b => b.name).join(', ')}` : ''));
-  renderBuild();
-  renderInspect();
-  updateAll();
-}
-els.expandBtn.addEventListener('click', expand);
-
-/* --- 건물 짓기 목록 --- */
-function renderBuild() {
-  els.buildList.textContent = '';
-  buildRows = {};
-  let teaser = false;
-  for (const b of BUILDINGS) {
-    const open = b.ring <= S.rings;
-    if (!open && teaser) continue;
-    if (!open) teaser = true;
-    const row = h('button', 'row');
-    row.type = 'button';
-    row.innerHTML = `<span class="chip z-${b.id}">${b.glyph}</span>
-      <span class="row-main"><span class="row-name">${b.name}<small>${b.zone}</small></span><span class="row-desc">${open ? b.desc : RINGS[b.ring].name + ' 개발을 승인하면 지을 수 있어요.'}</span><span class="row-fx"></span></span>
-      <span class="row-side"><span class="row-count">0</span><span class="row-cost"></span></span>`;
-    if (open) row.addEventListener('click', () => build(b, null, row));
-    else row.disabled = true;
-    els.buildList.append(row);
-    buildRows[b.id] = { row, fx:row.querySelector('.row-fx'), count:row.querySelector('.row-count'), cost:row.querySelector('.row-cost'), open };
+  paintNode(n, true);
+  if (lv === 0) {
+    for (const k of n.kids) { paintNode(NODE[k]); for (const g of NODE[k].kids) paintNode(NODE[g]); }
+    if (follow) fitTarget();
+    if (n.k === 'meteor') { meteorIn = 8; toast('유성이 보이기 시작했어요', '지나가는 유성을 눌러서 잡으세요.'); }
   }
-  updateBuild();
-}
-function updateBuild() {
-  const free = freeTiles(S).length;
-  els.freeCount.textContent = free ? `빈 땅 ${free}칸` : '빈 땅 없음 · 재개발';
-  for (const b of BUILDINGS) {
-    const r = buildRows[b.id];
-    if (!r) continue;
-    const tile = r.open ? autoTile(b) : null;
-    const net = buildCost(S, b) - (tile != null ? refundOf(S.grid[tile]) : 0);
-    r.count.textContent = countOf(S, b.id);
-    r.cost.textContent = won(Math.max(0, net));
-    if (!r.open) continue;
-    r.fx.textContent = tile == null ? '더 나은 자리가 없어요' : S.grid[tile] ? `${B[S.grid[tile].t].name} 자리를 재개발 · ${RINGS[RING_OF[tile]].name}` : `1단계 초당 ${won(D.unit[b.id] * RINGS[RING_OF[tile]].bonus)} · ${RINGS[RING_OF[tile]].name}`;
-    r.row.classList.toggle('can', tile != null && net <= S.money);
-    r.row.setAttribute('aria-label', `${b.name} 짓기, ${won(Math.max(0, net))}`);
-  }
+  const [sx, sy] = toScreen(n.x, n.y);
+  burst(sx, sy, cssColor(BRANCHES[n.br].color.slice(4, -1)), 10);
+  const stg = stageOf(D.lit);
+  if (stg !== lastStage) { if (lastStage) toast('중심별이 자랐어요: ' + stg, `밝힌 별 ${D.lit}개`); lastStage = stg; els.stageName.textContent = stg; }
+  if (!quiet) renderInfo();
+  updateHud();
 }
 
-/* --- 정책 --- */
-const availableUps = () => UPGRADES.filter(u => !S.ups.includes(u.id) && u.when(S)).sort((a, b) => a.cost - b.cost);
-function renderUps() {
-  const list = availableUps();
-  upKey = list.map(u => u.id).join();
-  els.upList.textContent = '';
-  upRows = {};
-  for (const u of list) {
-    const row = h('button', 'row');
-    row.type = 'button';
-    row.innerHTML = `<span class="chip ${u.zone ? 'z-' + u.zone : 'ic'}">${u.sign}</span>
-      <span class="row-main"><span class="row-name">${u.name}</span><span class="row-fx">${u.fx}</span><span class="row-desc">${u.flavor}</span></span>
-      <span class="row-side"><span class="row-cost">${won(u.cost)}</span></span>`;
-    row.setAttribute('aria-label', `${u.name}: ${u.fx}, ${won(u.cost)}`);
-    row.addEventListener('click', () => buyUp(u, row));
-    els.upList.append(row);
-    upRows[u.id] = row;
-  }
-  els.upEmpty.hidden = list.length > 0;
-  els.upCount.textContent = S.ups.length + '개 시행';
+/* --- 유성 --- */
+function scheduleMeteor() { meteorIn = (70 + Math.random() * 60) * D.meteorFreq; }
+function launchMeteor() {
+  const m = els.meteor, W = innerWidth, H = innerHeight;
+  const fromLeft = Math.random() < 0.5;
+  const y0 = H * (0.15 + Math.random() * 0.4), y1 = y0 + H * (0.25 + Math.random() * 0.2);
+  const x0 = fromLeft ? -140 : W + 20, x1 = fromLeft ? W + 20 : -140;
+  const ang = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI;
+  m.hidden = false;
+  meteorAlive = true;
+  const dur = 7000 * D.meteorSlow;
+  meteorAnim = m.animate([
+    { transform:`translate(${x0}px, ${y0}px) rotate(${ang}deg)` },
+    { transform:`translate(${x1}px, ${y1}px) rotate(${ang}deg)` },
+  ], { duration:dur, easing:'linear' });
+  meteorAnim.onfinish = () => { m.hidden = true; meteorAlive = false; scheduleMeteor(); };
 }
-function updateUps() {
-  if (availableUps().map(u => u.id).join() !== upKey) renderUps();
-  for (const id in upRows) upRows[id].classList.toggle('can', UP_BY_ID[id].cost <= S.money);
-}
-function buyUp(u, node) {
-  if (S.ups.includes(u.id)) return;
-  if (u.cost > S.money) return shake(node);
-  S.money -= u.cost;
-  S.ups.push(u.id);
-  recompute();
-  if (sel >= 0) renderInspect();
-  updateAll();
-}
-
-/* --- 관광버스 --- */
-function scheduleBus() { busIn = (55 + Math.random() * 60) * D.goldFreq; }
-function showBus() {
-  const b = els.bus;
-  b.style.left = (6 + Math.random() * 74) + 'vw';
-  b.style.top = (18 + Math.random() * 60) + 'vh';
-  b.classList.remove('fade');
-  b.hidden = false;
-  busLeft = 12;
-}
-function hideBus() { els.bus.classList.add('fade'); setTimeout(() => { if (busLeft <= 0) els.bus.hidden = true; }, 400); }
-els.bus.addEventListener('click', e => {
-  if (els.bus.hidden || busLeft <= 0) return;
-  busLeft = 0;
-  els.bus.hidden = true;
-  S.events++;
-  const r = Math.random(), dur = D.goldDur;
-  if (r < 0.55) {
-    const g = Math.max(D.perSec * 90, D.clickBase * 40);
+els.meteor.addEventListener('click', e => {
+  if (!meteorAlive) return;
+  meteorAlive = false;
+  if (meteorAnim) { meteorAnim.onfinish = null; meteorAnim.cancel(); }
+  els.meteor.hidden = true;
+  S.meteors++;
+  const x = e.clientX || innerWidth / 2, y = e.clientY || innerHeight / 2;
+  burst(x, y, cssColor('--b-meteor'), 24);
+  if (Math.random() < 0.6) {
+    const g = Math.max(D.perSec * 60, D.clickAvg * 30) * D.meteorMul;
     earn(g);
-    floatText(e.clientX || innerWidth / 2, e.clientY || innerHeight / 2, '+' + won(g), true);
-    toast('관광객이 지갑을 열었어요', `${won(g)}을 한 번에 벌었어요.`);
-  } else if (r < 0.9) {
-    addBuff('festival', 30 * dur);
-    toast('거리 축제', `${30 * dur}초 동안 건물 수입 ×5`);
+    floatText(x, y, '+' + fmt(g), 'big');
+    toast('유성을 잡았어요', `별빛 ${fmt(g)}을 한 번에 모았어요.`);
   } else {
-    addBuff('rush', 15 * dur);
-    toast('세금 납부의 날', `${15 * dur}초 동안 클릭 수입 ×10`);
+    const sec = 20 + D.meteorDur;
+    S.buffs = S.buffs.filter(b => b.kind !== 'shower');
+    S.buffs.push({ kind:'shower', until:Date.now() + sec * 1000 });
+    toast('유성우', `${sec}초 동안 모든 별빛 ×3`);
   }
-  scheduleBus();
-  updateAll();
+  scheduleMeteor();
+  updateHud();
 });
-function addBuff(kind, sec) { S.buffs = S.buffs.filter(b => b.kind !== kind); S.buffs.push({ kind, until:Date.now() + sec * 1000 }); }
-function renderBuffs() {
-  const now = Date.now();
-  els.buffs.innerHTML = S.buffs.map(b => `<span class="buff">${b.kind === 'festival' ? '축제 · 건물 ×5' : '납부의 날 · 클릭 ×10'} · ${Math.ceil((b.until - now) / 1000)}초</span>`).join('');
+
+/* --- 하늘(배경 별·입자) --- */
+const ctx = els.sky.getContext('2d');
+let skyStars = [], dpr = 1;
+function sizeSky() {
+  dpr = Math.min(2, devicePixelRatio || 1);
+  els.sky.width = innerWidth * dpr; els.sky.height = innerHeight * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  skyStars = Array.from({ length:Math.round(innerWidth * innerHeight / 9000) }, () => ({ x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:Math.random() * 1.2 + 0.2, a:Math.random() * 0.6 + 0.15, t:Math.random() * 6 }));
+}
+const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function drawSky(dt, now) {
+  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  ctx.fillStyle = '#ffffff';
+  for (const s of skyStars) {
+    ctx.globalAlpha = calm ? s.a : s.a * (0.7 + 0.3 * Math.sin(now / 900 + s.t));
+    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+  }
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.age += dt;
+    if (p.age >= p.life) { particles.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt; p.vx *= 0.96; p.vy *= 0.96;
+    ctx.globalAlpha = 1 - p.age / p.life;
+    ctx.fillStyle = p.color;
+    ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 6.283); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
 }
 
-/* --- 기록·새 도시 계획 --- */
+/* --- 기록 --- */
 function renderStats() {
-  const nb = Object.keys(S.grid).length;
   const rows = [
-    ['이번 도시 총수입', won(S.total)], ['전체 누적 수입', won(S.lifetime)],
-    ['세금 걷은 횟수', S.clicks.toLocaleString('ko-KR') + '번'], ['맞이한 관광버스', S.events + '대'],
-    ['건물', nb + '채'], ['개발 구역', `${S.rings} / ${RINGS.length - 1}`],
-    ['도시 계획 노하우', `${S.know} (+${Math.round(S.know * KNOW_BONUS * 100)}%)`], ['플레이 시간', fmtTime(S.playSec)],
+    ['밝힌 별', `${D.lit} / ${NODES.length}개`], ['단계 합계', Object.values(S.lv).reduce((a, b) => a + b, 0) + ' / ' + NODES.reduce((a, n) => a + n.max, 0)],
+    ['모은 별빛', fmt(S.total)], ['누른 횟수', S.clicks.toLocaleString('ko-KR') + '번'],
+    ['섬광', S.crits.toLocaleString('ko-KR') + '번'], ['잡은 유성', S.meteors + '개'],
+    ['초당 별빛', fmt(perSecNow())], ['플레이 시간', fmtTime(S.playSec)],
   ];
   els.stats.innerHTML = rows.map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
-  const gain = knowFor(S.lifetime) - S.know;
-  els.knowGain.textContent = '지금 시작하면 노하우 +' + Math.max(0, gain);
-  els.knowNext.textContent = `누적 수입이 ${won(Math.pow(knowFor(S.lifetime) + 1, 3) * KNOW_UNIT)}이 되면 노하우가 하나 더 쌓여요.`;
-  els.knowBtn.disabled = gain < 1;
-  if (gain < 1 && confirmKnow) { confirmKnow = 0; els.knowBtn.classList.remove('warn'); els.knowBtn.textContent = '새 도시 계획 세우기'; }
 }
-// 되돌릴 수 없는 버튼: 4초 안에 한 번 더 눌러야 실행. 첫 누름이면 새 시각을, 확정이면 0을 돌려준다.
-function twoStep(btn, stamp, label, warnLabel) {
-  if (Date.now() - stamp > 4000) {
-    btn.classList.add('warn');
-    btn.textContent = warnLabel;
-    setTimeout(() => { if (btn.classList.contains('warn')) { btn.classList.remove('warn'); btn.textContent = label; } }, 4000);
-    return Date.now();
-  }
-  btn.classList.remove('warn');
-  btn.textContent = label;
-  return 0;
-}
-els.knowBtn.addEventListener('click', () => {
-  const gain = knowFor(S.lifetime) - S.know;
-  if (gain < 1) return;
-  const was = confirmKnow;
-  confirmKnow = twoStep(els.knowBtn, confirmKnow, '새 도시 계획 세우기', '한 번 더 누르면 시청 하나부터 다시 시작해요');
-  if (!was || confirmKnow) return;
-  const keep = { lifetime:S.lifetime, clicks:S.clicks, events:S.events, playSec:S.playSec, know:S.know + gain, resets:S.resets + 1, tab:'build' };
-  S = Object.assign(fresh(), keep);
-  boot();
-  save();
-  toast('새 도시 계획', `노하우 ${S.know}. 모든 수입 +${Math.round(S.know * KNOW_BONUS * 100)}%`);
-});
+$('#statsBtn').addEventListener('click', () => { renderStats(); els.statsDialog.hidden = false; $('#closeStats').focus(); });
+$('#closeStats').addEventListener('click', () => { els.statsDialog.hidden = true; });
+els.statsDialog.addEventListener('click', e => { if (e.target === els.statsDialog) els.statsDialog.hidden = true; });
+addEventListener('keydown', e => { if (e.key === 'Escape') els.statsDialog.hidden = true; });
 els.wipeBtn.addEventListener('click', () => {
-  const was = confirmWipe;
-  confirmWipe = twoStep(els.wipeBtn, confirmWipe, '저장 기록 지우기', '한 번 더 누르면 모든 기록이 사라져요');
-  if (!was || confirmWipe) return;
+  const b = els.wipeBtn;
+  if (Date.now() - confirmWipe > 4000) {
+    confirmWipe = Date.now();
+    b.classList.add('warn'); b.textContent = '한 번 더 누르면 모두 지워져요';
+    setTimeout(() => { if (b.classList.contains('warn')) { b.classList.remove('warn'); b.textContent = '처음부터 다시 하기'; } }, 4000);
+    return;
+  }
+  confirmWipe = 0;
+  b.classList.remove('warn'); b.textContent = '처음부터 다시 하기';
   try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
   S = fresh();
   boot();
-  toast('기록을 지웠어요', '시청 하나부터 다시 시작해요.');
+  els.statsDialog.hidden = true;
+  toast('처음부터 다시', '작은 별 하나에서 시작해요.');
 });
 
-/* --- 탭 --- */
-const tabs = [...document.querySelectorAll('.tab')];
-function setTab(t) {
-  S.tab = t;
-  tabs.forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === t)));
-  for (const id of ['build', 'ups', 'stats']) document.getElementById('panel-' + id).hidden = id !== t;
-  if (t === 'stats') renderStats();
-}
-tabs.forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
-
-/* --- 화면 갱신 --- */
-let lastMoney = '', lastRate = '';
-function updateTop() {
-  const m = won(S.money), r = won(perSecNow());
-  if (m !== lastMoney) { els.money.textContent = m; els.moneyTop.textContent = m; lastMoney = m; }
-  if (r !== lastRate) { els.rate.textContent = r; els.rateTop.textContent = r; lastRate = r; }
-}
-function updateAll() {
-  updateTop();
-  els.perClick.textContent = won(clickNow());
-  els.bCount.textContent = Object.keys(S.grid).length + '채';
-  els.cityName.textContent = cityName(S);
-  els.cityRank.textContent = `개발 구역 ${S.rings} / ${RINGS.length - 1}`;
-  const cost = nextRingCost(S);
-  if (S.rings >= RINGS.length - 1) { els.expandBtn.disabled = true; els.expandBtn.textContent = '모든 구역을 개발했어요'; els.expandBtn.classList.remove('can'); }
-  else {
-    els.expandBtn.disabled = false;
-    els.expandBtn.innerHTML = `${RINGS[S.rings + 1].name} 개발 승인 <span class="num">${won(cost)}</span>`;
-    els.expandBtn.classList.toggle('can', cost <= S.money);
-  }
-  const free = freeTiles(S).length;
-  els.mapSub.textContent = free ? `빈 땅 ${free}칸 · 시청에서 가까울수록 수입이 커요` : '빈 땅이 없어요. 구역을 넓히거나 낡은 건물을 허물어 다시 지으세요.';
-  updateBuild();
-  updateUps();
-  refreshInspectButtons();
-  renderBuffs();
-  if (S.tab === 'stats') renderStats();
-  const canBuild = Object.values(buildRows).some(r => r.row.classList.contains('can'));
-  $('#tab-build').classList.toggle('has', canBuild && S.tab !== 'build');
-  $('#tab-ups').classList.toggle('has', Object.keys(upRows).some(id => UP_BY_ID[id].cost <= S.money) && S.tab !== 'ups');
+/* --- 계기판 --- */
+let lastMoney = '';
+function updateMoney() { const m = fmt(S.money); if (m !== lastMoney) { els.money.textContent = m; lastMoney = m; } }
+function updateHud() {
+  updateMoney();
+  els.rate.textContent = fmt(perSecNow());
+  els.perClick.textContent = fmt(D.click * buffMul());
+  const chips = [];
+  if (D.crit > 0) chips.push(`<span class="chip">섬광 ${Math.round(D.crit * 100)}% · ×${D.critMul}</span>`);
+  if (D.combo > 0 && combo > 1) chips.push(`<span class="chip">연타 +${Math.round((comboMul() - 1) * 100)}%</span>`);
+  if (D.autoClick > 0) chips.push(`<span class="chip">자동 반짝 초당 ${trim(D.autoClick)}번</span>`);
+  for (const b of S.buffs) chips.push(`<span class="chip buff">유성우 ×3 · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
+  els.chips.innerHTML = chips.join('');
+  updateAffordable();
+  refreshInfoButtons();
 }
 
 /* --- 루프 --- */
-function step(dt) {
-  S.playSec += dt;
-  const now = Date.now();
-  if (S.buffs.some(b => b.until <= now)) S.buffs = S.buffs.filter(b => b.until > now);
-  earn(perSecNow() * dt);
-  if (busLeft > 0) { busLeft -= dt; if (busLeft <= 0) { hideBus(); scheduleBus(); } }
-  else if ((busIn -= dt) <= 0) { busIn = Infinity; showBus(); }
-}
 function frame(now) {
   let dt = (now - last) / 1000;
   last = now;
   if (dt > 5) {
-    // 탭을 떠나 있던 동안에도 도시는 돌아가요
+    // 탭을 떠나 있던 동안에도 위성은 돌아요
     const g = D.perSec * Math.min(dt, 8 * 3600);
     earn(g);
-    if (dt > 60 && g > 0) toast('다녀오셨어요', `${fmtTime(dt)} 동안 ${won(g)}을 걷었어요.`);
+    if (dt > 60 && g > 0) toast('다녀오셨어요', `${fmtTime(dt)} 동안 별빛 ${fmt(g)}을 모았어요.`);
     dt = 0;
   }
-  step(dt);
-  updateTop();
+  S.playSec += dt;
+  const nowMs = Date.now();
+  if (S.buffs.some(b => b.until <= nowMs)) S.buffs = S.buffs.filter(b => b.until > nowMs);
+  earn(perSecNow() * dt);
+  if (now / 1000 - lastClickAt > COMBO_WINDOW) combo = 0;
+  if (D.meteor && !meteorAlive && (meteorIn -= dt) <= 0) launchMeteor();
+  if (follow) {
+    const t = 1 - Math.exp(-dt * 5);
+    const ds = target.s - view.s;
+    view.x += (target.x - view.x) * t; view.y += (target.y - view.y) * t; view.s += ds * t;
+    applyView();
+    if (Math.abs(ds) > 1e-4) placeNodes();
+  }
+  drawSky(dt, now);
+  updateMoney();
   uiAcc += dt; saveAcc += dt;
-  if (uiAcc > 0.15) { uiAcc = 0; updateAll(); }
+  if (uiAcc > 0.15) { uiAcc = 0; updateHud(); }
   if (saveAcc > 5) { saveAcc = 0; save(); }
   requestAnimationFrame(frame);
 }
 
 function boot() {
   recompute();
-  sel = -1; upKey = ''; busLeft = 0; busIn = 40; els.bus.hidden = true;
-  buildMap();
-  paintMap();
-  renderBuild();
-  renderUps();
-  renderInspect();
-  setTab(S.tab || 'build');
-  updateAll();
+  sel = null; combo = 0; lastStage = stageOf(D.lit);
+  els.stageName.textContent = lastStage;
+  buildTree();
+  paintAll();
+  renderInfo();
+  follow = true;
+  fitTarget();
+  Object.assign(view, target);
+  applyView(); placeNodes();
+  meteorIn = 45;
+  updateHud();
 }
 function start(data) {
   S = (data && data.save && revive(data.save)) || load() || fresh();
+  sizeSky();
   boot();
   const away = (Date.now() - S.lastSeen) / 1000;
   if (away > 60 && D.perSec > 0) {
-    const secs = Math.min(away, 8 * 3600), g = D.perSec * secs * 0.5;
+    const secs = Math.min(away, 8 * 3600), g = D.perSec * secs * D.offline;
     earn(g);
-    toast('도시는 쉬지 않았어요', `자리를 비운 ${fmtTime(secs)} 동안 ${won(g)}을 걷었어요.`);
+    toast('위성들이 일하고 있었어요', `자리를 비운 ${fmtTime(secs)} 동안 별빛 ${fmt(g)}을 모았어요.`);
   }
   addEventListener('visibilitychange', () => { if (document.hidden) save(); });
   addEventListener('pagehide', save);
