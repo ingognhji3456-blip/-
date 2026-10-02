@@ -39,6 +39,16 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .edge.cross{stroke:var(--c); stroke-dasharray:2 5; opacity:.7}
 .edge.cross.lit{stroke-dasharray:6 4; opacity:.9}
 .edge.cross.ghost{stroke:var(--c); opacity:.35}
+/* 밝힌 선 위로 중심에서 바깥으로 흘러가는 빛 */
+.flow{fill:none; stroke:var(--core); stroke-width:3; stroke-linecap:round; stroke-dasharray:1 23; vector-effect:non-scaling-stroke; opacity:.85; display:none; animation:flow 1.5s linear infinite}
+.flow.on{display:inline}
+@keyframes flow{to{stroke-dashoffset:-24}}
+.corona{animation:breathe 4s ease-in-out infinite}
+.rays{animation:spin 120s linear infinite}
+.rays line{stroke:var(--core); stroke-linecap:round; opacity:.22}
+@keyframes breathe{50%{transform:scale(1.08); opacity:.85}}
+.stage-track{fill:none; stroke:var(--line-2); stroke-width:3; opacity:.6}
+.stage-ring{fill:none; stroke:var(--b-click); stroke-width:3.5; stroke-linecap:round; transform:rotate(-90deg); transition:stroke-dasharray .6s ease}
 .node{cursor:pointer; outline:none}
 .node .halo{fill:var(--c); opacity:0}
 .node .avl{fill:none; stroke:var(--c); stroke-width:2.5; stroke-dasharray:5 5; opacity:0}
@@ -102,6 +112,15 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .tools{position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); right:16px; z-index:5; display:flex; gap:8px}
 .tbtn{border:1px solid var(--line-2); background:var(--panel); color:var(--text); border-radius:10px; padding:7px 12px; font-size:var(--t-sm); font-weight:700; cursor:pointer}
 .tbtn:focus-visible{outline:2px solid var(--b-click); outline-offset:2px}
+.tbtn[aria-pressed="false"]{color:var(--muted)}
+.brand .next{font-size:var(--t-xs); color:var(--muted)}
+/* 처음 하는 사람 안내 말풍선 */
+.coach{position:fixed; z-index:9; left:0; top:0; transform:translate(-50%,-100%); pointer-events:none; padding:8px 12px; border-radius:10px; background:var(--core); color:var(--void); font-size:var(--t-sm); font-weight:700; white-space:nowrap; box-shadow:0 8px 24px var(--shadow); animation:bob 1.2s ease-in-out infinite}
+.coach::after{content:""; position:absolute; left:50%; bottom:-6px; margin-left:-6px; border:6px solid transparent; border-bottom:0; border-top-color:var(--core)}
+@keyframes bob{50%{margin-top:-6px}}
+.impact{display:flex; flex-wrap:wrap; gap:6px}
+.impact span{font-size:var(--t-xs); font-weight:700; border-radius:999px; padding:3px 10px; background:var(--panel-solid); border:1px solid var(--line-2); color:var(--muted)}
+.impact b{color:var(--good); font-family:var(--f-display); font-weight:400; font-size:var(--t-sm)}
 
 /* 별 정보 */
 .info{position:fixed; z-index:6; right:16px; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); width:340px; display:flex; flex-direction:column; gap:10px; padding:16px;
@@ -136,6 +155,7 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .float{position:absolute; font-family:var(--f-display); font-size:18px; color:var(--core); text-shadow:0 0 8px var(--core-glow); white-space:nowrap; animation:rise .9s ease-out forwards}
 .float.crit{font-size:26px; color:var(--b-luck); text-shadow:0 0 10px var(--b-luck)}
 .float.big{font-size:26px; color:var(--b-meteor)}
+.float.lvup{font-size:14px; color:var(--text); text-shadow:0 0 8px var(--shadow)}
 @keyframes rise{from{opacity:1; transform:translate(-50%,-50%)}to{opacity:0; transform:translate(-50%,calc(-50% - 64px))}}
 .meteor{position:fixed; z-index:8; left:0; top:0; width:120px; height:40px; padding:0; border:0; background:none; cursor:pointer}
 .meteor svg{display:block; width:100%; height:100%; overflow:visible}
@@ -158,6 +178,7 @@ h1,h2,h3{margin:0; text-wrap:balance}
 @media (max-width:760px){
   .info{left:0; right:0; bottom:0; width:auto; border-radius:16px 16px 0 0; padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 12px); gap:8px; max-height:48%; overflow-y:auto}
   .info .legend{display:none}
+  .chip.minor{display:none}
   .money{font-size:24px}
   .hud{max-width:calc(100% - 180px)}
   .tools{flex-direction:column; align-items:flex-end}
@@ -182,14 +203,17 @@ h1,h2,h3{margin:0; text-wrap:balance}
       </radialGradient>
     </defs>
     <g id="world">
-      <g id="coreGlow" pointer-events="none"><circle r="92" fill="url(#g-core)"/></g>
+      <g id="coreGlow" pointer-events="none"><g class="rays" id="rays"></g><circle class="corona" r="92" fill="url(#g-core)"/></g>
       <g id="edges"></g>
       <g id="core" class="core" role="button" tabindex="0" aria-label="중심별 눌러서 별빛 모으기">
         <g class="body">
           <circle r="60" fill="transparent"/>
           <path d="M0 -46 C6 -12 12 -6 46 0 C12 6 6 12 0 46 C-6 12 -12 6 -46 0 C-12 -6 -6 -12 0 -46Z" fill="#fffaf0"/>
+          <path d="M0 -46 C6 -12 12 -6 46 0 C12 6 6 12 0 46 C-6 12 -12 6 -46 0 C-12 -6 -6 -12 0 -46Z" fill="#fff3cf" opacity=".75" transform="rotate(45) scale(.55)"/>
           <circle r="16" fill="#ffffff"/>
         </g>
+        <circle class="stage-track" r="68"/>
+        <circle class="stage-ring" id="stageRing" r="68" pathLength="100" stroke-dasharray="0 100"/>
         <circle class="focus" r="58"/>
       </g>
       <g id="nodes"></g>
@@ -198,7 +222,7 @@ h1,h2,h3{margin:0; text-wrap:balance}
 </div>
 
 <header class="hud">
-  <div class="brand"><h1>중심별</h1><span id="stageName">작은 별</span></div>
+  <div class="brand"><h1>중심별</h1><span id="stageName">작은 별</span><span class="next" id="stageNext"></span></div>
   <div class="money"><span id="money">0</span><small>별빛</small></div>
   <div class="rates">초당 <b id="rate">0</b> · 클릭당 <b id="perClick">1</b></div>
   <div class="chips" id="chips"></div>
@@ -206,7 +230,9 @@ h1,h2,h3{margin:0; text-wrap:balance}
 <div class="tools">
   <button class="tbtn" type="button" id="fitBtn">가운데로</button>
   <button class="tbtn" type="button" id="statsBtn">기록</button>
+  <button class="tbtn" type="button" id="soundBtn" aria-pressed="true">소리 켬</button>
 </div>
+<div class="coach" id="coach" hidden></div>
 <aside class="info" id="info" aria-live="polite"></aside>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <button class="meteor" id="meteor" type="button" hidden aria-label="유성 잡기">
@@ -436,11 +462,13 @@ const view = { x:0, y:0, s:1 }, target = { x:0, y:0, s:1 };
 let panGoal = null;
 let follow = true;
 const nodeEls = {}, edgeEls = {};
-const particles = [];
+const particles = [], rings = [];
+let flash = 0, shakeT = 0, shownMoney = 0;
 
 const els = {
   stage:$('#stage'), sky:$('#sky'), svg:$('#tree'), world:$('#world'), edges:$('#edges'), nodes:$('#nodes'), core:$('#core'), coreGlow:$('#coreGlow'),
-  money:$('#money'), rate:$('#rate'), perClick:$('#perClick'), stageName:$('#stageName'), chips:$('#chips'),
+  money:$('#money'), rate:$('#rate'), perClick:$('#perClick'), stageName:$('#stageName'), stageNext:$('#stageNext'), chips:$('#chips'),
+  stageRing:$('#stageRing'), rays:$('#rays'), coach:$('#coach'), soundBtn:$('#soundBtn'),
   info:$('#info'), fx:$('#fx'), meteor:$('#meteor'), toasts:$('#toasts'),
   statsDialog:$('#statsDialog'), stats:$('#stats'), wipeBtn:$('#wipeBtn'),
 };
@@ -481,6 +509,54 @@ function burst(x, y, color, n) {
     particles.push({ x, y, vx:Math.cos(a) * sp, vy:Math.sin(a) * sp, life:0.6 + Math.random() * 0.5, age:0, color });
   }
 }
+// 화면 공간에서 퍼지는 고리(충격파)
+function ring(x, y, r0, r1, life, color, w) { if (rings.length < 40) rings.push({ x, y, r0, r1, life, age:0, color, w:w || 2 }); }
+
+/* --- 소리: 파일 없이 바로 합성해요 --- */
+const Sound = (() => {
+  let ac = null, master = null, on = true;
+  try { on = localStorage.getItem('center-star-sound') !== 'off'; } catch (e) {}
+  function ready() {
+    if (!on) return null;
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ac = new AC();
+      master = ac.createGain(); master.gain.value = 0.22; master.connect(ac.destination);
+    }
+    if (ac.state === 'suspended') ac.resume();
+    return ac;
+  }
+  function tone(freq, dur, type, vol, delay, slideTo) {
+    const a = ready(); if (!a) return;
+    const t0 = a.currentTime + (delay || 0);
+    const o = a.createOscillator(), g = a.createGain();
+    o.type = type || 'sine';
+    o.frequency.setValueAtTime(freq, t0);
+    if (slideTo) o.frequency.exponentialRampToValueAtTime(slideTo, t0 + dur);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(vol, t0 + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    o.connect(g); g.connect(master);
+    o.start(t0); o.stop(t0 + dur + 0.05);
+  }
+  const SCALE = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66, 1318.51, 1567.98, 1760];   // 5음계: 연타할수록 올라가요
+  return {
+    get on() { return on; },
+    toggle() { on = !on; try { localStorage.setItem('center-star-sound', on ? 'on' : 'off'); } catch (e) {} if (on) ready(); return on; },
+    click(c) { tone(SCALE[Math.min(SCALE.length - 1, Math.floor((c - 1) / 3))], 0.14, 'triangle', 0.16); },
+    crit() { tone(1567.98, 0.3, 'sine', 0.2); tone(2093, 0.4, 'sine', 0.12, 0.06); tone(392, 0.25, 'triangle', 0.12); },
+    buy() { [659.25, 987.77, 1318.51].forEach((f, i) => tone(f, 0.22, 'sine', 0.16, i * 0.05)); },
+    reveal() { [523.25, 659.25, 783.99, 1046.5, 1318.51].forEach((f, i) => tone(f, 0.45, 'sine', 0.13, i * 0.08)); },
+    stage() { [392, 523.25, 659.25, 783.99, 1046.5].forEach((f, i) => tone(f, 0.6, 'triangle', 0.13, i * 0.1)); },
+    meteor() { tone(1400, 0.9, 'sine', 0.05, 0, 500); },
+    catch() { [783.99, 1046.5, 1567.98].forEach((f, i) => tone(f, 0.3, 'triangle', 0.16, i * 0.06)); },
+    deny() { tone(196, 0.14, 'square', 0.05); },
+  };
+})();
+function paintSoundBtn() { els.soundBtn.textContent = Sound.on ? '소리 켬' : '소리 끔'; els.soundBtn.setAttribute('aria-pressed', String(Sound.on)); }
+els.soundBtn.addEventListener('click', () => { Sound.toggle(); paintSoundBtn(); if (Sound.on) Sound.buy(); });
+
 function toast(title, body) {
   const t = h('div', 'toast');
   t.append(h('b'), h('span'));
@@ -505,7 +581,9 @@ function collect(x, y) {
   S.clicks++;
   floatText(x + (Math.random() * 40 - 20), y - 30, (isCrit ? '섬광! +' : '+') + fmt(v), isCrit ? 'crit' : '');
   const [cx, cy] = toScreen(0, 0);
-  burst(cx, cy, isCrit ? cssColor('--b-luck') : cssColor('--core'), isCrit ? 14 : 5);
+  burst(cx, cy, isCrit ? COLORS.luck : COLORS.core, isCrit ? 16 : 5);
+  ring(cx, cy, coreR() * 0.8, coreR() * 2.2, 0.45, isCrit ? COLORS.luck : COLORS.core, isCrit ? 3 : 1.5);
+  if (isCrit) { if (!calm) { flash = 0.22; shakeT = 0.18; } Sound.crit(); } else Sound.click(combo);
   els.core.classList.remove('hit'); void els.core.getBBox(); els.core.classList.add('hit');
 }
 els.core.addEventListener('keydown', e => {
@@ -526,8 +604,9 @@ function buildTree() {
       const p = from ? NODE[from] : { x:0, y:0 };
       const e = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'edge' });
       e.style.setProperty('--c', BRANCHES[n.br].color);
-      els.edges.append(e);
-      return { el:e, from };
+      const f = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'flow' });
+      els.edges.append(e, f);
+      return { el:e, flow:f, from };
     });
     const g = sv('g', { class:'node', tabindex:'0', role:'button', 'data-id':n.id });
     g.style.setProperty('--c', BRANCHES[n.br].color);
@@ -554,11 +633,16 @@ function buildTree() {
 }
 // 별과 중심별은 확대·축소와 상관없이 화면에서 거의 같은 크기로 보여요
 const narrow = () => innerWidth <= 760;
+const stageIndex = () => { let k = 0; STAGES.forEach(([at], i) => { if (D.lit >= at) k = i; }); return k; };
+// 중심별 크기(화면 px): 단계가 오를수록 조금씩 커지지만 첫 고리와는 겹치지 않아요
+function coreR() {
+  const gap = RING_GAP * view.s;
+  return Math.max(22, Math.min(54, gap * 0.42, gap * 0.34 * (1 + 0.06 * stageIndex())));
+}
 function placeNodes() {
   const k = (narrow() ? 0.85 : 1) / view.s;
   for (const n of NODES) nodeEls[n.id].setAttribute('transform', `translate(${n.x} ${n.y}) scale(${k})`);
-  const star = Math.max(22, Math.min(46, RING_GAP * view.s * 0.36));   // 첫 고리와 겹치지 않는 크기
-  const c = star / 46 / view.s;
+  const c = coreR() / 46 / view.s;
   els.core.setAttribute('transform', `scale(${c})`);
   els.coreGlow.setAttribute('transform', `scale(${c})`);
 }
@@ -589,10 +673,11 @@ function paintNode(n, pop) {
   costEl.textContent = st === 'avail' || st === 'lit' ? fmt(costOf(n, lv, D)) : '';
   g.setAttribute('tabindex', st === 'ghost' && !mystery ? '-1' : '0');
   g.setAttribute('aria-label', mystery ? '아직 열리지 않은 연결 별' : `${n.name}, ${lv} / ${n.max}단계` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
-  for (const { el, from } of edgeEls[n.id]) {
+  for (const { el, flow, from } of edgeEls[n.id]) {
     const show = st !== 'hidden' && !(mystery && from && !n.req.some(([id, l]) => id === from && lvOf(S, id) >= l));
     el.style.display = show ? '' : 'none';
     el.setAttribute('class', 'edge' + (cross ? ' cross' : '') + (st === 'ghost' ? ' ghost' : lv > 0 ? ' lit' : ''));
+    flow.setAttribute('class', 'flow' + (show && lv > 0 ? ' on' : ''));
   }
 }
 function paintAll() { for (const n of NODES) paintNode(n); }
@@ -728,6 +813,7 @@ function renderInfo() {
     <p>${n.desc}</p>
     <div class="lvbar" aria-hidden="true">${bars}</div>
     <div class="fxline">${lv ? `<span>지금 <b>${effText(n, lv)}</b></span>` : ''}${maxed ? '' : `<span>${lv ? '→ 다음' : '밝히면'} <b>${effText(n, lv + 1)}</b></span>`}</div>
+    ${impactLine(n)}
     ${clueList(n)}
     <div class="actions"></div>`;
   const acts = box.querySelector('.actions');
@@ -741,10 +827,29 @@ function renderInfo() {
   if (!maxed && n.max - lv > 1) {
     const b2 = h('button', 'btn ghost');
     b2.type = 'button'; b2.id = 'buyMax';
-    b2.addEventListener('click', () => { const m = maxBuy(n); for (let i = 0; i < m.k; i++) buy(n.id, true); renderInfo(); });
+    b2.addEventListener('click', () => { const m = maxBuy(n); for (let i = 0; i < m.k; i++) buy(n.id, true); Sound.buy(); renderInfo(); });
     acts.append(b2);
   }
   refreshInfoButtons();
+}
+// 한 단계 올리면 수입이 얼마나 달라지는지 미리 계산해 보여요
+function impactLine(n) {
+  const lv = lvOf(S, n.id);
+  if (lv >= n.max) return '';
+  S.lv[n.id] = lv + 1;
+  const d2 = derive(S);
+  if (lv) S.lv[n.id] = lv; else delete S.lv[n.id];
+  const parts = [];
+  const add = (label, now, next) => {
+    if (next <= now) return;
+    if (now <= 0) { parts.push(`<span>${label} <b>+${fmt(next)}</b></span>`); return; }
+    const r = next / now - 1;
+    if (r < 0.005) return;
+    parts.push(`<span>${label} <b>${r >= 1 ? '×' + trim(next / now) : '+' + (r < 0.1 ? (r * 100).toFixed(1) : Math.round(r * 100)) + '%'}</b></span>`);
+  };
+  add('초당 별빛', D.perSec, d2.perSec);
+  add('클릭 한 번', D.clickAvg, d2.clickAvg);
+  return parts.length ? `<div class="impact" aria-label="밝히면 달라지는 수입">${parts.join('')}</div>` : '';
 }
 // 이 별을 키우면 어딘가에서 열릴 연결 별 단서
 function clueList(n) {
@@ -764,14 +869,21 @@ function refreshInfoButtons() {
   if (!sel) return;
   const n = NODE[sel], lv = lvOf(S, n.id);
   const b1 = document.getElementById('buyOne'), b2 = document.getElementById('buyMax');
-  if (b1 && lv < n.max) b1.disabled = costOf(n, lv, D) > S.money;
+  if (b1 && lv < n.max) {
+    // 모자라면 얼마나 더 필요하고 대략 언제쯤 되는지 알려 줘요
+    const cost = costOf(n, lv, D), need = cost - S.money, rate = perSecNow();
+    b1.disabled = need > 0;
+    b1.textContent = need > 0
+      ? `${fmt(need)} 더 필요${rate > 0 ? ' · 약 ' + fmtTime(Math.max(1, need / rate)) : ''}`
+      : `${lv ? '한 단계 더' : '밝히기'} · ${fmt(cost)} 별빛`;
+  }
   if (b2) { const m = maxBuy(n); b2.textContent = m.k > 1 ? `${m.k}단계 한 번에 · ${fmt(m.total)}` : '여러 단계 한 번에'; b2.disabled = m.k < 2; }
 }
 function buy(id, quiet) {
   const n = NODE[id], lv = lvOf(S, id), st = nodeState(n);
   if ((st !== 'avail' && st !== 'lit') || lv >= n.max) return;
   const cost = costOf(n, lv, D);
-  if (cost > S.money) { if (!quiet) { const b = document.getElementById('buyOne'); if (b) shake(b); } return; }
+  if (cost > S.money) { if (!quiet) { const b = document.getElementById('buyOne'); if (b) shake(b); Sound.deny(); } return; }
   const before = new Set(NODES.filter(m => nodeState(m) !== 'hidden' && nodeState(m) !== 'ghost').map(m => m.id));
   S.money -= cost;
   S.lv[id] = lv + 1;
@@ -782,7 +894,9 @@ function buy(id, quiet) {
     freshUntil[m.id] = Date.now() + 9000;
     setTimeout(() => paintNode(m), 9100);
     const [mx, my] = toScreen(m.x, m.y);
-    burst(mx, my, cssColor(BRANCHES[m.br].color.slice(4, -1)), 18);
+    burst(mx, my, COLORS[m.br], 18);
+    ring(mx, my, 16, 130, 0.9, COLORS[m.br], 2.5);
+    setTimeout(() => { const [ax, ay] = toScreen(m.x, m.y); ring(ax, ay, 16, 130, 0.9, COLORS[m.br], 1.5); }, 220);
     toast('새 별이 나타났어요: ' + m.name, m.req ? `${m.req.map(([rid]) => BRANCHES[NODE[rid].br].name).join('과 ')} 사이에서 빛나기 시작했어요.` : `단계를 ${m.total}개 쌓자 먼 곳에서 떠올랐어요.`);
   }
   paintAll();
@@ -792,9 +906,24 @@ function buy(id, quiet) {
     if (lv === 0 && n.k === 'meteor') { meteorIn = 8; toast('유성이 보이기 시작했어요', '지나가는 유성을 눌러서 잡으세요.'); }
   }
   const [sx, sy] = toScreen(n.x, n.y);
-  burst(sx, sy, cssColor(BRANCHES[n.br].color.slice(4, -1)), 10);
+  burst(sx, sy, COLORS[n.br], 12);
+  ring(sx, sy, 18, 64, 0.5, COLORS[n.br], 2.5);
+  if (!quiet) floatText(sx, sy - 34, lv === 0 ? '밝혔어요' : `${lv + 1}단계`, 'lvup');
   const stg = stageOf(D.lit);
-  if (stg !== lastStage) { if (lastStage) toast('중심별이 자랐어요: ' + stg, `밝힌 별 ${D.lit}개`); lastStage = stg; els.stageName.textContent = stg; }
+  let stageUp = false;
+  if (stg !== lastStage) {
+    if (lastStage) {
+      stageUp = true;
+      toast('중심별이 자랐어요: ' + stg, `밝힌 별 ${D.lit}개`);
+      const [cx, cy] = toScreen(0, 0);
+      ring(cx, cy, coreR(), coreR() * 6, 1.4, COLORS.core, 3);
+      burst(cx, cy, COLORS.core, 30);
+      if (!calm) flash = 0.3;
+    }
+    lastStage = stg; els.stageName.textContent = stg;
+    placeNodes();
+  }
+  if (stageUp) Sound.stage(); else if (opened.length) Sound.reveal(); else if (!quiet || lv === 0) Sound.buy();
   if (!quiet) renderInfo();
   updateHud();
 }
@@ -809,6 +938,7 @@ function launchMeteor() {
   const ang = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI;
   m.hidden = false;
   meteorAlive = true;
+  Sound.meteor();
   const dur = 7000 * D.meteorSlow;
   meteorAnim = m.animate([
     { transform:`translate(${x0}px, ${y0}px) rotate(${ang}deg)` },
@@ -823,7 +953,9 @@ els.meteor.addEventListener('click', e => {
   els.meteor.hidden = true;
   S.meteors++;
   const x = e.clientX || innerWidth / 2, y = e.clientY || innerHeight / 2;
-  burst(x, y, cssColor('--b-meteor'), 24);
+  burst(x, y, COLORS.meteor, 24);
+  ring(x, y, 10, 110, 0.7, COLORS.meteor, 3);
+  Sound.catch();
   if (Math.random() < 0.6) {
     const g = Math.max(D.perSec * 60, D.clickAvg * 30) * D.meteorMul;
     earn(g);
@@ -846,15 +978,61 @@ function sizeSky() {
   dpr = Math.min(2, devicePixelRatio || 1);
   els.sky.width = innerWidth * dpr; els.sky.height = innerHeight * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  skyStars = Array.from({ length:Math.round(innerWidth * innerHeight / 9000) }, () => ({ x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:Math.random() * 1.2 + 0.2, a:Math.random() * 0.6 + 0.15, t:Math.random() * 6 }));
+  skyStars = Array.from({ length:Math.round(innerWidth * innerHeight / 7000) }, () => ({ x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:Math.random() * 1.2 + 0.2, a:Math.random() * 0.6 + 0.15, t:Math.random() * 6, z:0.02 + Math.random() * 0.1 }));
 }
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const COLORS = {};
+function readColors() {
+  for (const k in BRANCHES) COLORS[k] = cssColor(BRANCHES[k].color.slice(4, -1));
+  COLORS.core = cssColor('--core');
+}
+const hexA = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16 & 255},${n >> 8 & 255},${n & 255},${a})`; };
+// 갈래별로 밝힌 정도(0~1): 많이 키운 갈래 쪽 하늘이 그 색으로 물들어요
+function branchGlow() {
+  const out = {};
+  for (const k of ['click', 'auto', 'amp', 'luck', 'meteor', 'res']) {
+    let have = 0, all = 0;
+    for (const n of NODES) if (n.br === k) { have += lvOf(S, n.id); all += n.max; }
+    out[k] = have / all;
+  }
+  return out;
+}
+let glowCache = null;
 function drawSky(dt, now) {
-  ctx.clearRect(0, 0, innerWidth, innerHeight);
+  const W = innerWidth, H = innerHeight;
+  ctx.clearRect(0, 0, W, H);
+  // 성운
+  if (!glowCache || uiAcc === 0) glowCache = branchGlow();
+  ctx.globalCompositeOperation = 'lighter';
+  const R = Math.max(160, RING_GAP * 2.6 * view.s);
+  for (const k in glowCache) {
+    const g = glowCache[k];
+    if (g <= 0) continue;
+    const a = BRANCHES[k].angle * Math.PI / 180;
+    const [x, y] = toScreen(Math.cos(a) * RING_GAP * 3.2, Math.sin(a) * RING_GAP * 3.2);
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, R);
+    grad.addColorStop(0, hexA(COLORS[k], 0.05 + 0.16 * g));
+    grad.addColorStop(1, hexA(COLORS[k], 0));
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - R, y - R, R * 2, R * 2);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  // 배경 별 (깊이에 따라 조금씩 따라 움직여요)
   ctx.fillStyle = '#ffffff';
   for (const s of skyStars) {
+    const x = ((s.x + view.x * s.z) % W + W) % W, y = ((s.y + view.y * s.z) % H + H) % H;
     ctx.globalAlpha = calm ? s.a : s.a * (0.7 + 0.3 * Math.sin(now / 900 + s.t));
-    ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, 6.283); ctx.fill();
+    ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.283); ctx.fill();
+  }
+  // 충격파 고리
+  for (let i = rings.length - 1; i >= 0; i--) {
+    const r = rings[i];
+    r.age += dt;
+    if (r.age >= r.life) { rings.splice(i, 1); continue; }
+    const t = r.age / r.life, e = 1 - Math.pow(1 - t, 3);
+    ctx.globalAlpha = (1 - t) * 0.9;
+    ctx.strokeStyle = r.color; ctx.lineWidth = r.w;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.r0 + (r.r1 - r.r0) * e, 0, 6.283); ctx.stroke();
   }
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -864,6 +1042,15 @@ function drawSky(dt, now) {
     ctx.globalAlpha = 1 - p.age / p.life;
     ctx.fillStyle = p.color;
     ctx.beginPath(); ctx.arc(p.x, p.y, 2.2, 0, 6.283); ctx.fill();
+  }
+  // 섬광 번쩍임
+  if (flash > 0) {
+    const [cx, cy] = toScreen(0, 0);
+    const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.8);
+    grad.addColorStop(0, hexA(COLORS.core, flash));
+    grad.addColorStop(1, hexA(COLORS.core, 0));
+    ctx.globalAlpha = 1; ctx.fillStyle = grad; ctx.fillRect(0, 0, W, H);
+    flash = Math.max(0, flash - dt * 1.2);
   }
   ctx.globalAlpha = 1;
 }
@@ -917,15 +1104,27 @@ els.chips.addEventListener('click', e => {
   follow = false;
   panGoal = { x:a.x + a.w / 2 - n.x * view.s, y:a.y + a.h / 2 - n.y * view.s };
 });
-function updateMoney() { const m = fmt(S.money); if (m !== lastMoney) { els.money.textContent = m; lastMoney = m; } }
+function updateMoney(dt) {
+  // 금고 숫자는 실제 값을 부드럽게 따라가요
+  const diff = S.money - shownMoney;
+  shownMoney = Math.abs(diff) <= Math.max(1, Math.abs(S.money) * 1e-4) ? S.money : shownMoney + diff * (1 - Math.exp(-(dt || 1) * 14));
+  const m = fmt(shownMoney);
+  if (m !== lastMoney) { els.money.textContent = m; lastMoney = m; }
+}
+function paintStageProgress() {
+  const k = stageIndex(), cur = STAGES[k][0], next = STAGES[k + 1];
+  const p = next ? (D.lit - cur) / (next[0] - cur) : 1;
+  els.stageRing.setAttribute('stroke-dasharray', `${(p * 100).toFixed(1)} 100`);
+  els.stageNext.textContent = next ? `${next[1]}까지 별 ${next[0] - D.lit}개` : '모든 별을 밝혔어요';
+}
 function updateHud() {
-  updateMoney();
+  paintStageProgress();
   els.rate.textContent = fmt(perSecNow());
   els.perClick.textContent = fmt(D.click * buffMul());
   const chips = [];
-  if (D.crit > 0) chips.push(`<span class="chip">섬광 ${Math.round(D.crit * 100)}% · ×${D.critMul}</span>`);
+  if (D.crit > 0) chips.push(`<span class="chip minor">섬광 ${Math.round(D.crit * 100)}% · ×${D.critMul}</span>`);
   if (D.combo > 0 && combo > 1) chips.push(`<span class="chip">연타 +${Math.round((comboMul() - 1) * 100)}%</span>`);
-  if (D.autoClick > 0) chips.push(`<span class="chip">자동 반짝 초당 ${trim(D.autoClick)}번</span>`);
+  if (D.autoClick > 0) chips.push(`<span class="chip minor">자동 반짝 초당 ${trim(D.autoClick)}번</span>`);
   const ready = affordableList();
   chips.unshift(ready.length
     ? `<button type="button" class="chip go" data-go="1">▲ 지금 밝힐 수 있는 별 ${ready.length}개</button>`
@@ -969,16 +1168,54 @@ function frame(now) {
     applyView();
     if (Math.abs(ds) > 1e-4) placeNodes();
   }
+  if (shakeT > 0) {
+    shakeT = Math.max(0, shakeT - dt);
+    const m = shakeT * 18;
+    els.world.setAttribute('transform', `translate(${view.x + (Math.random() - 0.5) * m} ${view.y + (Math.random() - 0.5) * m}) scale(${view.s})`);
+    if (shakeT === 0) applyView();
+  }
   drawSky(dt, now);
-  updateMoney();
+  updateMoney(dt);
+  positionCoach();
   uiAcc += dt; saveAcc += dt;
-  if (uiAcc > 0.15) { uiAcc = 0; updateHud(); }
+  if (uiAcc > 0.15) { uiAcc = 0; updateHud(); updateCoach(); }
   if (saveAcc > 5) { saveAcc = 0; save(); }
   requestAnimationFrame(frame);
 }
 
+// 처음 하는 사람 안내: 중심별 누르기 → 첫 별 밝히기
+let coachTarget = null;
+function updateCoach() {
+  coachTarget = null;
+  if (S.coachDone) { els.coach.hidden = true; return; }
+  if (D.lit > 0) { S.coachDone = true; els.coach.hidden = true; return; }
+  if (S.clicks < 6) { coachTarget = { x:0, y:0, core:true }; els.coach.textContent = '중심별을 눌러 별빛을 모아요'; }
+  else {
+    const list = affordableList();
+    if (list.length) { coachTarget = list[0]; els.coach.textContent = narrow() ? '빛나는 별을 두 번 눌러 밝혀요' : '빛나는 별을 눌러 밝혀요'; }
+    else { coachTarget = { x:0, y:0, core:true }; els.coach.textContent = `조금만 더! ${fmt(Math.min(...NODES.filter(n => !n.p && !n.req && !n.total).map(n => costOf(n, 0, D))))} 별빛이면 첫 별을 밝혀요`; }
+  }
+  els.coach.hidden = false;
+}
+function positionCoach() {
+  if (!coachTarget || els.coach.hidden) return;
+  const [x, y] = toScreen(coachTarget.x, coachTarget.y);
+  const off = coachTarget.core ? coreR() + 14 : 34;
+  els.coach.style.left = x + 'px';
+  els.coach.style.top = (y - off) + 'px';
+}
+function buildRays() {
+  let html = '';
+  for (let i = 0; i < 12; i++) {
+    const a = (i * 30 + 15) * Math.PI / 180, len = i % 2 ? 96 : 132;
+    html += `<line x1="${(Math.cos(a) * 30).toFixed(1)}" y1="${(Math.sin(a) * 30).toFixed(1)}" x2="${(Math.cos(a) * len).toFixed(1)}" y2="${(Math.sin(a) * len).toFixed(1)}" stroke-width="${i % 2 ? 2 : 3}"/>`;
+  }
+  els.rays.innerHTML = html;
+}
+
 function boot() {
   recompute();
+  shownMoney = S.money;
   sel = null; combo = 0; lastStage = stageOf(D.lit);
   els.stageName.textContent = lastStage;
   buildTree();
@@ -993,6 +1230,9 @@ function boot() {
 }
 function start(data) {
   S = (data && data.save && revive(data.save)) || load() || fresh();
+  readColors();
+  buildRays();
+  paintSoundBtn();
   sizeSky();
   boot();
   const away = (Date.now() - S.lastSeen) / 1000;
