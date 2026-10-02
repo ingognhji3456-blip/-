@@ -14,7 +14,7 @@
   color-scheme:dark;
   --void:#060913; --space:#0c1224; --panel:rgba(14,20,38,.9); --panel-solid:#0f1629; --line:#26304f; --line-2:#3a4672;
   --text:#eef1fb; --muted:#9ba5c7; --dim:#5d6789; --core:#fff3cf; --core-glow:rgba(255,214,110,.55);
-  --b-click:#ffd66e; --b-auto:#7fd8ff; --b-amp:#c39bff; --b-luck:#ff8fb1; --b-meteor:#ffad66; --b-res:#8ff0b5; --b-link:#e2dbff; --b-deep:#fff3cf;
+  --b-click:#ffd66e; --b-auto:#7fd8ff; --b-amp:#c39bff; --b-luck:#ff8fb1; --b-meteor:#ffad66; --b-res:#8ff0b5; --b-link:#e2dbff; --b-deep:#fff3cf; --b-planet:#9ab6ff; --b-nova:#f477ff;
   --good:#8ff0b5; --shadow:rgba(0,0,0,.5);
   --f-display:"Orbit","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
@@ -48,6 +48,29 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .rays line{stroke:var(--core); stroke-linecap:round; opacity:.22}
 @keyframes breathe{50%{transform:scale(1.08); opacity:.85}}
 .stage-track{fill:none; stroke:var(--line-2); stroke-width:3; opacity:.6}
+.track{fill:none; stroke-width:1; vector-effect:non-scaling-stroke; stroke-dasharray:2 8; opacity:.4}
+.track.t-planet{stroke:var(--b-planet)} .track.t-nova{stroke:var(--b-nova)}
+#tree.far .node:not(.can):not(.sel) .cost{display:none}
+/* 중심별 둘레를 도는 행성 */
+.planet{cursor:pointer; outline:none}
+.planet .p-glow{fill:var(--pc); opacity:0}
+.planet .p-arc{fill:none; stroke:var(--pc); stroke-width:2.5; stroke-linecap:round; transform:rotate(-90deg); opacity:.8}
+.planet .p-body{fill:var(--pc); stroke:var(--void); stroke-width:1.5}
+.planet .p-shine{fill:#ffffff; opacity:.55}
+.planet .p-ring{fill:none; stroke:var(--pc); stroke-width:2; opacity:0}
+.planet.ringed .p-ring{opacity:.9}
+.planet:not(.ready) .p-body{opacity:.55}
+.planet.ready .p-glow{animation:glow 1s ease-in-out infinite}
+.planet:focus-visible .p-arc{stroke:var(--text)}
+.nova-ring{fill:none; stroke:var(--b-nova); stroke-width:4; stroke-linecap:round; transform:rotate(-90deg); opacity:0; transition:opacity .3s}
+.core.nova-on .nova-ring{opacity:.9}
+.core.nova-full .nova-ring{animation:novaPulse .8s ease-in-out infinite}
+@keyframes novaPulse{50%{opacity:.35}}
+.corona-nova{opacity:0; transition:opacity .4s}
+#coreGlow.nova-active .corona-nova{opacity:1; animation:breathe 1.2s ease-in-out infinite}
+.chip.nova{pointer-events:auto; cursor:pointer; font:inherit; font-size:var(--t-xs); font-weight:700; background:var(--b-nova); color:var(--void); border-color:transparent; padding:3px 12px; animation:novaPulse 1s ease-in-out infinite}
+.chip.nova-buff{background:var(--b-nova); color:var(--void); border-color:transparent}
+.float.pl{color:var(--b-planet)}
 .stage-ring{fill:none; stroke:var(--b-click); stroke-width:3.5; stroke-linecap:round; transform:rotate(-90deg); transition:stroke-dasharray .6s ease}
 .node{cursor:pointer; outline:none}
 .node .halo{fill:var(--c); opacity:0}
@@ -195,6 +218,11 @@ h1,h2,h3{margin:0; text-wrap:balance}
   <canvas id="sky" aria-hidden="true"></canvas>
   <svg id="tree" role="group" aria-label="업그레이드 별자리">
     <defs>
+      <radialGradient id="g-nova" cx="50%" cy="50%" r="50%">
+        <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/>
+        <stop offset=".4" stop-color="#f477ff" stop-opacity=".55"/>
+        <stop offset="1" stop-color="#f477ff" stop-opacity="0"/>
+      </radialGradient>
       <radialGradient id="g-core" cx="50%" cy="50%" r="50%">
         <stop offset="0" stop-color="#ffffff"/>
         <stop offset=".35" stop-color="#fff3cf"/>
@@ -203,7 +231,8 @@ h1,h2,h3{margin:0; text-wrap:balance}
       </radialGradient>
     </defs>
     <g id="world">
-      <g id="coreGlow" pointer-events="none"><g class="rays" id="rays"></g><circle class="corona" r="92" fill="url(#g-core)"/></g>
+      <g id="coreGlow" pointer-events="none"><g class="rays" id="rays"></g><circle class="corona" r="92" fill="url(#g-core)"/><circle class="corona-nova" r="130" fill="url(#g-nova)"/></g>
+      <g id="tracks"></g>
       <g id="edges"></g>
       <g id="core" class="core" role="button" tabindex="0" aria-label="중심별 눌러서 별빛 모으기">
         <g class="body">
@@ -214,8 +243,10 @@ h1,h2,h3{margin:0; text-wrap:balance}
         </g>
         <circle class="stage-track" r="68"/>
         <circle class="stage-ring" id="stageRing" r="68" pathLength="100" stroke-dasharray="0 100"/>
+        <circle class="nova-ring" id="novaRing" r="80" pathLength="100" stroke-dasharray="0 100"/>
         <circle class="focus" r="58"/>
       </g>
+      <g id="planets"></g>
       <g id="nodes"></g>
     </g>
   </svg>
@@ -271,6 +302,8 @@ const BRANCHES = {
   res:    { name:'공명', color:'var(--b-res)',    angle:210, note:'연결' },
   link:   { name:'연결', color:'var(--b-link)',   angle:0,   note:'두 갈래 사이' },
   deep:   { name:'심연', color:'var(--b-deep)',   angle:0,   note:'단계를 쌓으면' },
+  planet: { name:'행성', color:'var(--b-planet)', angle:0,   note:'눌러서 받는 보너스' },
+  nova:   { name:'초신성', color:'var(--b-nova)', angle:0,   note:'모아서 터뜨리기' },
 };
 
 const NODES = [
@@ -339,6 +372,30 @@ const NODES = [
   { id:'m2', br:'deep', ang:180, ring:6,   total:80,  flat:true, name:'성운의 숨결', desc:'성운이 숨을 쉴 때마다 위성이 빨라져요.', k:'autoMul', v:1.5, max:2, cost:1.6e10, g:20 },
   { id:'m3', br:'deep', ang:120, ring:6.5, total:120, flat:true, name:'은하의 팔',   desc:'은하가 팔을 뻗어 손끝을 잡아 줘요.', k:'clickMul', v:2, max:2, cost:2.3e12, g:30 },
   { id:'m4', br:'deep', ang:-60, ring:7.5, total:170, flat:true, name:'우주의 끝',   desc:'가장 먼 곳의 빛까지 중심별로 모여요.', k:'allMul', v:2, max:1, cost:4.5e15, g:1 },
+
+  // 행성: 첫 고리 바깥을 한 바퀴 두르는 별들. 밝히면 중심별 둘레를 행성이 돌아요 (세 번째 값 true = 선 없이 조건만)
+  { id:'p1', br:'planet', ang:0,   ring:1.5, req:[['b2', 1]],                 name:'첫 행성',     desc:'행성 하나가 중심별 둘레를 돌아요. 빛날 때 누르면 별빛을 한 아름 받아요.', k:'planet', v:1, max:1, cost:1500, g:1 },
+  { id:'p3', br:'planet', ang:-60, ring:1.5, req:[['p1', 1, true], ['a4', 3]], name:'고리 행성',   desc:'행성에 고리가 생겨 더 많은 빛을 모아 와요.', k:'planetMul', v:1.4, max:3, cost:2e4, g:5 },
+  { id:'p4', br:'planet', ang:60,  ring:1.5, req:[['p1', 1, true], ['c2', 3]], name:'빠른 공전',   desc:'행성이 더 빨리 돌아 금방 다시 빛나요.', k:'planetCd', v:0.85, max:3, cost:3e4, g:5 },
+  { id:'p2', br:'planet', ang:120, ring:1.5, req:[['p4', 1, true], ['d2', 2]], name:'쌍둥이 행성', desc:'행성이 하나 더 돌아요.', k:'planet', v:1, max:1, cost:2e5, g:1 },
+  { id:'p5', br:'planet', ang:180, ring:1.5, req:[['p2', 1, true], ['e2', 3]], name:'거대 행성',   desc:'커다란 행성이 하나 더 돌아요.', k:'planet', v:1, max:1, cost:5e6, g:1 },
+  { id:'p6', br:'planet', ang:240, ring:1.5, req:[['p5', 1, true], ['f2', 5]], name:'행성 정렬',   desc:'행성들이 한 줄로 서면 빛이 겹쳐요.', k:'planetMul', v:1.5, max:1, cost:3e7, g:1 },
+
+  // 초신성: 넷째 고리 사이를 두르는 별들. 게이지를 모았다가 한 번에 터뜨려요
+  { id:'n1', br:'nova', ang:120, ring:3.5, req:[['d3', 2], ['e3', 1]],                name:'초신성의 씨앗', desc:'중심별을 누를수록 초신성 게이지가 차요. 가득 차면 터뜨려 모든 별빛을 몇 배로 받아요.', k:'nova', v:1, max:1, cost:5e4, g:1 },
+  { id:'n2', br:'nova', ang:60,  ring:3.5, req:[['n1', 1, true], ['c3', 2]],          name:'빠른 충전',     desc:'게이지가 더 빨리 차요.', k:'novaCharge', v:0.3, max:3, cost:1e5, g:4 },
+  { id:'n3', br:'nova', ang:180, ring:3.5, req:[['n1', 1, true], ['f4', 2]],          name:'더 큰 폭발',    desc:'터뜨렸을 때 배율이 커져요.', k:'novaPower', v:1, max:3, cost:2e5, g:5 },
+  { id:'n4', br:'nova', ang:0,   ring:3.5, req:[['n2', 1, true], ['b4', 2]],          name:'긴 잔광',       desc:'폭발이 더 오래 이어져요.', k:'novaDur', v:4, max:3, cost:3e5, g:5 },
+  { id:'n5', br:'nova', ang:240, ring:3.5, req:[['n3', 1, true], ['a3', 2]],          name:'연쇄 초신성',   desc:'누르지 않아도 게이지가 조금씩 차요.', k:'novaAuto', v:0.5, max:3, cost:5e5, g:5 },
+  { id:'n6', br:'nova', ang:-60, ring:3.5, req:[['n4', 1, true], ['n5', 1, true], ['d4', 3]], name:'감마선 폭발', desc:'폭발하는 동안 섬광이 훨씬 자주 터져요.', k:'novaCrit', v:0.25, max:1, cost:2e6, g:1 },
+
+  // 끝없는 별: 갈래 끝 별을 다 밝히면 그 너머에 열려요. 단계 제한이 없어요
+  { id:'x1', br:'click',  ang:-90, ring:8,   req:[['a8', 1]], flat:true, endless:true, name:'끝없는 손끝', desc:'끝이 없는 손끝. 올릴 때마다 클릭이 25%씩 세져요.', k:'clickMul', v:1.25, max:Infinity, cost:1.5e17, g:3 },
+  { id:'x2', br:'auto',   ang:-30, ring:8,   req:[['b8', 1]], flat:true, endless:true, name:'끝없는 궤도', desc:'위성이 끝없이 늘어나요. 올릴 때마다 위성 수입이 25%씩 늘어요.', k:'autoMul', v:1.25, max:Infinity, cost:8e16, g:3 },
+  { id:'x3', br:'amp',    ang:30,  ring:7,   req:[['c7', 1]], flat:true, endless:true, name:'끝없는 렌즈', desc:'렌즈를 끝없이 겹쳐요. 올릴 때마다 모든 별빛이 10%씩 늘어요.', k:'allMul', v:1.1, max:Infinity, cost:6e14, g:3 },
+  { id:'x4', br:'luck',   ang:85,  ring:6,   req:[['d6', 2]], flat:true, endless:true, name:'끝없는 행운', desc:'행운에는 끝이 없어요. 올릴 때마다 섬광 배율이 2씩 올라요.', k:'critMul', v:2, max:Infinity, cost:5e11, g:4 },
+  { id:'x5', br:'meteor', ang:145, ring:5,   req:[['e6', 2]], flat:true, endless:true, name:'끝없는 유성우', desc:'유성이 그치지 않아요. 올릴 때마다 유성 별빛이 25%씩 늘어요.', k:'meteorMul', v:1.25, max:Infinity, cost:1e11, g:4 },
+  { id:'x6', br:'res',    ang:215, ring:5,   req:[['f5', 1]], flat:true, endless:true, name:'끝없는 공명', desc:'공명이 끝없이 퍼져요. 올릴 때마다 밝힌 별 하나당 보너스가 0.2%씩 늘어요.', k:'perNode', v:0.002, max:Infinity, cost:4e10, g:4 },
 ];
 const NODE = Object.fromEntries(NODES.map(n => [n.id, n]));
 NODES.forEach(n => {
@@ -359,7 +416,8 @@ const stageOf = lit => { let t = STAGES[0][1]; for (const [at, name] of STAGES) 
 
 function derive(s) {
   const r = { clickAdd:1, clickMul:1, autoAdd:0, autoMul:1, all:1, combo:0, crit:0, critMul:CRIT_BASE, critSec:0, fromAuto:0, costMul:1,
-    meteor:false, meteorFreq:1, meteorMul:1, meteorDur:0, meteorSlow:1, perNode:0, autoClick:0, offline:0.5, lit:0 };
+    meteor:false, meteorFreq:1, meteorMul:1, meteorDur:0, meteorSlow:1, perNode:0, autoClick:0, offline:0.5, lit:0,
+    planets:0, planetMul:1, planetCd:1, nova:false, novaCharge:1, novaPower:3, novaDur:8, novaAuto:0, novaCrit:0 };
   for (const n of NODES) {
     const lv = lvOf(s, n.id);
     if (!lv) continue;
@@ -384,6 +442,15 @@ function derive(s) {
       case 'perNode': r.perNode += n.v * lv; break;
       case 'autoClick': r.autoClick += n.v * lv; break;
       case 'offline': r.offline += n.v * lv; break;
+      case 'planet': r.planets += n.v * lv; break;
+      case 'planetMul': r.planetMul *= Math.pow(n.v, lv); break;
+      case 'planetCd': r.planetCd *= Math.pow(n.v, lv); break;
+      case 'nova': r.nova = true; break;
+      case 'novaCharge': r.novaCharge += n.v * lv; break;
+      case 'novaPower': r.novaPower += n.v * lv; break;
+      case 'novaDur': r.novaDur += n.v * lv; break;
+      case 'novaAuto': r.novaAuto += n.v * lv; break;
+      case 'novaCrit': r.novaCrit += n.v * lv; break;
     }
   }
   r.all *= 1 + r.perNode * r.lit;
@@ -400,7 +467,7 @@ function effText(n, lv) {
   const v = n.v, f = x => fmt(x);
   switch (n.k) {
     case 'clickAdd': return `클릭당 +${f(v * lv)}`;
-    case 'clickMul': return `클릭 ×${f(Math.pow(v, lv))}`;
+    case 'clickMul': return `클릭 ×${Math.pow(v, lv) < 1e4 ? trim(Math.pow(v, lv)) : f(Math.pow(v, lv))}`;
     case 'autoAdd': return `초당 +${f(v * lv)}`;
     case 'autoMul': return `위성 수입 ×${trim(Math.pow(v, lv))}`;
     case 'allMul': return `모든 별빛 ×${trim(Math.pow(v, lv))}`;
@@ -418,13 +485,23 @@ function effText(n, lv) {
     case 'perNode': return `밝힌 별 하나마다 모든 별빛 +${Math.round(v * lv * 100)}%`;
     case 'autoClick': return `초당 ${trim(v * lv)}번 저절로 반짝`;
     case 'offline': return `자리 비운 동안 ${Math.round((0.5 + v * lv) * 100)}% 모으기`;
+    case 'planet': return lv ? '행성이 하나 더 돌아요' : '행성이 아직 없어요';
+    case 'planetMul': return `행성 별빛 ×${trim(Math.pow(v, lv))}`;
+    case 'planetCd': return `행성 충전 시간 −${Math.round((1 - Math.pow(v, lv)) * 100)}%`;
+    case 'nova': return lv ? '초신성 게이지가 생겨요' : '게이지가 아직 없어요';
+    case 'novaCharge': return `게이지 차는 속도 +${Math.round(v * lv * 100)}%`;
+    case 'novaPower': return `폭발 배율 ×${3 + v * lv}`;
+    case 'novaDur': return `폭발 시간 ${8 + v * lv}초`;
+    case 'novaAuto': return `게이지가 초당 ${trim(v * lv)}%씩 저절로 차요`;
+    case 'novaCrit': return `폭발하는 동안 섬광 확률 +${Math.round(v * lv * 100)}%`;
   }
 }
 function nodeLabel(n) {
   return { clickAdd:'+' + fmt(n.v), clickMul:'×' + n.v, autoAdd:'+' + fmt(n.v) + '/s', autoMul:'×' + n.v, allMul:'×' + n.v, combo:'연타',
     critChance:Math.round(n.v * 100) + '%', critMul:'+' + n.v + '배', critSec:'+' + n.v + '초', fromAuto:Math.round(n.v * 100) + '%', costDown:'−' + Math.round(n.v * 100) + '%',
     meteor:'유성', meteorFreq:'자주', meteorMul:'×' + n.v, meteorDur:'+' + n.v + '초', meteorSlow:'느리게', perNode:'+' + Math.round(n.v * 100) + '%',
-    autoClick:'자동', offline:'기억' }[n.k];
+    autoClick:'자동', offline:'기억', planet:'행성', planetMul:'×' + n.v, planetCd:'공전', nova:'초신성', novaCharge:'충전',
+    novaPower:'+' + n.v + '배', novaDur:'+' + n.v + '초', novaAuto:'연쇄', novaCrit:'감마' }[n.k];
 }
 const trim = x => (Math.round(x * 100) / 100).toLocaleString('ko-KR');
 
@@ -469,12 +546,13 @@ const els = {
   stage:$('#stage'), sky:$('#sky'), svg:$('#tree'), world:$('#world'), edges:$('#edges'), nodes:$('#nodes'), core:$('#core'), coreGlow:$('#coreGlow'),
   money:$('#money'), rate:$('#rate'), perClick:$('#perClick'), stageName:$('#stageName'), stageNext:$('#stageNext'), chips:$('#chips'),
   stageRing:$('#stageRing'), rays:$('#rays'), coach:$('#coach'), soundBtn:$('#soundBtn'),
+  tracks:$('#tracks'), planets:$('#planets'), novaRing:$('#novaRing'),
   info:$('#info'), fx:$('#fx'), meteor:$('#meteor'), toasts:$('#toasts'),
   statsDialog:$('#statsDialog'), stats:$('#stats'), wipeBtn:$('#wipeBtn'),
 };
 
 /* --- 상태 --- */
-function fresh() { return { v:1, money:0, total:0, clicks:0, crits:0, meteors:0, lv:{}, buffs:[], playSec:0, lastSeen:Date.now() }; }
+function fresh() { return { v:1, money:0, total:0, clicks:0, crits:0, meteors:0, planetHits:0, novas:0, nova:0, lv:{}, buffs:[], playSec:0, lastSeen:Date.now() }; }
 function revive(o) {
   if (!o || o.v !== 1) return null;
   const s = Object.assign(fresh(), o);
@@ -487,7 +565,8 @@ function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ?
 function save() { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가: 이번 세션만 유지 */ } }
 
 const shower = () => S.buffs.some(b => b.kind === 'shower');
-const buffMul = () => shower() ? 3 : 1;
+const novaOn = () => S.buffs.some(b => b.kind === 'nova');
+const buffMul = () => (shower() ? 3 : 1) * (novaOn() ? D.novaPower : 1);
 const perSecNow = () => D.perSec * buffMul();
 const comboMul = () => 1 + Math.min(D.combo, Math.max(0, combo - 1) * 0.01);
 function recompute() { D = derive(S); }
@@ -552,6 +631,9 @@ const Sound = (() => {
     meteor() { tone(1400, 0.9, 'sine', 0.05, 0, 500); },
     catch() { [783.99, 1046.5, 1567.98].forEach((f, i) => tone(f, 0.3, 'triangle', 0.16, i * 0.06)); },
     deny() { tone(196, 0.14, 'square', 0.05); },
+    planet() { tone(880, 0.25, 'triangle', 0.16); tone(1318.51, 0.35, 'sine', 0.12, 0.07); },
+    novaReady() { tone(392, 0.7, 'sine', 0.12, 0, 1568); },
+    nova() { [130.81, 196, 261.63, 392, 523.25, 783.99, 1046.5].forEach((f, i) => tone(f, 1.4, i < 3 ? 'triangle' : 'sine', 0.12, i * 0.04)); },
   };
 })();
 function paintSoundBtn() { els.soundBtn.textContent = Sound.on ? '소리 켬' : '소리 끔'; els.soundBtn.setAttribute('aria-pressed', String(Sound.on)); }
@@ -574,7 +656,8 @@ function collect(x, y) {
   const now = performance.now() / 1000;
   combo = now - lastClickAt < COMBO_WINDOW ? combo + 1 : 1;
   lastClickAt = now;
-  const isCrit = Math.random() < D.crit;
+  const isCrit = Math.random() < Math.min(1, D.crit + (novaOn() ? D.novaCrit : 0));
+  chargeNova(0.8 * D.novaCharge);
   let v = D.click * comboMul() * buffMul();
   if (isCrit) { v = v * D.critMul + D.critSec * D.auto * buffMul(); S.crits++; }
   earn(v);
@@ -599,7 +682,7 @@ function buildTree() {
   els.edges.textContent = ''; els.nodes.textContent = '';
   for (const n of NODES) {
     // 선: 부모에서(일반) · 조건 별들에서(연결 별) · 중심별에서(첫 고리) · 없음(심연의 별)
-    const froms = n.p ? [n.p] : n.req ? n.req.map(r => r[0]) : n.total ? [] : [null];
+    const froms = n.p ? [n.p] : n.req ? n.req.filter(r => !r[2]).map(r => r[0]) : n.total ? [] : [null];
     edgeEls[n.id] = froms.map(from => {
       const p = from ? NODE[from] : { x:0, y:0 };
       const e = sv('line', { x1:p.x, y1:p.y, x2:n.x, y2:n.y, class:'edge' });
@@ -621,7 +704,7 @@ function buildTree() {
       badge,
     );
     const t = sv('text', { class:'lab' });
-    t.textContent = nodeLabel(n);
+    t.textContent = n.endless ? '∞' : nodeLabel(n);
     const c = sv('text', { class:'cost', y:39 });
     g.append(t, c);
     g.addEventListener('focus', () => select(n.id));
@@ -640,7 +723,9 @@ function coreR() {
   return Math.max(22, Math.min(54, gap * 0.42, gap * 0.34 * (1 + 0.06 * stageIndex())));
 }
 function placeNodes() {
-  const k = (narrow() ? 0.85 : 1) / view.s;
+  // 멀리서 볼수록 별을 조금 작게, 값 표시는 살 수 있는 별만
+  const k = (narrow() ? 0.85 : Math.max(0.78, Math.min(1, 0.55 + 0.5 * view.s))) / view.s;
+  els.svg.classList.toggle('far', view.s < 0.7);
   for (const n of NODES) nodeEls[n.id].setAttribute('transform', `translate(${n.x} ${n.y}) scale(${k})`);
   const c = coreR() / 46 / view.s;
   els.core.setAttribute('transform', `scale(${c})`);
@@ -667,12 +752,12 @@ function paintNode(n, pop) {
   g.querySelector('.disc').setAttribute('r', st === 'ghost' ? (mystery ? 12 : 5) : 20);
   const lab = g.querySelector('.lab');
   lab.style.display = st === 'ghost' && !mystery ? 'none' : '';
-  lab.textContent = mystery ? '?' : nodeLabel(n);
-  g.querySelector('.prog').setAttribute('stroke-dasharray', `${(lv / n.max) * 100} 100`);
+  lab.textContent = mystery ? '?' : n.endless ? '∞' : nodeLabel(n);
+  g.querySelector('.prog').setAttribute('stroke-dasharray', `${(isFinite(n.max) ? lv / n.max : (lv % 10) / 10) * 100} 100`);
   const costEl = g.querySelector('.cost');
   costEl.textContent = st === 'avail' || st === 'lit' ? fmt(costOf(n, lv, D)) : '';
   g.setAttribute('tabindex', st === 'ghost' && !mystery ? '-1' : '0');
-  g.setAttribute('aria-label', mystery ? '아직 열리지 않은 연결 별' : `${n.name}, ${lv} / ${n.max}단계` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
+  g.setAttribute('aria-label', mystery ? '아직 열리지 않은 별' : `${n.name}, ${lvText(n, lv)}` + (st === 'avail' || st === 'lit' ? `, ${fmt(costOf(n, lv, D))} 별빛` : ''));
   for (const { el, flow, from } of edgeEls[n.id]) {
     const show = st !== 'hidden' && !(mystery && from && !n.req.some(([id, l]) => id === from && lvOf(S, id) >= l));
     el.style.display = show ? '' : 'none';
@@ -680,7 +765,18 @@ function paintNode(n, pop) {
     flow.setAttribute('class', 'flow' + (show && lv > 0 ? ' on' : ''));
   }
 }
-function paintAll() { for (const n of NODES) paintNode(n); }
+const lvText = (n, lv) => isFinite(n.max) ? `${lv} / ${n.max}단계` : `${lv}단계 · 끝없음`;
+function paintAll() { for (const n of NODES) paintNode(n); paintTracks(); }
+function buildTracks() {
+  els.tracks.innerHTML = `<circle class="track t-planet" r="${1.5 * RING_GAP}"/><circle class="track t-nova" r="${3.5 * RING_GAP}"/>`;
+}
+// 행성·초신성 별이 하나라도 보이면 그 고리를 점선으로 그려요
+function paintTracks() {
+  for (const br of ['planet', 'nova']) {
+    const on = NODES.some(n => n.br === br && nodeState(n) !== 'hidden');
+    els.tracks.querySelector('.track.t-' + br).style.display = on ? '' : 'none';
+  }
+}
 function updateAffordable() {
   for (const n of NODES) {
     const st = nodeState(n);
@@ -719,6 +815,8 @@ addEventListener('resize', () => { sizeSky(); if (follow) fitTarget(); });
 const pointers = new Map();
 let drag = null, pinch = null;
 els.svg.addEventListener('pointerdown', e => {
+  const pl = e.target.closest('.planet');
+  if (pl) { e.preventDefault(); if (e.button === 0) tapPlanet(+pl.dataset.planet); return; }
   if (e.target.closest('#core')) { e.preventDefault(); if (e.button === 0) collect(e.clientX, e.clientY); return; }
   els.svg.setPointerCapture(e.pointerId);
   pointers.set(e.pointerId, { x:e.clientX, y:e.clientY });
@@ -780,7 +878,7 @@ function select(id) {
 }
 function maxBuy(n) {
   let lv = lvOf(S, n.id), money = S.money, k = 0, total = 0;
-  while (lv < n.max) { const c = costOf(n, lv, D); if (c > money) break; money -= c; total += c; lv++; k++; }
+  while (lv < n.max && k < 500) { const c = costOf(n, lv, D); if (c > money) break; money -= c; total += c; lv++; k++; }
   return { k, total };
 }
 function renderInfo() {
@@ -791,27 +889,27 @@ function renderInfo() {
       <h2>별을 밝혀 바깥으로</h2>
       <p>한가운데 중심별을 눌러 별빛을 모으세요. 둘레의 별을 밝히면 그 바깥에 새 별이 이어져요. 별을 누르면 효과를 볼 수 있어요.</p>
       <ul class="legend">${Object.values(BRANCHES).map(b => `<li style="--c:${b.color}"><i></i>${b.name} · ${b.note}</li>`).join('')}</ul>
-      <p>한 갈래를 키우면 이웃 갈래와의 사이에 <b>연결 별</b>이, 단계를 많이 쌓으면 먼 곳에 <b>심연의 별</b>이 새로 나타나요.</p>`;
+      <p>한 갈래를 키우면 이웃 갈래 사이에 <b>연결 별</b>이, 단계를 많이 쌓으면 먼 곳에 <b>심연의 별</b>이 나타나요. 첫 고리 바깥엔 <b>행성</b>, 넷째 고리 사이엔 <b>초신성</b>, 갈래 끝 너머엔 <b>끝없는 별</b>이 기다려요.</p>`;
     return;
   }
   const n = NODE[sel], br = BRANCHES[n.br], lv = lvOf(S, n.id), st = nodeState(n), maxed = lv >= n.max;
   if (st === 'ghost' && n.req) {
     // 아직 안 열린 연결 별: 무엇이 필요한지만 보여 줘요
     box.style.setProperty('--c', br.color);
-    box.innerHTML = `<div class="kicker"><i></i>연결 별 · 아직 닫혀 있어요</div>
+    box.innerHTML = `<div class="kicker"><i></i>${n.br === 'link' ? '연결 별' : br.name} · 아직 닫혀 있어요</div>
       <h2>이름 모를 별</h2>
-      <p>두 갈래의 별을 함께 키우면 여기에서 새 별이 열려요.</p>
+      <p>${n.br === 'link' ? '두 갈래의 별을 함께 키우면 여기에서 새 별이 열려요.' : '아래 조건을 채우면 여기에서 새 별이 열려요.'}</p>
       <ul class="clues">${n.req.map(([id, l]) => { const r = NODE[id], have = lvOf(S, id);
         return `<li class="${have >= l ? 'ok' : ''}">${BRANCHES[r.br].name} <b>${r.name}</b> ${l}단계 · 지금 ${have}${have >= l ? ' ✓' : ''}</li>`; }).join('')}</ul>`;
     return;
   }
   box.style.setProperty('--c', br.color);
   const cost = maxed ? 0 : costOf(n, lv, D);
-  const bars = Array.from({ length:n.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('');
-  box.innerHTML = `<div class="kicker"><i></i>${br.name} · ${lv} / ${n.max}단계</div>
+  const bars = isFinite(n.max) ? `<div class="lvbar" aria-hidden="true">${Array.from({ length:n.max }, (_, i) => `<i class="${i < lv ? 'on' : ''}"></i>`).join('')}</div>` : '';
+  box.innerHTML = `<div class="kicker"><i></i>${br.name} · ${lvText(n, lv)}</div>
     <h2>${n.name}</h2>
     <p>${n.desc}</p>
-    <div class="lvbar" aria-hidden="true">${bars}</div>
+    ${bars}
     <div class="fxline">${lv ? `<span>지금 <b>${effText(n, lv)}</b></span>` : ''}${maxed ? '' : `<span>${lv ? '→ 다음' : '밝히면'} <b>${effText(n, lv + 1)}</b></span>`}</div>
     ${impactLine(n)}
     ${clueList(n)}
@@ -874,7 +972,7 @@ function refreshInfoButtons() {
     const cost = costOf(n, lv, D), need = cost - S.money, rate = perSecNow();
     b1.disabled = need > 0;
     b1.textContent = need > 0
-      ? `${fmt(need)} 더 필요${rate > 0 ? ' · 약 ' + fmtTime(Math.max(1, need / rate)) : ''}`
+      ? `${fmt(need)} 더 필요${rate > 0 ? (need / rate > 99 * 3600 ? ' · 아주 오래 걸려요' : ' · 약 ' + fmtTime(Math.max(1, need / rate))) : ''}`
       : `${lv ? '한 단계 더' : '밝히기'} · ${fmt(cost)} 별빛`;
   }
   if (b2) { const m = maxBuy(n); b2.textContent = m.k > 1 ? `${m.k}단계 한 번에 · ${fmt(m.total)}` : '여러 단계 한 번에'; b2.disabled = m.k < 2; }
@@ -897,13 +995,20 @@ function buy(id, quiet) {
     burst(mx, my, COLORS[m.br], 18);
     ring(mx, my, 16, 130, 0.9, COLORS[m.br], 2.5);
     setTimeout(() => { const [ax, ay] = toScreen(m.x, m.y); ring(ax, ay, 16, 130, 0.9, COLORS[m.br], 1.5); }, 220);
-    toast('새 별이 나타났어요: ' + m.name, m.req ? `${m.req.map(([rid]) => BRANCHES[NODE[rid].br].name).join('과 ')} 사이에서 빛나기 시작했어요.` : `단계를 ${m.total}개 쌓자 먼 곳에서 떠올랐어요.`);
+    toast('새 별이 나타났어요: ' + m.name,
+      m.endless ? `${BRANCHES[m.br].name} 갈래 끝 너머에서 열렸어요. 단계 제한이 없어요.`
+      : m.br === 'planet' ? '행성 궤도에 새 별이 떴어요.'
+      : m.br === 'nova' ? '초신성 고리에 새 별이 떴어요.'
+      : m.req ? `${m.req.filter(r => !r[2]).map(([rid]) => BRANCHES[NODE[rid].br].name).join('과 ')} 사이에서 빛나기 시작했어요.`
+      : `단계를 ${m.total}개 쌓자 먼 곳에서 떠올랐어요.`);
   }
   paintAll();
   paintNode(n, true);
   if (lv === 0 || opened.length) {
     if (follow) fitTarget();
     if (lv === 0 && n.k === 'meteor') { meteorIn = 8; toast('유성이 보이기 시작했어요', '지나가는 유성을 눌러서 잡으세요.'); }
+    if (n.k === 'planet') { syncPlanets(); toast(lv === 0 && n.id === 'p1' ? '행성이 돌기 시작했어요' : '행성이 하나 더 돌아요', '행성이 빛나면 눌러서 별빛을 받아요.'); }
+    if (lv === 0 && n.k === 'nova') toast('초신성 게이지가 생겼어요', '중심별을 누를수록 둘레의 분홍 고리가 차요. 가득 차면 위의 단추로 터뜨려요.');
   }
   const [sx, sy] = toScreen(n.x, n.y);
   burst(sx, sy, COLORS[n.br], 12);
@@ -1058,7 +1163,8 @@ function drawSky(dt, now) {
 /* --- 기록 --- */
 function renderStats() {
   const rows = [
-    ['밝힌 별', `${D.lit} / ${NODES.length}개`], ['단계 합계', Object.values(S.lv).reduce((a, b) => a + b, 0) + ' / ' + NODES.reduce((a, n) => a + n.max, 0)],
+    ['밝힌 별', `${D.lit} / ${NODES.length}개`], ['단계 합계', Object.values(S.lv).reduce((a, b) => a + b, 0) + '단계'],
+    ['행성에서 받은 횟수', (S.planetHits || 0) + '번'], ['초신성 폭발', (S.novas || 0) + '번'],
     ['모은 별빛', fmt(S.total)], ['누른 횟수', S.clicks.toLocaleString('ko-KR') + '번'],
     ['섬광', S.crits.toLocaleString('ko-KR') + '번'], ['잡은 유성', S.meteors + '개'],
     ['초당 별빛', fmt(perSecNow())], ['플레이 시간', fmtTime(S.playSec)],
@@ -1095,6 +1201,7 @@ function affordableList() {
 }
 // 칩을 누르면 밝힐 수 있는 별로 차례차례 화면을 옮기고 골라 줘요
 els.chips.addEventListener('click', e => {
+  if (e.target.closest('[data-nova]')) { fireNova(); return; }
   if (!e.target.closest('[data-go]')) return;
   const list = affordableList();
   if (!list.length) return;
@@ -1131,7 +1238,10 @@ function updateHud() {
     : `<span class="chip idle">밝힐 수 있는 별 없음 · 별빛을 더 모아요</span>`);
   const tl = totalLv(S), nextM = MILESTONES.find(t => t > tl);
   if (nextM) chips.push(`<span class="chip next">심연의 별까지 ${nextM - tl}단계</span>`);
-  for (const b of S.buffs) chips.push(`<span class="chip buff">유성우 ×3 · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
+  if (D.nova && S.nova >= 100 && !novaOn()) chips.unshift(`<button type="button" class="chip nova" data-nova="1">초신성 폭발! ×${D.novaPower}</button>`);
+  for (const b of S.buffs) chips.push(b.kind === 'nova'
+    ? `<span class="chip nova-buff">초신성 ×${D.novaPower} · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`
+    : `<span class="chip buff">유성우 ×3 · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
   const html = chips.join('');
   if (html !== lastChips) { els.chips.innerHTML = html; lastChips = html; }
   updateAffordable();
@@ -1155,6 +1265,9 @@ function frame(now) {
   earn(perSecNow() * dt);
   if (now / 1000 - lastClickAt > COMBO_WINDOW) combo = 0;
   if (D.meteor && !meteorAlive && (meteorIn -= dt) <= 0) launchMeteor();
+  if (D.novaAuto) chargeNova(D.novaAuto * dt);
+  updatePlanets(dt);
+  paintNova();
   if (panGoal && !follow) {
     const t = 1 - Math.exp(-dt * 8);
     view.x += (panGoal.x - view.x) * t; view.y += (panGoal.y - view.y) * t;
@@ -1181,6 +1294,85 @@ function frame(now) {
   if (uiAcc > 0.15) { uiAcc = 0; updateHud(); updateCoach(); }
   if (saveAcc > 5) { saveAcc = 0; save(); }
   requestAnimationFrame(frame);
+}
+
+/* --- 행성 --- */
+const planets = [];
+const PLANET_TINTS = ['var(--b-planet)', '#ffcf9e', '#9ff0e0'];
+const PLANET_CD = 30;   // 행성이 다시 빛날 때까지(초)
+function syncPlanets() {
+  while (planets.length < Math.min(3, D.planets)) {
+    const i = planets.length;
+    const g = sv('g', { class:'planet', role:'button', tabindex:'0', 'data-planet':i, 'aria-label':'행성 누르기' });
+    g.style.setProperty('--pc', PLANET_TINTS[i]);
+    g.innerHTML = '<circle class="p-glow" r="19"/><circle class="p-arc" r="14" pathLength="100" stroke-dasharray="0 100"/>' +
+      '<ellipse class="p-ring" rx="15" ry="4.5" transform="rotate(-22)"/><circle class="p-body" r="' + [9, 8, 11][i] + '"/><circle class="p-shine" cx="-3" cy="-3" r="2.5"/>';
+    g.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tapPlanet(i); } });
+    els.planets.append(g);
+    planets.push({ el:g, arc:g.querySelector('.p-arc'), phase:i * 2.1, speed:[0.32, -0.24, 0.18][i], off:[0, 7, -6][i], charge:0.6, x:0, y:0 });
+  }
+}
+function updatePlanets(dt) {
+  if (!planets.length) return;
+  const orbit = (coreR() + RING_GAP * view.s - 22) / 2;   // 중심별과 첫 고리 사이 (화면 px)
+  const k = (narrow() ? 0.8 : 1) / view.s, cd = PLANET_CD * D.planetCd, ringed = lvOf(S, 'p3') > 0;
+  for (const p of planets) {
+    p.charge = Math.min(1, p.charge + dt / cd);
+    p.phase += p.speed * dt * (calm ? 0.3 : 1);
+    const r = (orbit + p.off) / view.s;
+    p.x = Math.cos(p.phase) * r; p.y = Math.sin(p.phase) * r;
+    p.el.setAttribute('transform', `translate(${p.x.toFixed(2)} ${p.y.toFixed(2)}) scale(${k})`);
+    p.arc.setAttribute('stroke-dasharray', `${(p.charge * 100).toFixed(1)} 100`);
+    p.el.classList.toggle('ready', p.charge >= 1);
+    p.el.classList.toggle('ringed', ringed);
+  }
+}
+function tapPlanet(i) {
+  const p = planets[i];
+  if (!p) return;
+  const [x, y] = toScreen(p.x, p.y);
+  if (p.charge < 1) { floatText(x, y - 20, `${Math.ceil((1 - p.charge) * PLANET_CD * D.planetCd)}초 뒤에 빛나요`, 'small'); Sound.deny(); return; }
+  p.charge = 0;
+  const g = Math.max(D.perSec * 4, D.clickAvg * 6) * D.planetMul * buffMul();
+  earn(g);
+  S.planetHits = (S.planetHits || 0) + 1;
+  floatText(x, y - 24, '+' + fmt(g), 'big pl');
+  burst(x, y, COLORS.planet, 16);
+  ring(x, y, 10, 70, 0.6, COLORS.planet, 2.5);
+  Sound.planet();
+}
+
+/* --- 초신성 --- */
+function chargeNova(amount) {
+  if (!D.nova || novaOn() || S.nova >= 100) return;
+  S.nova = Math.min(100, S.nova + amount);
+  if (S.nova >= 100) { Sound.novaReady(); lastChips = ''; }
+}
+function fireNova() {
+  if (!D.nova || S.nova < 100 || novaOn()) return;
+  S.nova = 0;
+  S.novas = (S.novas || 0) + 1;
+  S.buffs.push({ kind:'nova', until:Date.now() + D.novaDur * 1000 });
+  const [cx, cy] = toScreen(0, 0);
+  ring(cx, cy, coreR(), Math.max(innerWidth, innerHeight) * 0.7, 1.6, COLORS.nova, 4);
+  ring(cx, cy, coreR(), Math.max(innerWidth, innerHeight) * 0.5, 1.2, COLORS.core, 2);
+  burst(cx, cy, COLORS.nova, 40);
+  if (!calm) { flash = 0.45; shakeT = 0.3; }
+  Sound.nova();
+  toast('초신성 폭발', `${D.novaDur}초 동안 모든 별빛 ×${D.novaPower}`);
+  updateHud();
+}
+addEventListener('keydown', e => { if ((e.key === 'n' || e.key === 'N') && !e.repeat) fireNova(); });
+// 중심별 둘레의 분홍 고리: 차는 동안은 게이지, 터진 뒤엔 남은 시간
+function paintNova() {
+  const on = D.nova, active = novaOn();
+  let frac = 0;
+  if (active) { const b = S.buffs.find(x => x.kind === 'nova'); frac = Math.max(0, (b.until - Date.now()) / (D.novaDur * 1000)); }
+  else frac = S.nova / 100;
+  els.novaRing.setAttribute('stroke-dasharray', `${(frac * 100).toFixed(1)} 100`);
+  els.core.classList.toggle('nova-on', on);
+  els.core.classList.toggle('nova-full', on && !active && S.nova >= 100);
+  els.coreGlow.classList.toggle('nova-active', active);
 }
 
 // 처음 하는 사람 안내: 중심별 누르기 → 첫 별 밝히기
@@ -1219,6 +1411,9 @@ function boot() {
   sel = null; combo = 0; lastStage = stageOf(D.lit);
   els.stageName.textContent = lastStage;
   buildTree();
+  buildTracks();
+  els.planets.textContent = ''; planets.length = 0;
+  syncPlanets();
   paintAll();
   renderInfo();
   follow = true;
