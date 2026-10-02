@@ -24,8 +24,8 @@
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{height:100%; overflow:hidden}
-body{margin:0; background:var(--void); color:var(--text); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased}
-button{font:inherit; color:inherit}
+body{-webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; margin:0; background:var(--void); color:var(--text); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased}
+button{font:inherit; color:inherit; touch-action:manipulation}
 h1,h2,h3{margin:0; text-wrap:balance}
 
 .stage{position:fixed; inset:0; touch-action:none; background:radial-gradient(70% 70% at 50% 50%,var(--space),var(--void))}
@@ -208,9 +208,9 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .brand h1{font-family:var(--f-display); font-weight:400; font-size:var(--t-md); letter-spacing:.12em; color:var(--muted)}
 .stage-pill{font-size:var(--t-xs); font-weight:700; color:var(--core); padding:1px 9px; border-radius:999px; background:rgba(255,214,110,.12); box-shadow:inset 0 0 0 1px rgba(255,214,110,.3)}
 .stage-next{font-size:var(--t-xs); color:var(--dim)}
-.money{font-family:var(--f-display); font-size:34px; line-height:1.1; margin-top:4px; font-variant-numeric:tabular-nums; word-break:keep-all;
-  background:linear-gradient(180deg,#fffaf0 20%,#ffd66e); -webkit-background-clip:text; background-clip:text; color:transparent; filter:drop-shadow(0 0 14px rgba(255,214,110,.28))}
-.money small{font-family:var(--f-body); font-size:var(--t-sm); color:var(--muted); -webkit-text-fill-color:var(--muted); margin-left:6px}
+/* 글자 그라데이션(background-clip:text)은 Safari에서 숫자가 바뀌어도 다시 그려지지 않아 단색 + 빛번짐으로 */
+.money{font-family:var(--f-display); font-size:34px; line-height:1.1; margin-top:4px; font-variant-numeric:tabular-nums; word-break:keep-all; color:#ffe7a3; text-shadow:0 0 16px rgba(255,214,110,.35)}
+.money small{font-family:var(--f-body); font-size:var(--t-sm); color:var(--muted); text-shadow:none; margin-left:6px}
 .wallet{display:flex; flex-wrap:wrap; gap:6px; margin-top:8px}
 .stat{display:inline-flex; align-items:baseline; gap:6px; padding:3px 10px; border-radius:9px; background:rgba(255,255,255,.04); box-shadow:inset 0 0 0 1px rgba(255,255,255,.06); font-size:var(--t-xs); white-space:nowrap}
 .stat i{font-style:normal; color:var(--muted)}
