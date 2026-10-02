@@ -1295,7 +1295,126 @@ function sizeSky() {
   dpr = Math.min(2, devicePixelRatio || 1);
   els.sky.width = innerWidth * dpr; els.sky.height = innerHeight * dpr;
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-  skyStars = Array.from({ length:Math.round(innerWidth * innerHeight / 7000) }, () => ({ x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:Math.random() * 1.2 + 0.2, a:Math.random() * 0.6 + 0.15, t:Math.random() * 6, z:0.02 + Math.random() * 0.1 }));
+  const TINTS = ['#a8bcff', '#cad7ff', '#f4f6ff', '#fff4ea', '#ffe2b8'];
+  skyStars = Array.from({ length:Math.round(innerWidth * innerHeight / 16000) }, () => ({ x:Math.random() * innerWidth, y:Math.random() * innerHeight, r:Math.random() * 1.1 + 0.4, a:Math.random() * 0.5 + 0.35, t:Math.random() * 6, z:0.04 + Math.random() * 0.1, c:TINTS[Math.floor(Math.random() * TINTS.length)] }));
+  clearTimeout(bgTimer);
+  bgTimer = setTimeout(buildBackground, bgCanvas ? 200 : 0);
+}
+
+/* --- 진짜 우주 같은 배경: 화면 크기가 바뀔 때 한 번만 그려 두고 써요 --- */
+let bgCanvas = null, bgTimer = 0;
+const BG_M = 90;   // 끌 때 살짝 따라 움직일 여백
+function valueNoise(seed) {
+  const hash = (x, y) => { let h = (x * 374761393 + y * 668265263 + seed * 982451653) | 0; h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  const sm = t => t * t * (3 - 2 * t);
+  return (x, y) => {
+    const xi = Math.floor(x), yi = Math.floor(y), u = sm(x - xi), v = sm(y - yi);
+    const a = hash(xi, yi), b = hash(xi + 1, yi), c = hash(xi, yi + 1), d = hash(xi + 1, yi + 1);
+    return a + (b - a) * u + (c - a) * v + (a - b - c + d) * u * v;
+  };
+}
+const fbm = (n, x, y, oct) => { let s = 0, a = 0.5, f = 1; for (let i = 0; i < oct; i++) { s += a * n(x * f, y * f); f *= 2.03; a *= 0.5; } return s; };
+function buildBackground() {
+  const W = innerWidth + BG_M * 2, H = innerHeight + BG_M * 2;
+  const c = document.createElement('canvas');
+  c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+  const g = c.getContext('2d');
+  g.scale(dpr, dpr);
+  let seed = 20261002;
+  const rnd = () => { seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+  // 바탕: 아주 깊은 남색
+  const base = g.createRadialGradient(W * 0.55, H * 0.45, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.85);
+  base.addColorStop(0, '#0b1124'); base.addColorStop(0.55, '#060a17'); base.addColorStop(1, '#020309');
+  g.fillStyle = base; g.fillRect(0, 0, W, H);
+  // 은하수 띠의 위치 (화면을 비스듬히 가로질러요)
+  const ang = -0.42, ca = Math.cos(ang), sa = Math.sin(ang);
+  const bandAt = (x, y) => { const dx = x / W - 0.5, dy = (y / H - 0.52) * H / W; const d = -sa * dx + ca * dy; return Math.exp(-d * d / 0.012); };
+  // 성운과 은하수 빛: 낮은 해상도로 잡음을 계산해 부드럽게 늘려요
+  const sc = 4, w = Math.ceil(W / sc), h = Math.ceil(H / sc);
+  const nc = document.createElement('canvas'); nc.width = w; nc.height = h;
+  const nx = nc.getContext('2d'), img = nx.createImageData(w, h), px = img.data;
+  const n1 = valueNoise(7), n2 = valueNoise(19), n3 = valueNoise(31), n4 = valueNoise(43);
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const band = bandAt(x * sc, y * sc);
+    const f1 = fbm(n1, x * 0.011, y * 0.011, 5), f2 = fbm(n2, x * 0.017 + 9, y * 0.017, 4);
+    const dust = fbm(n3, x * 0.035, y * 0.035, 4), f4 = fbm(n4, x * 0.008 + 3, y * 0.008 + 7, 4);
+    const purple = Math.pow(Math.max(0, f1 - 0.42) * 2.4, 1.6);
+    const pink = Math.pow(Math.max(0, f2 - 0.5) * 2.6, 1.8);
+    const teal = Math.pow(Math.max(0, f4 - 0.5) * 2.4, 1.7);
+    const milky = band * (0.35 + f1 * 0.9);
+    let r = purple * 70 + pink * 150 + teal * 20 + milky * 120;
+    let gg = purple * 45 + pink * 50 + teal * 95 + milky * 108;
+    let b = purple * 140 + pink * 120 + teal * 120 + milky * 125;
+    const lane = Math.min(1, band * Math.max(0, dust - 0.46) * 4.5);   // 은하수 속 어두운 먼지 줄기
+    const k = 1 - lane * 0.85;
+    const i = (y * w + x) * 4;
+    px[i] = Math.min(255, r * k); px[i + 1] = Math.min(255, gg * k); px[i + 2] = Math.min(255, b * k); px[i + 3] = 255;
+  }
+  nx.putImageData(img, 0, 0);
+  g.globalCompositeOperation = 'lighter';
+  g.globalAlpha = 0.55; g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  g.drawImage(nc, 0, 0, W, H);
+  g.globalAlpha = 1;
+  // 별: 온도에 따라 파랑·흰색·노랑·주황, 은하수 쪽에 더 빽빽하게
+  const COLS = ['#9bb0ff', '#aabfff', '#cad7ff', '#f8f7ff', '#f8f7ff', '#fff4ea', '#ffd2a1', '#ffcc6f'];
+  const total = Math.round(W * H / 140);
+  for (let i = 0; i < total; i++) {
+    const x = rnd() * W, y = rnd() * H, band = bandAt(x, y);
+    if (rnd() > 0.28 + band * 0.72) continue;
+    const big = rnd();
+    const r = big > 0.995 ? 1.4 + rnd() : big > 0.96 ? 0.8 + rnd() * 0.5 : 0.25 + rnd() * 0.45;
+    g.globalAlpha = 0.25 + rnd() * 0.75;
+    g.fillStyle = COLS[Math.floor(rnd() * COLS.length)];
+    g.beginPath(); g.arc(x, y, r, 0, 6.283); g.fill();
+  }
+  // 밝은 별: 빛무리와 십자 빛살
+  for (let i = 0; i < Math.round(W * H / 140000) + 4; i++) {
+    const x = rnd() * W, y = rnd() * H, s = 4 + Math.pow(rnd(), 2) * 14, col = COLS[Math.floor(rnd() * COLS.length)];
+    const glow = g.createRadialGradient(x, y, 0, x, y, s * 1.6);
+    glow.addColorStop(0, hexA(col, 0.9)); glow.addColorStop(0.15, hexA(col, 0.35)); glow.addColorStop(1, hexA(col, 0));
+    g.globalAlpha = 1; g.fillStyle = glow;
+    g.fillRect(x - s * 1.6, y - s * 1.6, s * 3.2, s * 3.2);
+    for (const [dx, dy] of [[1, 0], [0, 1]]) {
+      const len = s * (2.2 + rnd() * 1.5);
+      const lg = g.createLinearGradient(x - dx * len, y - dy * len, x + dx * len, y + dy * len);
+      lg.addColorStop(0, hexA(col, 0)); lg.addColorStop(0.5, hexA(col, 0.4)); lg.addColorStop(1, hexA(col, 0));
+      g.strokeStyle = lg; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(x - dx * len, y - dy * len); g.lineTo(x + dx * len, y + dy * len); g.stroke();
+    }
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x, y, 1.3, 0, 6.283); g.fill();
+  }
+  // 먼 은하: 비스듬한 작은 소용돌이
+  for (let i = 0; i < 5; i++) {
+    const x = rnd() * W, y = rnd() * H, rx = 10 + rnd() * 18, rot = rnd() * Math.PI;
+    g.save(); g.translate(x, y); g.rotate(rot); g.scale(1, 0.32 + rnd() * 0.3);
+    const gg = g.createRadialGradient(0, 0, 0, 0, 0, rx);
+    gg.addColorStop(0, 'rgba(255,240,220,.55)'); gg.addColorStop(0.3, 'rgba(200,190,255,.18)'); gg.addColorStop(1, 'rgba(160,170,255,0)');
+    g.fillStyle = gg; g.beginPath(); g.arc(0, 0, rx, 0, 6.283); g.fill();
+    g.restore();
+  }
+  g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+  bgCanvas = c;
+}
+// 가끔 하늘을 가로지르는 작은 별똥별 (누를 수 있는 유성과는 달라요)
+const streaks = [];
+let streakIn = 6;
+function drawStreaks(dt, W, H) {
+  if (calm) return;
+  if ((streakIn -= dt) <= 0) {
+    streakIn = 7 + Math.random() * 12;
+    const a = (20 + Math.random() * 30) * Math.PI / 180 * (Math.random() < 0.5 ? 1 : -1) + (Math.random() < 0.5 ? 0 : Math.PI);
+    streaks.push({ x:Math.random() * W, y:Math.random() * H * 0.7, vx:Math.cos(a) * 700, vy:Math.abs(Math.sin(a)) * 700, life:0.7, age:0 });
+  }
+  for (let i = streaks.length - 1; i >= 0; i--) {
+    const s = streaks[i];
+    s.age += dt;
+    if (s.age >= s.life) { streaks.splice(i, 1); continue; }
+    const t = s.age / s.life, x = s.x + s.vx * s.age, y = s.y + s.vy * s.age;
+    const lg = ctx.createLinearGradient(x, y, x - s.vx * 0.12, y - s.vy * 0.12);
+    lg.addColorStop(0, `rgba(255,255,255,${0.75 * Math.sin(t * Math.PI)})`); lg.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.strokeStyle = lg; ctx.lineWidth = 1.4; ctx.globalAlpha = 1;
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - s.vx * 0.12, y - s.vy * 0.12); ctx.stroke();
+  }
 }
 const calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const COLORS = {};
@@ -1318,6 +1437,13 @@ let glowCache = null;
 function drawSky(dt, now) {
   const W = innerWidth, H = innerHeight;
   ctx.clearRect(0, 0, W, H);
+  // 미리 그려 둔 우주 배경 (끌면 아주 조금 따라 움직여요)
+  if (bgCanvas) {
+    const ox = Math.max(-BG_M, Math.min(BG_M, (view.x - W / 2) * 0.03)), oy = Math.max(-BG_M, Math.min(BG_M, (view.y - H / 2) * 0.03));
+    ctx.globalAlpha = 1;
+    ctx.drawImage(bgCanvas, -BG_M + ox, -BG_M + oy, W + BG_M * 2, H + BG_M * 2);
+  }
+  drawStreaks(dt, W, H);
   // 성운
   if (!glowCache || uiAcc === 0) glowCache = branchGlow();
   ctx.globalCompositeOperation = 'lighter';
@@ -1335,10 +1461,10 @@ function drawSky(dt, now) {
   }
   ctx.globalCompositeOperation = 'source-over';
   // 배경 별 (깊이에 따라 조금씩 따라 움직여요)
-  ctx.fillStyle = '#ffffff';
   for (const s of skyStars) {
     const x = ((s.x + view.x * s.z) % W + W) % W, y = ((s.y + view.y * s.z) % H + H) % H;
-    ctx.globalAlpha = calm ? s.a : s.a * (0.7 + 0.3 * Math.sin(now / 900 + s.t));
+    ctx.fillStyle = s.c;
+    ctx.globalAlpha = calm ? s.a : s.a * (0.55 + 0.45 * Math.sin(now / 700 + s.t));
     ctx.beginPath(); ctx.arc(x, y, s.r, 0, 6.283); ctx.fill();
   }
   // 충격파 고리
