@@ -1444,9 +1444,10 @@ function chartBar(bar) {
   const occ = new Set();
   for (const n of notes) {
     const g = base + n.s, t = stepT(g), pitch = songNote(S, n.deg);
-    if (n.len >= 6 && bar >= 1) { C.notes.push({ k: 'hold', t, end: stepT(g + n.len - 1) + C.stepDur * .6, pitch, st: 0 }); for (let s = n.s - 2; s <= n.s + n.len + 1; s++) occ.add(s); }
-    else { C.notes.push({ k: 'tap', t, pitch, st: 0 }); for (let s = n.s - 2; s <= n.s + 2; s++) occ.add(s); }
+    if (n.len >= 6 && bar >= 1) { C.notes.push({ k: 'hold', t, end: stepT(g + n.len - 1) + C.stepDur * .6, pitch, st: 0 }); for (let s = n.s - 1; s <= n.s + n.len; s++) occ.add(s); }
+    else { C.notes.push({ k: 'tap', t, pitch, st: 0 }); for (let s = n.s - 1; s <= n.s + 1; s++) occ.add(s); }
   }
+  const occN = new Set(occ), sigS = [];
   const want = bar === 0 ? 0 : Math.min(3, S.defs[bar % S.defs.length] + (C.phase2 ? 1 : 0));
   const free = []; for (let s = 0; s < S.spb; s += 2) if (!occ.has(s)) free.push([s, (s % 4 === 0 ? 0 : 1) + R() * .6]);
   free.sort((a, b) => a[1] - b[1]);
@@ -1454,12 +1455,13 @@ function chartBar(bar) {
   for (const [s] of free) {
     if (placed >= want) break; if (occ.has(s)) continue;
     const heavy = !!S.heavy && bar % 4 === 3 && placed === 0;
-    C.sigs.push({ t: stepT(base + s), lead: (heavy ? 2 : 1) * C.beat, heavy, bar, res: null });
-    for (let q = s - 3; q <= s + 3; q++) occ.add(q);
+    C.sigs.push({ t: stepT(base + s), lead: (heavy ? 2 : 1) * C.beat, heavy, bar, res: null }); sigS.push(s);
+    for (let q = s - 2; q <= s + 2; q++) occ.add(q);
     placed++;
     if (S.double && bar % 4 === 1 && !heavy && s + 2 < S.spb && !notes.some(n => Math.abs(n.s - (s + 2)) < 2)) { C.sigs.push({ t: stepT(base + s + 2), lead: C.beat, heavy: false, bar, res: null, dbl: true }); occ.add(s + 4); }
   }
-  if (S.traps && bar >= 2 && bar % S.traps === S.traps - 1) { const c = free.map(f => f[0]).filter(s => !occ.has(s)); if (c.length) C.notes.push({ k: 'trap', t: stepT(base + c[Math.floor(R() * c.length)]), st: 0 }); }
+  // 함정: 몇 마디에 한 번, 자리가 나는 마디에
+  if (S.traps && bar >= 2 && bar - (C.lastTrap == null ? -99 : C.lastTrap) >= S.traps) { const c = []; for (let s = 1; s < S.spb; s++) if (!occN.has(s) && !sigS.some(q => Math.abs(q - s) <= 1)) c.push(s); if (c.length) { C.notes.push({ k: 'trap', t: stepT(base + c[Math.floor(R() * c.length)]), st: 0 }); C.lastTrap = bar; } }
   C.notes.sort((a, b) => a.t - b.t); C.sigs.sort((a, b) => a.t - b.t);
 }
 function schedAudio() {

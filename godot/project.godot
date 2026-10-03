@@ -1,0 +1,38 @@
+; Godot 4.3 프로젝트 — 떠돌이 사냥꾼
+
+config_version=5
+
+[application]
+
+config/name="떠돌이 사냥꾼"
+config/description="노래에 맞춰 싸우는 리듬 사냥 RPG"
+run/main_scene="res://scenes/title.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Game="*res://scripts/game.gd"
+Res="*res://scripts/res.gd"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=4
+
+[gui]
+
+theme/custom_font="res://assets/fonts/NanumGothic-Bold.ttf"
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.05, 0.06, 0.09, 1)
