@@ -93,7 +93,8 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .views .dot{position:absolute; top:4px; right:6px; width:7px; height:7px; border-radius:50%; background:var(--b-nova); display:none}
 .views button.has .dot{display:block}
 /* 은하(빅뱅 업그레이드) */
-#galaxy{position:absolute; inset:0; width:100%; height:100%; display:block}
+#galaxy{position:absolute; inset:0; width:100%; height:100%; display:block; cursor:grab}
+#galaxy.panning{cursor:grabbing}
 .arm{fill:none; stroke:var(--c); stroke-width:2; vector-effect:non-scaling-stroke; opacity:.55}
 .arm-glow{fill:none; stroke:var(--c); stroke-width:46; stroke-linecap:round; opacity:.07}
 .gnode{cursor:pointer; outline:none}
@@ -746,6 +747,9 @@ const ARMS = {
   origin: { name:'기원', color:'var(--b-click)', start:-90, note:'더 많이 만들기' },
   order:  { name:'질서', color:'var(--b-auto)',  start:30,  note:'알아서 해 주기' },
   chaos:  { name:'혼돈', color:'var(--b-nova)',  start:150, note:'운과 폭발' },
+  dark:   { name:'암흑', color:'var(--b-hole)',   start:-30, note:'암흑물질과 중심들', bb:1 },
+  time:   { name:'시공간', color:'var(--b-pulsar)', start:90, note:'빅뱅과 바깥 구역', bb:3 },
+  nebula: { name:'성운', color:'var(--b-luck)',   start:210, note:'조각과 도감', bb:5 },
 };
 const PRESTIGE = [
   { id:'g1', arm:'origin', i:0, name:'태초의 빛',    desc:'모든 별빛이 영구히 늘어요.', k:'all', v:0.5, max:10, cost:1, g:1.6 },
@@ -767,17 +771,57 @@ const PRESTIGE = [
   { id:'k5', arm:'chaos',  i:4, name:'행성 탄생',    desc:'처음부터 행성 하나가 돌아요.', k:'planet', v:1, max:1, cost:12, g:1 },
   { id:'k6', arm:'chaos',  i:5, name:'은하의 심장',  desc:'모든 별빛이 세 번까지 두 배씩 늘어요.', k:'all2', v:2, max:3, cost:25, g:3 },
   { id:'g7', arm:'origin', i:6, name:'팽창하는 은하', desc:'끝없이 키울 수 있는 은하. 올릴 때마다 모든 별빛이 1.5배씩 늘어요. 남는 성운 조각을 여기에 쓰세요.', k:'allInf', v:1.5, max:Infinity, cost:150, g:1.35 },
+  // 기존 나선팔을 더 길게
+  { id:'g8',  arm:'origin', i:7, name:'원시의 빛',      desc:'우주가 처음 밝아지던 빛. 모든 별빛이 세 배씩 늘어요.', k:'all3', v:3, max:3, cost:400, g:4 },
+  { id:'g9',  arm:'origin', i:8, name:'두 고리의 기억', desc:'빅뱅 뒤 여섯 갈래의 첫째·둘째 고리 별이 1단계로 밝혀진 채 시작해요.', k:'keepRing2', v:1, max:1, cost:1500, g:1 },
+  { id:'g10', arm:'origin', i:9, name:'우주의 씨앗',    desc:'빅뱅 뒤 들고 시작하는 별빛이 천 배씩 늘어요.', k:'startMoney2', v:1, max:3, cost:4000, g:4 },
+  { id:'h7',  arm:'order',  i:6, name:'자동 연타',      desc:'중심별이 저절로 반짝이는 횟수가 늘어요.', k:'autoClickP', v:1, max:5, cost:30, g:2 },
+  { id:'h8',  arm:'order',  i:7, name:'한꺼번에 밝히기', desc:'자동 별지기가 한 번에 여러 별을 밝혀요.', k:'autoBulk', v:4, max:3, cost:150, g:3 },
+  { id:'h9',  arm:'order',  i:8, name:'자동 블랙홀',    desc:'블랙홀이 깨어 있으면 저절로 눌러 암흑물질을 빨아들여요.', k:'autoHole', v:1, max:3, cost:600, g:3 },
+  { id:'h10', arm:'order',  i:9, name:'은하 관리인',    desc:'빅뱅할 때 받은 성운 조각으로 은하를 알아서 키워요(싼 것부터).', k:'autoGalaxy', v:1, max:1, cost:3000, g:1 },
+  { id:'k7',  arm:'chaos',  i:6, name:'황금빛 하늘',    desc:'황금 유성이 더 자주 지나가요.', k:'goldChance', v:0.08, max:4, cost:40, g:2.5 },
+  { id:'k8',  arm:'chaos',  i:7, name:'혼돈의 섬광',    desc:'섬광 배율이 크게 올라요.', k:'critMulP', v:10, max:5, cost:120, g:2.5 },
+  { id:'k9',  arm:'chaos',  i:8, name:'유성 폭풍',      desc:'유성 하나가 주는 별빛의 한도가 늘어요.', k:'meteorCap', v:60, max:4, cost:500, g:3 },
+  { id:'k10', arm:'chaos',  i:9, name:'초신성 연쇄',    desc:'초신성 게이지가 훨씬 빨리 차요.', k:'novaChargeP', v:0.5, max:3, cost:2000, g:3 },
+  // 암흑 나선팔 (빅뱅 1번부터): 암흑물질과 블랙홀·펄서
+  { id:'d1', arm:'dark', i:0, name:'암흑의 씨앗',   desc:'모든 암흑물질이 영구히 늘어요.', k:'dmMulP', v:1.5, max:5, cost:20, g:2 },
+  { id:'d2', arm:'dark', i:1, name:'사건의 기억',   desc:'빅뱅 뒤 암흑물질을 들고 새 우주를 시작해요.', k:'dmStart', v:1, max:4, cost:40, g:2.5 },
+  { id:'d3', arm:'dark', i:2, name:'일찍 깨는 중심', desc:'블랙홀·펄서를 깨우는 별빛 값이 크게 줄어요.', k:'hubCost', v:0.1, max:3, cost:80, g:3 },
+  { id:'d4', arm:'dark', i:3, name:'호킹의 유산',   desc:'가진 암흑물질이 많을수록 모든 별빛이 더 밝아져요.', k:'dmHoldP', v:0.05, max:4, cost:150, g:2.5 },
+  { id:'d5', arm:'dark', i:4, name:'펄서 조율',     desc:'펄서가 더 자주 맥동해요.', k:'pulseCdP', v:0.85, max:3, cost:300, g:3 },
+  { id:'d6', arm:'dark', i:5, name:'이중 맥동',     desc:'맥동 한 번에 뿜는 별빛이 늘어요.', k:'pulseSecP', v:8, max:3, cost:600, g:3 },
+  { id:'d7', arm:'dark', i:6, name:'암흑 폭풍',     desc:'블랙홀을 누를 때 빨아들이는 암흑물질이 크게 늘어요.', k:'dmClickP', v:5, max:4, cost:1200, g:3 },
+  { id:'d8', arm:'dark', i:7, name:'깨어 있는 중심', desc:'빅뱅 뒤에도 깨울 수 있는 블랙홀·펄서가 처음부터 깨어 있어요.', k:'keepHubs', v:1, max:1, cost:2500, g:1 },
+  { id:'d9', arm:'dark', i:8, name:'끝없는 암흑',   desc:'끝없이 키울 수 있어요. 올릴 때마다 암흑물질이 1.3배씩 늘어요.', k:'dmInf', v:1.3, max:Infinity, cost:5000, g:1.4 },
+  // 시공간 나선팔 (빅뱅 3번부터): 빅뱅 보너스와 바깥 구역
+  { id:'t1', arm:'time', i:0, name:'빅뱅 증폭',     desc:'빅뱅할 때마다 곱해지는 별빛 배수가 커져요(×10 → ×11 …).', k:'rebirthBase', v:1, max:5, cost:100, g:3 },
+  { id:'t2', arm:'time', i:1, name:'구역 할인',     desc:'바깥 구역 별의 값이 반씩 줄어요.', k:'regionCost', v:0.5, max:5, cost:150, g:2.5 },
+  { id:'t3', arm:'time', i:2, name:'유성우 증폭',   desc:'유성우가 내리는 동안의 배율이 커져요.', k:'showerMul', v:1, max:3, cost:250, g:3 },
+  { id:'t4', arm:'time', i:3, name:'봉인 해제',     desc:'바깥 구역과 봉인된 별에 필요한 빅뱅 횟수가 1번씩 줄어요.', k:'bbCut', v:1, max:3, cost:800, g:4 },
+  { id:'t5', arm:'time', i:4, name:'공전 가속',     desc:'행성이 더 빨리 다시 빛나요.', k:'planetCdP', v:0.8, max:3, cost:400, g:3 },
+  { id:'t6', arm:'time', i:5, name:'되감기',        desc:'빅뱅해도 가진 암흑물질의 일부를 남겨요.', k:'dmKeep', v:0.25, max:4, cost:1000, g:3 },
+  { id:'t7', arm:'time', i:6, name:'시간의 끝',     desc:'끝없이 키울 수 있어요. 올릴 때마다 빅뱅 배수가 0.5씩 커져요.', k:'rebirthInf', v:0.5, max:Infinity, cost:8000, g:1.6 },
+  // 성운 나선팔 (빅뱅 5번부터): 성운 조각과 도감
+  { id:'n1', arm:'nebula', i:0, name:'조각 증식',   desc:'빅뱅할 때 받는 성운 조각이 크게 늘어요.', k:'shardP', v:0.5, max:5, cost:200, g:2.5 },
+  { id:'n2', arm:'nebula', i:1, name:'도감 공명',   desc:'도감 별자리 보너스가 모두 커져요.', k:'achMul', v:0.5, max:4, cost:300, g:3 },
+  { id:'n3', arm:'nebula', i:2, name:'별자리 기억', desc:'밝힌 별 하나마다 모든 별빛이 더 밝아져요.', k:'perNodeP', v:0.002, max:5, cost:500, g:2.5 },
+  { id:'n4', arm:'nebula', i:3, name:'행성 고리',   desc:'행성이 주는 별빛이 세 배씩 늘어요.', k:'planetMulP', v:3, max:3, cost:800, g:3 },
+  { id:'n5', arm:'nebula', i:4, name:'긴 초신성',   desc:'초신성 폭발이 더 오래 이어져요.', k:'novaDurP', v:5, max:3, cost:1200, g:3 },
+  { id:'n6', arm:'nebula', i:5, name:'성운의 심장', desc:'모든 별빛이 다섯 배씩 늘어요.', k:'all4', v:5, max:3, cost:4000, g:5 },
+  { id:'n7', arm:'nebula', i:6, name:'끝없는 성운', desc:'끝없이 키울 수 있어요. 올릴 때마다 성운 조각이 1.1배씩 늘어요.', k:'shardInf', v:1.1, max:Infinity, cost:10000, g:1.5 },
 ];
 const PNODE = Object.fromEntries(PRESTIGE.map(n => [n.id, n]));
+const G_STEP_A = 30, G_STEP_R = 56, G_R0 = 140;   // 나선팔: 한 칸마다 도는 각도, 멀어지는 거리
 PRESTIGE.forEach(n => {
   // 나선팔을 따라 바깥으로: 안쪽부터 차례로 열려요
-  const a = (ARMS[n.arm].start + n.i * 34) * Math.PI / 180, r = 105 + n.i * 52;
+  const a = (ARMS[n.arm].start + n.i * G_STEP_A) * Math.PI / 180, r = G_R0 + n.i * G_STEP_R;
   n.x = Math.cos(a) * r; n.y = Math.sin(a) * r;
   n.prev = PRESTIGE.find(m => m.arm === n.arm && m.i === n.i - 1);
+  if (!n.prev && ARMS[n.arm].bb) n.bb = ARMS[n.arm].bb;   // 새 나선팔의 첫 칸은 빅뱅 횟수가 필요해요
 });
 const puOf = (s, id) => (s.pu && s.pu[id]) || 0;
 const pCost = (n, lv) => Math.ceil(n.cost * Math.pow(n.g, lv));
-const pOpen = (s, n) => !n.prev || puOf(s, n.prev.id) > 0;
+const pOpen = (s, n) => (!n.prev || puOf(s, n.prev.id) > 0) && (!n.bb || (s.rebirths || 0) >= n.bb);
 const START_MONEY = [0, 1e3, 3e4, 9e5, 2.7e7, 8.1e8];
 const AUTO_BUY = [0, 4, 1.5, 0.4];   // 자동 별지기 단계별 간격(초)
 const SHARD_UNIT = 1e8;
@@ -828,9 +872,11 @@ const achFxText = fx => Object.entries(fx).map(([k, v]) => ({
 const lvOf = (s, id) => s.lv[id] || 0;
 const totalLv = s => { let t = 0; for (const k in s.lv) t += s.lv[k]; return t; };
 const reqMet = (s, n) => (!n.req || n.req.every(([id, l]) => lvOf(s, id) >= l)) && (!n.total || totalLv(s) >= n.total);
-const bbMet = (s, n) => !n.bb || (s.rebirths || 0) >= n.bb;
+// 봉인·구역에 쓰는 빅뱅 횟수: 은하의 '봉인 해제'만큼 더해 줘요
+const effBB = s => (s.rebirths || 0) + puOf(s, 't4');
+const bbMet = (s, n) => !n.bb || effBB(s) >= n.bb;
 const isVisible = (s, n) => (!n.p || lvOf(s, n.p) > 0) && reqMet(s, n) && bbMet(s, n);
-const costOf = (n, lv, d) => Math.ceil(n.cost * Math.pow(n.g, lv) * (n.cur ? 1 : d.costMul));
+const costOf = (n, lv, d) => Math.ceil(n.cost * Math.pow(n.g, lv) * (n.cur ? 1 : d.costMul * (n.hub ? d.hubCost : 1) * (n.region != null ? d.regionCost : 1)));
 // 별마다 쓰는 재화: 별빛(money) 또는 암흑물질(dm)
 const walletOf = (s, n) => n.cur === 'dm' ? (s.dm || 0) : s.money;
 const curName = n => n.cur === 'dm' ? '암흑물질' : '별빛';
@@ -885,12 +931,13 @@ function derive(s) {
   }
   // 은하(영구) 업그레이드
   r.shardMul = 1; r.double = 0; r.offlineCap = 8; r.autoBuy = 0; r.autoMeteor = false; r.autoPlanet = false; r.autoNova = false;
+  r.autoBulk = 1; r.autoHole = 0; r.autoGalaxy = false; r.gold = 0.12; r.meteorCap = 300; r.hubCost = 1; r.regionCost = 1; r.showerMul = 3; r.achMul = 1; r.rebirthBase = REBIRTH_MUL;
   for (const n of PRESTIGE) {
     const lv = puOf(s, n.id);
     if (!lv) continue;
     switch (n.k) {
       case 'all': r.all *= 1 + n.v * lv; break;
-      case 'all2': case 'allInf': r.all *= Math.pow(n.v, lv); break;
+      case 'all2': case 'allInf': case 'all3': case 'all4': r.all *= Math.pow(n.v, lv); break;
       case 'click': r.clickMul *= Math.pow(n.v, lv); break;
       case 'auto': r.autoMul *= Math.pow(n.v, lv); break;
       case 'discount': r.costMul *= 1 - n.v * lv; break;
@@ -905,13 +952,37 @@ function derive(s) {
       case 'autoMeteor': r.autoMeteor = true; break;
       case 'autoPlanet': r.autoPlanet = true; break;
       case 'autoNova': r.autoNova = true; break;
+      case 'autoClickP': r.autoClick += n.v * lv; break;
+      case 'autoBulk': r.autoBulk = 1 + n.v * lv; break;
+      case 'autoHole': r.autoHole = n.v * lv; break;
+      case 'autoGalaxy': r.autoGalaxy = true; break;
+      case 'goldChance': r.gold += n.v * lv; break;
+      case 'critMulP': r.critMul += n.v * lv; break;
+      case 'meteorCap': r.meteorCap += n.v * lv; break;
+      case 'novaChargeP': r.novaCharge += n.v * lv; break;
+      case 'dmMulP': case 'dmInf': r.dmMul *= Math.pow(n.v, lv); break;
+      case 'hubCost': r.hubCost *= Math.pow(n.v, lv); break;
+      case 'dmHoldP': r.dmHold += n.v * lv; break;
+      case 'pulseCdP': r.pulseCd *= Math.pow(n.v, lv); break;
+      case 'pulseSecP': r.pulseSec += n.v * lv; break;
+      case 'dmClickP': r.dmClick += n.v * lv; break;
+      case 'rebirthBase': case 'rebirthInf': r.rebirthBase += n.v * lv; break;
+      case 'regionCost': r.regionCost *= Math.pow(n.v, lv); break;
+      case 'showerMul': r.showerMul += n.v * lv; break;
+      case 'planetCdP': r.planetCd *= Math.pow(n.v, lv); break;
+      case 'shardP': r.shardMul *= 1 + n.v * lv; break;
+      case 'shardInf': r.shardMul *= Math.pow(n.v, lv); break;
+      case 'achMul': r.achMul += n.v * lv; break;
+      case 'perNodeP': r.perNode += n.v * lv; break;
+      case 'planetMulP': r.planetMul *= Math.pow(n.v, lv); break;
+      case 'novaDurP': r.novaDur += n.v * lv; break;
     }
   }
-  r.rebirthMul = Math.pow(REBIRTH_MUL, s.rebirths || 0);
+  r.rebirthMul = Math.pow(r.rebirthBase, s.rebirths || 0);
   r.all *= r.rebirthMul;
   // 도감 보너스
   const ach = { all:0, click:0, crit:0, critMul:0, meteor:0, planet:0, nova:0, shard:0 };
-  for (const id in (s.ach || {})) { const a = ACH[id]; if (a) for (const k in a.fx) ach[k] += a.fx[k]; }
+  for (const id in (s.ach || {})) { const a = ACH[id]; if (a) for (const k in a.fx) ach[k] += a.fx[k] * r.achMul; }
   r.all *= 1 + ach.all; r.clickMul *= 1 + ach.click; r.crit += ach.crit; r.critMul += ach.critMul;
   r.meteorMul *= 1 + ach.meteor; r.planetMul *= 1 + ach.planet; r.novaPower += ach.nova; r.shardMul *= 1 + ach.shard;
   r.all *= 1 + r.perNode * r.lit;
@@ -1058,7 +1129,7 @@ function save() { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, 
 
 const shower = () => S.buffs.some(b => b.kind === 'shower');
 const novaOn = () => S.buffs.some(b => b.kind === 'nova');
-const buffMul = () => (shower() ? 3 : 1) * (novaOn() ? D.novaPower : 1);
+const buffMul = () => (shower() ? D.showerMul : 1) * (novaOn() ? D.novaPower : 1);
 const perSecNow = () => D.perSec * buffMul();
 const comboMul = () => 1 + Math.min(D.combo, Math.max(0, combo - 1) * 0.01);
 function recompute() { D = derive(S); }
@@ -1340,7 +1411,7 @@ function paintTracks() {
     els.tracks.querySelector('.track.t-' + br).style.display = on ? '' : 'none';
   }
   REGIONS.forEach((reg, i) => {
-    const on = NODES.some(n => n.region === i && nodeState(n) !== 'hidden'), locked = (S.rebirths || 0) < reg.bb;
+    const on = NODES.some(n => n.region === i && nodeState(n) !== 'hidden'), locked = effBB(S) < reg.bb;
     const c = els.tracks.querySelector(`.t-region[data-r="${i}"]`), g = els.tracks.querySelector(`.reg-label[data-r="${i}"]`);
     c.style.display = g.style.display = on ? '' : 'none';
     c.classList.toggle('locked', locked); g.classList.toggle('locked', locked);
@@ -1388,7 +1459,7 @@ function zoomAt(cx, cy, ns) {
   view.s = ns; view.x = cx - wx * ns; view.y = cy - wy * ns;
   applyView(); placeNodes();
 }
-$('#fitBtn').addEventListener('click', () => { follow = true; panGoal = null; fitTarget(); });
+$('#fitBtn').addEventListener('click', () => { if (curView === 'galaxy') { gFollow = true; layoutGalaxy(); return; } follow = true; panGoal = null; fitTarget(); });
 addEventListener('resize', () => { sizeSky(); if (follow) fitTarget(); if (curView === 'galaxy') layoutGalaxy(); if (curView === 'codex') layoutCodex(); });
 
 const pointers = new Map();
@@ -1497,7 +1568,7 @@ function renderInfo() {
       <h2>🔒 ${n.name}</h2>
       <p>${n.desc}</p>
       <div class="fxline"><span>풀리면 <b>${effText(n, 1)}</b></span></div>
-      <ul class="clues"><li class="${bbMet(S, n) ? 'ok' : ''}">빅뱅 <b>${n.bb}번</b> 하기 · 지금 ${S.rebirths || 0}번</li></ul>
+      <ul class="clues"><li class="${bbMet(S, n) ? 'ok' : ''}">빅뱅 <b>${n.bb}번</b> 하기 · 지금 ${S.rebirths || 0}번${puOf(S, 't4') ? ` (+봉인 해제 ${puOf(S, 't4')})` : ''}</li></ul>
       <p>은하 탭에서 빅뱅하면 새 우주에서 봉인이 풀려요.</p>`;
     return;
   }
@@ -1643,12 +1714,12 @@ function buy(id, quiet, batch) {
 /* --- 유성 --- */
 function scheduleMeteor() { meteorIn = Math.max(20, (70 + Math.random() * 60) * D.meteorFreq); }
 // 유성 하나가 주는 별빛: 1분치에서 시작해 유성 배율이 커질수록 늘지만, 최대 5분치까지만 (끝없이 커지면 다른 걸 다 덮어 버려요)
-const meteorGiftSec = () => Math.min(300, 60 * (1 + 2 * Math.log10(Math.max(1, D.meteorMul))));
+const meteorGiftSec = () => Math.min(D.meteorCap, 60 * (1 + 2 * Math.log10(Math.max(1, D.meteorMul))));
 const meteorGift = () => Math.max(D.perSec, D.clickAvg / 2) * meteorGiftSec();
 let meteorFlight = null;   // 날아가는 유성의 경로 (불티를 머리에서 뿌리려고)
 function launchMeteor() {
   const m = els.meteor, W = innerWidth, H = innerHeight;
-  const fromLeft = Math.random() < 0.5, gold = Math.random() < 0.12, sc = gold ? 1.15 : 0.85 + Math.random() * 0.3;
+  const fromLeft = Math.random() < 0.5, gold = Math.random() < D.gold, sc = gold ? 1.15 : 0.85 + Math.random() * 0.3;
   // 위쪽 하늘에서 비스듬히 떨어져요 (요소 왼쪽 위 기준 좌표)
   const y0 = H * (0.05 + Math.random() * 0.3) - 32, y1 = y0 + H * (0.3 + Math.random() * 0.25);
   const x0 = fromLeft ? -300 : W + 60, x1 = fromLeft ? W + 60 : -300;
@@ -1728,7 +1799,7 @@ function catchMeteor(x, y) {
     S.buffs = S.buffs.filter(b => b.kind !== 'shower');
     S.buffs.push({ kind:'shower', until:Date.now() + sec * 1000 });
     floatText(x, y, '+' + fmt(g), 'big gold');
-    toast('황금 유성!', `별빛 ${fmt(g)}을 모으고, ${sec}초 동안 모든 별빛 ×3`);
+    toast('황금 유성!', `별빛 ${fmt(g)}을 모으고, ${sec}초 동안 모든 별빛 ×${D.showerMul}`);
   } else if (Math.random() < 0.6) {
     const g = meteorGift();
     earn(g);
@@ -1738,7 +1809,7 @@ function catchMeteor(x, y) {
     const sec = 20 + D.meteorDur;
     S.buffs = S.buffs.filter(b => b.kind !== 'shower');
     S.buffs.push({ kind:'shower', until:Date.now() + sec * 1000 });
-    toast('유성우', `${sec}초 동안 모든 별빛 ×3`);
+    toast('유성우', `${sec}초 동안 모든 별빛 ×${D.showerMul}`);
   }
   scheduleMeteor();
   updateHud();
@@ -2066,12 +2137,12 @@ function updateHud() {
   const tl = totalLv(S), nextM = MILESTONES.find(t => t > tl);
   if (nextM) chips.push(`<span class="chip next">심연의 별까지 ${nextM - tl}단계</span>`);
   // 봉인된 구역 앞까지 왔으면: 빅뱅이 몇 번 필요한지
-  const wall = REGIONS.find(r => (S.rebirths || 0) < r.bb && NODES.some(n => n.region === REGIONS.indexOf(r) && nodeState(n) === 'sealed'));
-  if (wall) chips.push(`<button type="button" class="chip wall" data-bb="1">🔒 ${wall.name} · 빅뱅 ${wall.bb}회 필요 (지금 ${S.rebirths || 0}회)</button>`);
+  const wall = REGIONS.find(r => effBB(S) < r.bb && NODES.some(n => n.region === REGIONS.indexOf(r) && nodeState(n) === 'sealed'));
+  if (wall) chips.push(`<button type="button" class="chip wall" data-bb="1">🔒 ${wall.name} · 빅뱅 ${wall.bb}회 필요 (지금 ${effBB(S)}회)</button>`);
   if (D.nova && S.nova >= 100 && !novaOn()) chips.unshift(`<button type="button" class="chip nova" data-nova="1">초신성 폭발! ×${D.novaPower}</button>`);
   for (const b of S.buffs) chips.push(b.kind === 'nova'
     ? `<span class="chip nova-buff">초신성 ×${D.novaPower} · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`
-    : `<span class="chip buff">유성우 ×3 · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
+    : `<span class="chip buff">유성우 ×${D.showerMul} · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`);
   const html = chips.join('');
   if (html !== lastChips) { els.chips.innerHTML = html; lastChips = html; }
   updateAffordable();
@@ -2098,6 +2169,7 @@ function frame(now) {
   if (D.meteor && !meteorAlive && (meteorIn -= dt) <= 0) launchMeteor();
   if (D.novaAuto) chargeNova(D.novaAuto * dt);
   if (D.dmRate) earnDm(D.dmRate * dt);
+  if (D.autoHole && D.hole) earnDm(D.dmClick * D.dmMul * D.autoHole * dt);   // 자동 블랙홀
   if (D.pulsar) {
     pulseAcc += dt;
     if (pulseAcc >= D.pulseCd) { pulseAcc = 0; pulse(); }
@@ -2106,8 +2178,15 @@ function frame(now) {
   }
   if (D.autoBuy && S.autoBuyOn !== false && (autoAcc += dt) >= D.autoBuy) {
     autoAcc = 0;
-    const l = affordableList();
-    if (l.length) buy(l[0].id, true);
+    if (D.autoBulk > 1) {
+      // 한꺼번에 밝히기: 여러 개를 사고 그림은 한 번만
+      const bought = [];
+      for (let i = 0; i < D.autoBulk; i++) { const l = affordableList(); if (!l.length || !buy(l[0].id, true, bought)) break; }
+      if (bought.length) { paintAll(); for (const [n, lv] of bought) if (lv === 0) firstNotes(n, lv); if (follow && bought.some(([, lv]) => lv === 0)) fitTarget(); checkStage(); updateHud(); }
+    } else {
+      const l = affordableList();
+      if (l.length) buy(l[0].id, true);
+    }
   }
   updatePlanets(dt);
   paintNova();
@@ -2190,7 +2269,7 @@ function tapPlanet(i, auto) {
 /* --- 다른 중심: 블랙홀 · 펄서 --- */
 function hubLine(n) {
   return n.hub === 'hole'
-    ? `<div class="impact"><span>저절로 <b>◆ ${fmt(D.dmRate)}/초</b></span><span>누를 때마다 <b>◆ ${fmt(D.dmClick * D.dmMul)}</b></span><span>가진 암흑물질 <b>◆ ${fmt(S.dm || 0)}</b></span></div>`
+    ? `<div class="impact"><span>저절로 <b>◆ ${fmt(D.dmRate)}/초</b></span><span>누를 때마다 <b>◆ ${fmt(D.dmClick * D.dmMul)}</b></span><span>가진 암흑물질 <b>◆ ${fmt(S.dm || 0)}</b></span>${D.autoHole ? `<span>자동 블랙홀 <b>초당 ${D.autoHole}번</b></span>` : ''}</div>`
     : `<div class="impact"><span>맥동 간격 <b>${trim(D.pulseCd)}초</b></span><span>맥동마다 <b>${fmt(perSecNow() * D.pulseSec)}</b> 별빛</span>${D.pulseDm ? `<span>맥동마다 <b>◆ ${fmt(D.pulseDm * D.dmMul)}</b></span>` : ''}</div>`;
 }
 function tapHub(n) {
@@ -2316,7 +2395,7 @@ function setView(v) {
   for (const el of [els.svg, els.under, els.over]) el.toggleAttribute('hidden', v !== 'star');
   els.galaxy.toggleAttribute('hidden', v !== 'galaxy');
   els.codex.hidden = v !== 'codex';
-  els.fitBtn.hidden = v !== 'star';
+  els.fitBtn.hidden = v === 'codex';
   if (v === 'galaxy') { layoutGalaxy(); paintGalaxy(); }
   if (v === 'codex') { S.achNew = 0; renderCodex(); layoutCodex(); }
   if (v === 'star') { placeNodes(); if (follow) fitTarget(); }
@@ -2352,7 +2431,14 @@ function buyAll() {
 
 /* --- 은하: 성운 조각으로 사는 영구 업그레이드 --- */
 const PLABEL = { all:'+50%', all2:'×2', click:'손×2', auto:'위성×2', startMoney:'출발', keepRing1:'고리', shard:'조각', discount:'할인', autoBuy:'자동',
-  offline:'기억', autoMeteor:'그물', autoPlanet:'조련', autoNova:'점화', crit:'행운', double:'쌍둥이', meteorFreq:'자석', novaPower:'핵', planet:'행성', allInf:'∞ 팽창' };
+  offline:'기억', autoMeteor:'그물', autoPlanet:'조련', autoNova:'점화', crit:'행운', double:'쌍둥이', meteorFreq:'자석', novaPower:'핵', planet:'행성', allInf:'∞ 팽창',
+  all3:'×3', keepRing2:'두 고리', startMoney2:'씨앗', autoClickP:'연타', autoBulk:'묶음', autoHole:'자동◆', autoGalaxy:'관리인',
+  goldChance:'황금', critMulP:'섬광+', meteorCap:'폭풍', novaChargeP:'연쇄', dmMulP:'◆×1.5', dmStart:'◆출발', hubCost:'깨우기',
+  dmHoldP:'복사', pulseCdP:'맥동', pulseSecP:'맥동+', dmClickP:'◆폭풍', keepHubs:'중심', dmInf:'∞ 암흑', rebirthBase:'빅뱅×',
+  regionCost:'구역', showerMul:'유성우', bbCut:'봉인', planetCdP:'공전', dmKeep:'되감기', rebirthInf:'∞ 시간', shardP:'조각+',
+  achMul:'도감', perNodeP:'기억+', planetMulP:'행성', novaDurP:'초신성', all4:'×5', shardInf:'∞ 성운' };
+const ARM_FX = { origin:'click', order:'auto', chaos:'nova', dark:'hole', time:'pulsar', nebula:'luck' };   // 나선팔 색 (효과용)
+const big = x => x < 1e4 ? trim(x) : fmt(x);
 function pEffText(n, lv) {
   const on = lv ? '켜져 있어요' : '아직 없어요';
   switch (n.k) {
@@ -2372,14 +2458,46 @@ function pEffText(n, lv) {
     case 'meteorFreq': return `유성 간격 −${Math.round((1 - Math.pow(n.v, lv)) * 100)}%`;
     case 'novaPower': return `초신성 배율 +${n.v * lv}`;
     case 'planet': return lv ? '행성 하나와 함께 시작' : on;
-    case 'allInf': return `모든 별빛 ×${Math.pow(n.v, lv) < 1e4 ? trim(Math.pow(n.v, lv)) : fmt(Math.pow(n.v, lv))}`;
+    case 'allInf': case 'all3': case 'all4': return `모든 별빛 ×${big(Math.pow(n.v, lv))}`;
+    case 'keepRing2': return lv ? '첫째·둘째 고리 별을 밝힌 채 시작' : on;
+    case 'startMoney2': return `빅뱅 뒤 들고 시작하는 별빛 ×${big(Math.pow(1000, lv))}`;
+    case 'autoClickP': return `초당 ${n.v * lv}번 더 저절로 반짝`;
+    case 'autoBulk': return lv ? `자동 별지기가 한 번에 ${1 + n.v * lv}개씩 밝혀요` : on;
+    case 'autoHole': return lv ? `블랙홀을 초당 ${n.v * lv}번 저절로 눌러요` : on;
+    case 'autoGalaxy': return lv ? '빅뱅할 때 은하를 알아서 키워요' : on;
+    case 'goldChance': return `황금 유성 확률 ${Math.round((0.12 + n.v * lv) * 100)}%`;
+    case 'critMulP': return `섬광 배율 +${n.v * lv}`;
+    case 'meteorCap': return `유성 하나에 최대 ${(300 + n.v * lv) / 60}분치`;
+    case 'novaChargeP': return `초신성 게이지 차는 속도 +${Math.round(n.v * lv * 100)}%`;
+    case 'dmMulP': case 'dmInf': return `암흑물질 ×${big(Math.pow(n.v, lv))}`;
+    case 'dmStart': return lv ? `빅뱅 뒤 암흑물질 ${fmt(100 * Math.pow(10, lv - 1))}으로 시작` : on;
+    case 'hubCost': return `블랙홀·펄서 깨우는 값 ×${trim(Math.pow(n.v, lv))}`;
+    case 'dmHoldP': return `호킹 복사 +${pct(n.v * lv)}% (암흑물질 자릿수마다)`;
+    case 'pulseCdP': return `맥동 간격 −${Math.round((1 - Math.pow(n.v, lv)) * 100)}%`;
+    case 'pulseSecP': return `맥동마다 초당 별빛 ${n.v * lv}초치 더`;
+    case 'dmClickP': return `블랙홀 한 번 누를 때 암흑물질 +${n.v * lv}`;
+    case 'keepHubs': return lv ? '블랙홀·펄서가 깨어 있는 채 시작' : on;
+    case 'rebirthBase': return `빅뱅 배수 ×${REBIRTH_MUL + n.v * lv}`;
+    case 'rebirthInf': return `빅뱅 배수 +${trim(n.v * lv)}`;
+    case 'regionCost': return `바깥 구역 별 값 ×${trim(Math.pow(n.v, lv))}`;
+    case 'showerMul': return `유성우 배율 ×${3 + n.v * lv}`;
+    case 'bbCut': return `구역·봉인에 필요한 빅뱅 −${n.v * lv}번`;
+    case 'planetCdP': return `행성 충전 시간 −${Math.round((1 - Math.pow(n.v, lv)) * 100)}%`;
+    case 'dmKeep': return `빅뱅 뒤 암흑물질 ${Math.round(n.v * lv * 100)}% 남기기`;
+    case 'shardP': return `성운 조각 +${Math.round(n.v * lv * 100)}%`;
+    case 'shardInf': return `성운 조각 ×${big(Math.pow(n.v, lv))}`;
+    case 'achMul': return `도감 보너스 ×${trim(1 + n.v * lv)}`;
+    case 'perNodeP': return `밝힌 별 하나마다 모든 별빛 +${pct(n.v * lv)}%`;
+    case 'planetMulP': return `행성 별빛 ×${big(Math.pow(n.v, lv))}`;
+    case 'novaDurP': return `초신성 폭발 시간 +${n.v * lv}초`;
   }
 }
 function buildGalaxy() {
-  els.galArms.innerHTML = Object.values(ARMS).map(a => {
+  els.galArms.innerHTML = Object.entries(ARMS).map(([key, a]) => {
+    const last = Math.max(...PRESTIGE.filter(n => n.arm === key).map(n => n.i)) + 0.7;
     let d = '';
-    for (let t = 0; t <= 60; t++) {
-      const f = t / 60, ang = (a.start - 30 + f * (6 * 34 + 50)) * Math.PI / 180, r = 40 + f * (6 * 52 + 90);
+    for (let t = 0; t <= 80; t++) {
+      const u = -1.5 + (last + 1.5) * t / 80, ang = (a.start + u * G_STEP_A) * Math.PI / 180, r = G_R0 + u * G_STEP_R;
       d += (t ? 'L' : 'M') + (Math.cos(ang) * r).toFixed(1) + ' ' + (Math.sin(ang) * r).toFixed(1);
     }
     return `<path class="arm-glow" d="${d}" style="--c:${a.color}"/><path class="arm" d="${d}" style="--c:${a.color}"/>`;
@@ -2398,15 +2516,56 @@ function buildGalaxy() {
     gnodeEls[n.id] = g;
   }
 }
-els.galaxy.addEventListener('pointerdown', e => { gPtr = e.pointerType; });
+// 은하도 별자리처럼 끌어서 움직이고, 휠이나 두 손가락으로 확대해요
+let gFollow = true, gMoved = false;
+const gptrs = new Map();
+let gdrag = null, gpinch = null;
+els.galaxy.addEventListener('pointerdown', e => {
+  gPtr = e.pointerType;
+  gptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (gptrs.size === 1) { gdrag = { sx:e.clientX, sy:e.clientY, cap:false }; gMoved = false; }
+  else if (gptrs.size === 2) { const [p, q] = [...gptrs.values()]; gpinch = { d:Math.hypot(p.x - q.x, p.y - q.y), s:gview.s }; gMoved = true; }
+});
+els.galaxy.addEventListener('pointermove', e => {
+  const prev = gptrs.get(e.pointerId);
+  if (!prev) return;
+  const dx = e.clientX - prev.x, dy = e.clientY - prev.y;
+  gptrs.set(e.pointerId, { x:e.clientX, y:e.clientY });
+  if (gptrs.size === 2 && gpinch) {
+    const [p, q] = [...gptrs.values()];
+    gZoomAt((p.x + q.x) / 2, (p.y + q.y) / 2, gpinch.s * Math.hypot(p.x - q.x, p.y - q.y) / gpinch.d);
+    return;
+  }
+  if (!gdrag) return;
+  if (!gMoved && Math.hypot(e.clientX - gdrag.sx, e.clientY - gdrag.sy) > 6) { gMoved = true; els.galaxy.setPointerCapture(e.pointerId); els.galaxy.classList.add('panning'); }
+  if (gMoved) { gFollow = false; gview.x += dx; gview.y += dy; applyGalaxy(); }
+});
+const gEnd = e => { gptrs.delete(e.pointerId); if (gptrs.size < 2) gpinch = null; if (!gptrs.size) { gdrag = null; els.galaxy.classList.remove('panning'); setTimeout(() => { gMoved = false; }, 0); } };   // 끌고 난 직후의 클릭만 막아요
+els.galaxy.addEventListener('pointerup', gEnd);
+els.galaxy.addEventListener('pointercancel', gEnd);
+els.galaxy.addEventListener('wheel', e => { e.preventDefault(); gZoomAt(e.clientX, e.clientY, gview.s * Math.exp(-e.deltaY * 0.0015)); }, { passive:false });
+function gZoomAt(cx, cy, ns) {
+  ns = Math.max(0.25, Math.min(2, ns));
+  gFollow = false;
+  const wx = (cx - gview.x) / gview.s, wy = (cy - gview.y) / gview.s;
+  gview.s = ns; gview.x = cx - wx * ns; gview.y = cy - wy * ns;
+  applyGalaxy();
+}
 els.galCore.addEventListener('click', () => selectG(null));
 els.galCore.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); selectG(null); } });
+const G_RADIUS = Math.max(...PRESTIGE.map(n => Math.hypot(n.x, n.y))) + 70;
 function layoutGalaxy() {
-  const a = area(), R = 500;
-  gview.s = Math.min(a.w, a.h) / (2 * R);
-  gview.x = a.x + a.w / 2; gview.y = a.y + a.h / 2;
-  els.galWorld.setAttribute('transform', `translate(${gview.x} ${gview.y}) scale(${gview.s})`);
-  const k = (narrow() ? 0.82 : 1) / gview.s;
+  if (gFollow) {
+    // 한눈에 담되, 너무 작아지면 그 크기에서 멈추고 끌어서 봐요
+    const a = area();
+    gview.s = Math.max(narrow() ? 0.42 : 0.55, Math.min(1.1, Math.min(a.w, a.h) / (2 * G_RADIUS)));
+    gview.x = a.x + a.w / 2; gview.y = a.y + a.h / 2;
+  }
+  applyGalaxy();
+}
+function applyGalaxy() {
+  els.galWorld.setAttribute('transform', `translate(${gview.x.toFixed(1)} ${gview.y.toFixed(1)}) scale(${gview.s.toFixed(4)})`);
+  const k = (narrow() ? 0.82 : 1) * Math.max(0.7, Math.min(1, gview.s / 0.7)) / gview.s;
   for (const n of PRESTIGE) gnodeEls[n.id].setAttribute('transform', `translate(${n.x} ${n.y}) scale(${k})`);
   els.galCore.setAttribute('transform', `scale(${k})`);
 }
@@ -2417,7 +2576,8 @@ function paintGalaxy() {
     const g = gnodeEls[n.id];
     const cls = `gnode${!open ? ' locked' : ''}${lv ? ' own' : ''}${max ? ' max' : ''}${can ? ' can' : ''}${selG === n.id ? ' sel' : ''}`;
     if (g.getAttribute('class') !== cls) g.setAttribute('class', cls);
-    const t = max ? '완료' : `${isFinite(n.max) ? lv + '/' + n.max : lv + '단계'} · ${fmt(pCost(n, lv))}조각`;
+    const bbLock = n.bb && (S.rebirths || 0) < n.bb;
+    const t = bbLock ? `🔒 빅뱅 ${n.bb}회` : max ? '완료' : `${isFinite(n.max) ? lv + '/' + n.max : lv + '단계'} · ${fmt(pCost(n, lv))}조각`;
     const lt = g.querySelector('.glv');
     if (lt.textContent !== t) lt.textContent = t;
     g.setAttribute('aria-label', `${n.name}, ${isFinite(n.max) ? lv + ' / ' + n.max : lv}단계${max ? '' : `, 성운 조각 ${pCost(n, lv)}개`}`);
@@ -2425,42 +2585,56 @@ function paintGalaxy() {
   els.galCore.classList.toggle('ready', shardsFor(S.run, D) >= 1);
 }
 function selectG(id) { selG = id; paintGalaxy(); renderInfo(); }
-function tapG(id) { if (gPtr === 'mouse' || selG === id) { selectG(id); buyP(id); } else selectG(id); }
-function buyP(id, quiet) {
+function tapG(id) { if (gMoved) return; if (gPtr === 'mouse' || selG === id) { selectG(id); buyP(id); } else selectG(id); }
+function buyP(id, quiet, batch) {
   const n = PNODE[id], lv = puOf(S, id);
   if (!pOpen(S, n) || lv >= n.max) return false;
   const c = pCost(n, lv);
   if (c > S.shards) { if (!quiet) { Sound.deny(); const b = document.getElementById('buyP'); if (b) shake(b); } return false; }
+  const bbBefore = effBB(S);
   S.shards -= c;
   S.pu[id] = lv + 1;
   recompute();
+  if (effBB(S) > bbBefore) unsealToast(effBB(S));   // 봉인 해제: 바로 다음 구역이 열려요
+  if (batch) return true;
   syncPlanets();
-  const x = gview.x + n.x * gview.s, y = gview.y + n.y * gview.s;
-  burst(x, y, COLORS[n.arm === 'origin' ? 'click' : n.arm === 'order' ? 'auto' : 'nova'], 14);
-  ring(x, y, 18, 80, 0.6, COLORS.core, 2);
+  if (curView === 'galaxy') {
+    const x = gview.x + n.x * gview.s, y = gview.y + n.y * gview.s;
+    burst(x, y, COLORS[ARM_FX[n.arm]], 14);
+    ring(x, y, 18, 80, 0.6, COLORS.core, 2);
+  }
   if (!quiet) { Sound.buy(); renderInfo(); }
   paintGalaxy(); paintAll(); updateHud();
   return true;
 }
-function buyAllP() {
+function unsealToast(bb) {
+  const names = [...REGIONS.filter(r => r.bb === bb).map(r => r.name + ' 구역'), ...NODES.filter(n => n.bb === bb && n.region == null && !n.at).map(n => n.name)];
+  for (const n of NODES) if (n.bb === bb) freshUntil[n.id] = Date.now() + 12000;
+  if (names.length) toast('봉인이 풀렸어요', names.join(' · ') + (NODES.some(n => n.bb === bb && n.hub) ? ' — 새 중심이 깨어날 수 있어요.' : ''));
+}
+function buyAllP(auto) {
   let k = 0;
-  for (let i = 0; i < 200; i++) {
+  for (let i = 0; i < 800; i++) {
     const l = PRESTIGE.filter(n => pOpen(S, n) && puOf(S, n.id) < n.max && pCost(n, puOf(S, n.id)) <= S.shards).sort((a, b) => pCost(a, puOf(S, a.id)) - pCost(b, puOf(S, b.id)));
-    if (!l.length || !buyP(l[0].id, true)) break;
+    if (!l.length || !buyP(l[0].id, true, true)) break;
     k++;
   }
-  if (k) { Sound.buy(); toast('은하를 키웠어요', `영구 업그레이드 ${k}단계를 한 번에 올렸어요.`); renderInfo(); }
+  if (!k) return;
+  syncPlanets(); paintGalaxy(); paintAll(); updateHud();
+  if (!auto) Sound.buy();
+  toast(auto ? '은하 관리인이 은하를 키웠어요' : '은하를 키웠어요', `영구 업그레이드 ${k}단계를 한 번에 올렸어요.`);
+  renderInfo();
 }
 // 다음 빅뱅으로 풀리는 곳들
 function unlockLine() {
-  const nb = (S.rebirths || 0) + 1;
+  const nb = effBB(S) + 1;
   const regs = REGIONS.filter(r => r.bb === nb).map(r => r.name + ' 구역');
   const more = NODES.filter(n => n.bb === nb && n.region == null && !n.at).map(n => n.name);
   const subs = {};
   for (const n of NODES) if (n.bb === nb && n.at) subs[n.at] = (subs[n.at] || 0) + 1;
   const list = [...regs, ...more, ...Object.entries(subs).map(([h, c]) => `${NODE[h].name} 둘레 별 ${c}개`)];
   const nextReg = REGIONS.find(r => r.bb > nb);
-  return `<ul class="clues"><li>빅뱅할 때마다 모든 별빛이 영구히 <b>×${REBIRTH_MUL}</b>씩 늘어요.</li>` +
+  return `<ul class="clues"><li>빅뱅할 때마다 모든 별빛이 영구히 <b>×${trim(D.rebirthBase)}</b>씩 늘어요.</li>` +
     (list.length ? `<li>${nb}번째 빅뱅이면 풀려요: <b>${list.join(' · ')}</b></li>` : `<li>${nb}번째 빅뱅으로 새로 풀리는 곳은 없어요.${nextReg ? ` 다음 구역 <b>${nextReg.name}</b>은 빅뱅 ${nextReg.bb}번에 풀려요.` : ''}</li>`) + '</ul>';
 }
 function renderGalaxyInfo() {
@@ -2494,7 +2668,7 @@ function renderGalaxyInfo() {
     });
     const ba = h('button', 'btn ghost');
     ba.type = 'button'; ba.id = 'buyAllP'; ba.textContent = '모두 키우기';
-    ba.addEventListener('click', buyAllP);
+    ba.addEventListener('click', () => buyAllP());
     acts.append(bb, ba);
     return;
   }
@@ -2510,7 +2684,7 @@ function renderGalaxyInfo() {
   const acts = box.querySelector('.actions');
   const b = h('button', 'btn');
   b.type = 'button'; b.id = 'buyP';
-  b.textContent = max ? '다 키웠어요' : !open ? `앞의 ‘${n.prev.name}’을(를) 먼저 키워요` : `키우기 · 성운 조각 ${fmt(cost)}`;
+  b.textContent = max ? '다 키웠어요' : !open ? (n.bb && (S.rebirths || 0) < n.bb ? `빅뱅 ${n.bb}번이 필요해요 (지금 ${S.rebirths || 0}번)` : `앞의 ‘${n.prev.name}’을(를) 먼저 키워요`) : `키우기 · 성운 조각 ${fmt(cost)}`;
   b.disabled = max || !open || cost > S.shards;
   b.addEventListener('click', () => buyP(n.id));
   acts.append(b);
@@ -2532,20 +2706,23 @@ function bigBang() {
   Sound.bang();
   S.shards += gain; S.shardsTotal = (S.shardsTotal || 0) + gain; S.rebirths = (S.rebirths || 0) + 1;
   S.lv = {}; S.run = 0; S.buffs = []; S.nova = 0;
-  S.money = START_MONEY[Math.min(5, puOf(S, 'g2'))];
-  if (puOf(S, 'g3')) for (const n of NODES) if (!n.p && !n.req && !n.total && !n.bb && !n.at) S.lv[n.id] = 1;
-  S.dm = 0; pulseAcc = 0;
+  S.money = START_MONEY[Math.min(5, puOf(S, 'g2'))] * Math.pow(1000, puOf(S, 'g10'));
+  const base = n => !n.req && !n.total && !n.bb && !n.at && n.region == null && SECTORS.includes(n.br);
+  if (puOf(S, 'g3')) for (const n of NODES) if (base(n) && !n.p) S.lv[n.id] = 1;
+  if (puOf(S, 'g9')) for (const n of NODES) if (base(n) && n.ring <= 2) S.lv[n.id] = 1;
+  // 암흑물질: 들고 시작하는 몫 + 되감기로 남기는 몫
+  S.dm = (puOf(S, 'd2') ? 100 * Math.pow(10, puOf(S, 'd2') - 1) : 0) + (S.dm || 0) * 0.25 * puOf(S, 't6');
+  if (puOf(S, 'd8')) for (const n of NODES) if (n.hub && bbMet(S, n)) S.lv[n.id] = 1;
+  pulseAcc = 0;
   for (const k in freshUntil) delete freshUntil[k];
   boot();
   selG = null;
   setView('galaxy');
   toast('빅뱅! 새 우주가 열렸어요', `성운 조각 ${fmt(gain)}개를 받았어요. 은하에서 영구 업그레이드를 골라 보세요.`);
-  const unsealed = NODES.filter(n => n.bb === S.rebirths);
-  if (unsealed.length) {
-    for (const n of unsealed) freshUntil[n.id] = Date.now() + 12000;
-    const names = [...REGIONS.filter(r => r.bb === S.rebirths).map(r => r.name + ' 구역'), ...unsealed.filter(n => n.region == null).map(n => n.name)];
-    toast('봉인이 풀렸어요', names.join(' · ') + (unsealed.some(n => n.hub) ? ' — 새 중심이 깨어날 수 있어요.' : ''));
-  }
+  unsealToast(effBB(S));
+  const arm = Object.entries(ARMS).find(([, a]) => a.bb === S.rebirths);
+  if (arm) toast('은하에 새 나선팔이 열렸어요', `${arm[1].name} 나선팔: ${arm[1].note}`);
+  if (D.autoGalaxy) buyAllP(true);
   save();
 }
 
