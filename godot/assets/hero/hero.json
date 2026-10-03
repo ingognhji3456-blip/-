@@ -1,0 +1,1176 @@
+{
+ "world": {
+  "fw": 192,
+  "fh": 216,
+  "cols": 8,
+  "ps": 3,
+  "ox": 96,
+  "oy": 186,
+  "states": {
+   "down_idle": {
+    "start": 0,
+    "count": 4
+   },
+   "down_walk": {
+    "start": 4,
+    "count": 8
+   },
+   "up_idle": {
+    "start": 12,
+    "count": 4
+   },
+   "up_walk": {
+    "start": 16,
+    "count": 8
+   },
+   "side_idle": {
+    "start": 24,
+    "count": 4
+   },
+   "side_walk": {
+    "start": 28,
+    "count": 8
+   },
+   "side_swing": {
+    "start": 36,
+    "count": 6
+   }
+  }
+ },
+ "battle": {
+  "fw": 264,
+  "fh": 240,
+  "cols": 8,
+  "ps": 2.4,
+  "ox": 120,
+  "oy": 196.79999999999998,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8,
+    "dur": 0.5,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -13.3
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -13.6
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -13.3
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "slashDown": {
+    "start": 8,
+    "count": 10,
+    "dur": 0.32,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.086,
+      "dy": 0,
+      "tip": [
+       2.7,
+       -8.4
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.195,
+      "dy": 0,
+      "tip": [
+       13.8,
+       -22.1
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.422,
+      "dy": 0,
+      "tip": [
+       6.7,
+       -9.2
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.902,
+      "dy": 0,
+      "tip": [
+       -13.3,
+       -34.6
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.977,
+      "dy": 0,
+      "tip": [
+       -6.9,
+       -43
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.819,
+      "dy": 0,
+      "tip": [
+       -11.5,
+       -38.3
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.57,
+      "dy": 0,
+      "tip": [
+       -15.8,
+       -29.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.303,
+      "dy": 0,
+      "tip": [
+       -16.2,
+       -20.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.089,
+      "dy": 0,
+      "tip": [
+       -13.8,
+       -14.7
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "slashUp": {
+    "start": 18,
+    "count": 10,
+    "dur": 0.32,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.125,
+      "dy": 0,
+      "tip": [
+       -18.6,
+       -25.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.25,
+      "dy": 0,
+      "tip": [
+       -15,
+       -40.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.572,
+      "dy": 0,
+      "tip": [
+       -11.2,
+       -12.6
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.982,
+      "dy": 0,
+      "tip": [
+       20.3,
+       -13.6
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.949,
+      "dy": 0,
+      "tip": [
+       19.9,
+       -13.5
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.772,
+      "dy": 0,
+      "tip": [
+       14.9,
+       -9.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.528,
+      "dy": 0,
+      "tip": [
+       6.4,
+       -7.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.277,
+      "dy": 0,
+      "tip": [
+       -3,
+       -7.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.08,
+      "dy": 0,
+      "tip": [
+       -9.9,
+       -11
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "thrust": {
+    "start": 28,
+    "count": 10,
+    "dur": 0.32,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.038,
+      "dy": 0,
+      "tip": [
+       -14.7,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.093,
+      "dy": 0,
+      "tip": [
+       -18.1,
+       -12.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.196,
+      "dy": 0,
+      "tip": [
+       -7.8,
+       -32.3
+      ],
+      "strike": true
+     },
+     {
+      "dx": 1.009,
+      "dy": 0,
+      "tip": [
+       40.5,
+       -16.5
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.996,
+      "dy": 0,
+      "tip": [
+       40.7,
+       -17.7
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.811,
+      "dy": 0,
+      "tip": [
+       36.6,
+       -30.4
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.554,
+      "dy": 0,
+      "tip": [
+       18.6,
+       -40.1
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.29,
+      "dy": 0,
+      "tip": [
+       -2.7,
+       -33.5
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.084,
+      "dy": 0,
+      "tip": [
+       -11.7,
+       -19.3
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "spin": {
+    "start": 38,
+    "count": 12,
+    "dur": 0.32,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.175,
+      "dy": 0,
+      "tip": [
+       -5.3,
+       -7.3
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.303,
+      "dy": 0,
+      "tip": [
+       1.6,
+       -5
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.409,
+      "dy": 0,
+      "tip": [
+       18,
+       -15
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.605,
+      "dy": 0,
+      "tip": [
+       7.2,
+       -45.8
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.818,
+      "dy": 0,
+      "tip": [
+       -21.1,
+       -26.3
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.969,
+      "dy": 0,
+      "tip": [
+       -4.6,
+       -5.4
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.985,
+      "dy": 0,
+      "tip": [
+       0.9,
+       -5
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.835,
+      "dy": 0,
+      "tip": [
+       -1.4,
+       -5.7
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.585,
+      "dy": 0,
+      "tip": [
+       -5.1,
+       -7.4
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.313,
+      "dy": 0,
+      "tip": [
+       -8.7,
+       -9.7
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.092,
+      "dy": 0,
+      "tip": [
+       -11.4,
+       -11.8
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "riposte": {
+    "start": 50,
+    "count": 8,
+    "dur": 0.3,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -16.9,
+       -12.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.28,
+      "dy": 0,
+      "tip": [
+       0.1,
+       -36.9
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.777,
+      "dy": 0,
+      "tip": [
+       39.7,
+       -18
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.741,
+      "dy": 0,
+      "tip": [
+       39.8,
+       -21.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.548,
+      "dy": 0,
+      "tip": [
+       30.2,
+       -36.4
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.302,
+      "dy": 0,
+      "tip": [
+       4.5,
+       -38.3
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.091,
+      "dy": 0,
+      "tip": [
+       -11,
+       -21.9
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "whiff": {
+    "start": 58,
+    "count": 8,
+    "dur": 0.26,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.025,
+      "dy": 0,
+      "tip": [
+       0.1,
+       -8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.05,
+      "dy": 0,
+      "tip": [
+       11.7,
+       -11.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.076,
+      "dy": 0,
+      "tip": [
+       -3.3,
+       -8.3
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.115,
+      "dy": 0,
+      "tip": [
+       -17.6,
+       -29.6
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.111,
+      "dy": 0,
+      "tip": [
+       -17.3,
+       -32.1
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.07,
+      "dy": 0,
+      "tip": [
+       -17.8,
+       -23.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.023,
+      "dy": 0,
+      "tip": [
+       -14.9,
+       -15.8
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "finisher": {
+    "start": 66,
+    "count": 14,
+    "dur": 0.5,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.063,
+      "dy": -3.3,
+      "tip": [
+       -8.1,
+       -9.7
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.21,
+      "dy": -10.9,
+      "tip": [
+       10.4,
+       -12.2
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.372,
+      "dy": -19.34,
+      "tip": [
+       -6,
+       -38.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.484,
+      "dy": -25.16,
+      "tip": [
+       4.3,
+       -15.4
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.56,
+      "dy": -23.19,
+      "tip": [
+       11.7,
+       -18.9
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.857,
+      "dy": -9.12,
+      "tip": [
+       -13.4,
+       -18.2
+      ],
+      "strike": true
+     },
+     {
+      "dx": 1.05,
+      "dy": 0,
+      "tip": [
+       0.4,
+       -45.8
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.993,
+      "dy": 0,
+      "tip": [
+       -2.1,
+       -44.6
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.843,
+      "dy": 0,
+      "tip": [
+       -7.7,
+       -40.7
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.639,
+      "dy": 0,
+      "tip": [
+       -13.2,
+       -33.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.416,
+      "dy": 0,
+      "tip": [
+       -15.8,
+       -25.6
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.21,
+      "dy": 0,
+      "tip": [
+       -15.3,
+       -18.5
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0.06,
+      "dy": 0,
+      "tip": [
+       -13.4,
+       -14.2
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "flurry": {
+    "start": 80,
+    "count": 8,
+    "dur": 0,
+    "frames": [
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       0.1,
+       -4.7
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       -15.6,
+       -24.7
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       -13.5,
+       -35.6
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       -15.6,
+       -24.7
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       0.1,
+       -4.7
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       24.5,
+       -12.1
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       29,
+       -22.2
+      ],
+      "strike": true
+     },
+     {
+      "dx": 0.78,
+      "dy": 0,
+      "tip": [
+       24.5,
+       -12.1
+      ],
+      "strike": true
+     }
+    ]
+   },
+   "hurt": {
+    "start": 88,
+    "count": 8,
+    "dur": 0.4,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.324,
+      "dy": 0,
+      "tip": [
+       -29.4,
+       -19
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.337,
+      "dy": 0,
+      "tip": [
+       -29.2,
+       -19.9
+      ],
+      "strike": true
+     },
+     {
+      "dx": -0.308,
+      "dy": 0,
+      "tip": [
+       -26.2,
+       -20.8
+      ],
+      "strike": true
+     },
+     {
+      "dx": -0.293,
+      "dy": 0,
+      "tip": [
+       -25.2,
+       -20.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.229,
+      "dy": 0,
+      "tip": [
+       -22.7,
+       -19.1
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.13,
+      "dy": 0,
+      "tip": [
+       -18.6,
+       -16.3
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.04,
+      "dy": 0,
+      "tip": [
+       -14.3,
+       -13.8
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "stumble": {
+    "start": 96,
+    "count": 8,
+    "dur": 0.4,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.102,
+      "dy": 0,
+      "tip": [
+       -15.3,
+       -9
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.157,
+      "dy": 0,
+      "tip": [
+       -16.3,
+       -7.1
+      ],
+      "strike": true
+     },
+     {
+      "dx": -0.212,
+      "dy": 0,
+      "tip": [
+       -15.6,
+       -8.4
+      ],
+      "strike": true
+     },
+     {
+      "dx": -0.25,
+      "dy": 0,
+      "tip": [
+       -15.1,
+       -9.3
+      ],
+      "strike": true
+     },
+     {
+      "dx": -0.211,
+      "dy": 0,
+      "tip": [
+       -14.8,
+       -9.9
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.126,
+      "dy": 0,
+      "tip": [
+       -13.9,
+       -11.1
+      ],
+      "strike": false
+     },
+     {
+      "dx": -0.04,
+      "dy": 0,
+      "tip": [
+       -12.8,
+       -12.3
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "block": {
+    "start": 104,
+    "count": 1,
+    "dur": 0,
+    "frames": [
+     {
+      "dx": -0.04,
+      "dy": 0,
+      "tip": [
+       26.7,
+       -15
+      ],
+      "strike": false
+     }
+    ]
+   },
+   "dead": {
+    "start": 105,
+    "count": 10,
+    "dur": 0,
+    "frames": [
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     },
+     {
+      "dx": 0,
+      "dy": 0,
+      "tip": [
+       -12.4,
+       -12.8
+      ],
+      "strike": false
+     }
+    ]
+   }
+  }
+ }
+}

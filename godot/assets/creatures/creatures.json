@@ -1,0 +1,582 @@
+{
+ "slime": {
+  "fw": 244,
+  "fh": 162,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 122,
+  "oy": 132,
+  "height": 24,
+  "width": 34,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "rabbit": {
+  "fw": 265,
+  "fh": 199,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 132.5,
+  "oy": 169,
+  "height": 34,
+  "width": 40,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "wolf": {
+  "fw": 412,
+  "fh": 235,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 206,
+  "oy": 205,
+  "height": 44,
+  "width": 82,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "boar": {
+  "fw": 356,
+  "fh": 206,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 178,
+  "oy": 176,
+  "height": 36,
+  "width": 66,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "bat": {
+  "fw": 356,
+  "fh": 184,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 178,
+  "oy": 154,
+  "height": 30,
+  "width": 66,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "golem": {
+  "fw": 300,
+  "fh": 300,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 150,
+  "oy": 270,
+  "height": 62,
+  "width": 50,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "wisp": {
+  "fw": 300,
+  "fh": 220,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 150,
+  "oy": 190,
+  "height": 40,
+  "width": 50,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "yeti": {
+  "fw": 307,
+  "fh": 300,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 153.5,
+  "oy": 270,
+  "height": 62,
+  "width": 52,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "scorp": {
+  "fw": 370,
+  "fh": 206,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 185,
+  "oy": 176,
+  "height": 36,
+  "width": 70,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "worm": {
+  "fw": 349,
+  "fh": 336,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 174.5,
+  "oy": 306,
+  "height": 72,
+  "width": 64,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   },
+   "burrow": {
+    "start": 56,
+    "count": 4
+   },
+   "emerge": {
+    "start": 60,
+    "count": 6
+   }
+  }
+ },
+ "toad": {
+  "fw": 286,
+  "fh": 170,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 143,
+  "oy": 140,
+  "height": 26,
+  "width": 46,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "lizard": {
+  "fw": 370,
+  "fh": 300,
+  "cols": 8,
+  "ps": 2.5,
+  "ox": 185,
+  "oy": 270,
+  "height": 62,
+  "width": 70,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ },
+ "dragon": {
+  "fw": 561,
+  "fh": 347,
+  "cols": 8,
+  "ps": 1.7,
+  "ox": 280.5,
+  "oy": 326.6,
+  "height": 120,
+  "width": 200,
+  "states": {
+   "idle": {
+    "start": 0,
+    "count": 8
+   },
+   "walk": {
+    "start": 8,
+    "count": 8
+   },
+   "run": {
+    "start": 16,
+    "count": 8
+   },
+   "ready": {
+    "start": 24,
+    "count": 8
+   },
+   "wind": {
+    "start": 32,
+    "count": 5
+   },
+   "lunge": {
+    "start": 37,
+    "count": 6
+   },
+   "hurt": {
+    "start": 43,
+    "count": 3
+   },
+   "dead": {
+    "start": 46,
+    "count": 10
+   }
+  }
+ }
+}
