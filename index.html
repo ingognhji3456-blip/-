@@ -248,6 +248,9 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .tools{position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); right:16px; z-index:5; display:flex; gap:6px}
 .tbtn{border:1px solid var(--glass-line); background:var(--glass); color:var(--text); border-radius:12px; padding:8px 13px; font-size:var(--t-sm); font-weight:700; cursor:pointer; box-shadow:0 8px 22px rgba(0,0,0,.35), inset 0 1px 0 var(--glass-hi); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); transition:border-color .2s}
 .tbtn:hover{border-color:rgba(255,214,110,.45)}
+.tbtn .ic{margin-right:6px; opacity:.75}
+.info-tog{display:none}
+.chip .sm{display:none}
 .tbtn:focus-visible{outline:2px solid var(--b-click); outline-offset:2px}
 .tbtn[aria-pressed="false"]{color:var(--muted)}
 /* 처음 하는 사람 안내 말풍선 */
@@ -324,23 +327,48 @@ h1,h2,h3{margin:0; text-wrap:balance}
 .stats dd{margin:0; font-family:var(--f-display); overflow-wrap:anywhere}
 
 @media (max-width:760px){
-  .info{left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 50px); width:auto; border-radius:16px 16px 0 0; padding:12px 16px; gap:8px; max-height:44%; overflow-y:auto}
-  .views{top:auto; bottom:0; left:0; right:0; transform:none; border-radius:0; border-width:1px 0 0; padding:5px 8px calc(env(safe-area-inset-bottom,0px) + 5px); gap:6px}
-  .views button{flex:1; padding:8px 4px}
-  .toasts{top:calc(env(safe-area-inset-top,0px) + 14px)}
-  .ach-grid{grid-template-columns:1fr}
+  /* 폰: 게임 화면이 최대한 넓게 보이도록 창은 작게 */
+  .info{left:0; right:0; bottom:calc(env(safe-area-inset-bottom,0px) + 44px); width:auto; border-radius:16px 16px 0 0; padding:10px 14px 12px; gap:6px; max-height:62%; overflow-y:auto}
+  .info::before{left:14px; right:14px}
+  .info h2{font-size:18px; padding-right:4px}
+  .info .kicker{padding-right:86px; min-height:22px}
+  .info-tog{display:block; position:absolute; top:8px; right:10px; z-index:1; border:0; background:rgba(255,255,255,.07); color:var(--muted); font:inherit; font-size:var(--t-xs); font-weight:700; padding:4px 11px; border-radius:999px; cursor:pointer}
+  .info-tog:focus-visible{outline:2px solid var(--b-click); outline-offset:2px}
+  /* 접힌 상태: 이름 · 효과 · 단추만 */
+  .info:not(.open) > p, .info:not(.open) .legend, .info:not(.open) .clues, .info:not(.open) .impact, .info:not(.open) .lvbar{display:none}
   .info .legend{display:none}
-  .chip.minor{display:none}
-  .money{font-size:26px}
-  .hud{left:10px; max-width:calc(100% - 112px); gap:6px}
-  .hud-card{padding:9px 12px; min-width:0; border-radius:14px}
-  .wallet{gap:4px; margin-top:5px}
-  .stat{padding:2px 8px}
-  .stat em{display:none}
+  .btn{padding:10px 12px}
+  .views{top:auto; bottom:0; left:0; right:0; transform:none; border-radius:0; border-width:1px 0 0; padding:4px 8px calc(env(safe-area-inset-bottom,0px) + 4px); gap:6px}
+  .views button{flex:1; padding:7px 4px}
+  /* 알림은 계기판을 가리지 않게 아래 정보 창 바로 위에 작게 */
+  .toasts{top:auto; bottom:calc(env(safe-area-inset-bottom,0px) + 52px + var(--sheet, 80px)); width:min(calc(100vw - 24px),360px); gap:6px}
+  .toast{padding:6px 11px 6px 13px}
+  .toast b{font-size:var(--t-sm)}
+  .toast span{font-size:var(--t-xs)}
+  .ach-grid{grid-template-columns:1fr}
+  /* 계기판: 별빛 한 줄 + 작은 숫자 한 줄 */
+  .hud{left:8px; top:calc(env(safe-area-inset-top,0px) + 8px); max-width:calc(100% - 62px); gap:6px}
+  .hud-card{padding:7px 11px 8px; min-width:0; border-radius:14px}
+  .brand h1{display:none}
+  .stage-pill{font-size:11px; padding:0 8px}
   .stage-next{display:none}
-  .tools{right:10px}
-  .tbtn{padding:6px 10px; font-size:var(--t-xs)}
-  .tools{flex-direction:column; align-items:flex-end}
+  .money{font-size:24px; margin-top:2px}
+  .wallet{gap:2px 10px; margin-top:3px}
+  .stat,.stat.dm,.stat.shard{padding:0; background:none; box-shadow:none; font-size:11px; gap:4px}
+  .stat b{font-size:12px}
+  .stat em,.stat .lg{display:none}
+  /* 칩: 한 줄로 옆으로 넘기기, 꼭 필요한 것만 */
+  .chips{flex-wrap:nowrap; overflow-x:auto; pointer-events:auto; scrollbar-width:none; max-width:calc(100vw - 70px); padding-bottom:2px}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none; white-space:nowrap}
+  .chip.minor,.chip.next,.chip.idle{display:none}
+  .chip .lg{display:none}
+  .chip .sm{display:inline}
+  /* 도구: 오른쪽 위 작은 동그라미 단추 */
+  .tools{right:8px; top:calc(env(safe-area-inset-top,0px) + 8px); flex-direction:column; align-items:flex-end; gap:6px}
+  .tbtn{width:38px; height:38px; padding:0; border-radius:50%; display:grid; place-items:center; font-size:17px; line-height:1}
+  .tbtn .ic{margin:0; opacity:1}
+  .tbtn .tx{display:none}
 }
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important}
@@ -429,16 +457,16 @@ h1,h2,h3{margin:0; text-wrap:balance}
     <div class="wallet">
       <span class="stat"><i>초당</i><b id="rate">0</b></span>
       <span class="stat"><i>클릭당</i><b id="perClick">1</b></span>
-      <span class="stat cur dm" id="dmStat" hidden><i>◆ 암흑물질</i><b id="dmVal">0</b><em id="dmRate"></em></span>
-      <span class="stat cur shard" id="shardStat" hidden><i>✦ 성운 조각</i><b id="shardVal">0</b></span>
+      <span class="stat cur dm" id="dmStat" hidden><i>◆<span class="lg"> 암흑물질</span></i><b id="dmVal">0</b><em id="dmRate"></em></span>
+      <span class="stat cur shard" id="shardStat" hidden><i>✦<span class="lg"> 성운 조각</span></i><b id="shardVal">0</b></span>
     </div>
   </div>
   <div class="chips" id="chips"></div>
 </header>
 <div class="tools">
-  <button class="tbtn" type="button" id="fitBtn">가운데로</button>
-  <button class="tbtn" type="button" id="statsBtn">기록</button>
-  <button class="tbtn" type="button" id="soundBtn" aria-pressed="true">소리 켬</button>
+  <button class="tbtn" type="button" id="fitBtn" aria-label="가운데로"><span class="ic" aria-hidden="true">◎</span><span class="tx">가운데로</span></button>
+  <button class="tbtn" type="button" id="statsBtn" aria-label="기록"><span class="ic" aria-hidden="true">≡</span><span class="tx">기록</span></button>
+  <button class="tbtn" type="button" id="soundBtn" aria-pressed="true" aria-label="소리"><span class="ic" aria-hidden="true">♪</span><span class="tx">소리 켬</span></button>
 </div>
 <nav class="views" id="views" role="tablist" aria-label="화면">
   <button type="button" role="tab" data-view="star" aria-selected="true">별자리<i class="dot"></i></button>
@@ -1204,7 +1232,11 @@ const Sound = (() => {
     nova() { [130.81, 196, 261.63, 392, 523.25, 783.99, 1046.5].forEach((f, i) => tone(f, 1.4, i < 3 ? 'triangle' : 'sine', 0.12, i * 0.04)); },
   };
 })();
-function paintSoundBtn() { els.soundBtn.textContent = Sound.on ? '소리 켬' : '소리 끔'; els.soundBtn.setAttribute('aria-pressed', String(Sound.on)); }
+function paintSoundBtn() {
+  els.soundBtn.querySelector('.tx').textContent = Sound.on ? '소리 켬' : '소리 끔';
+  els.soundBtn.querySelector('.ic').textContent = Sound.on ? '♪' : '✕';
+  els.soundBtn.setAttribute('aria-pressed', String(Sound.on));
+}
 els.soundBtn.addEventListener('click', () => { Sound.toggle(); paintSoundBtn(); if (Sound.on) Sound.buy(); });
 
 function toast(title, body) {
@@ -1212,7 +1244,7 @@ function toast(title, body) {
   t.append(h('b'), h('span'));
   t.firstChild.textContent = title; t.lastChild.textContent = body;
   els.toasts.append(t);
-  while (els.toasts.childElementCount > 3) els.toasts.firstChild.remove();
+  while (els.toasts.childElementCount > (narrow() ? 2 : 3)) els.toasts.firstChild.remove();
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 3400);
 }
 function shake(node) { node.classList.remove('shake'); void node.offsetWidth; node.classList.add('shake'); }
@@ -1436,8 +1468,9 @@ function updateAffordable() {
 /* --- 보기(이동·확대) --- */
 function area() {
   const W = innerWidth, H = innerHeight, nr = narrow();
-  const infoH = nr ? els.info.offsetHeight + els.views.offsetHeight : 0, infoW = nr ? 0 : els.info.offsetWidth + 32;
-  const top = nr ? 120 : 64;
+  // 폰: 아래 정보 창은 접힌 높이만큼만 비워 둬요 (펼치면 그 위로 덮어요)
+  const infoH = nr ? Math.min(els.info.offsetHeight, 96) + els.views.offsetHeight : 0, infoW = nr ? 0 : els.info.offsetWidth + 32;
+  const top = nr ? 104 : 64;
   return { x:0, y:top, w:W - infoW, h:H - top - infoH };
 }
 function fitTarget() {
@@ -1530,13 +1563,33 @@ function select(id) {
   if (prev && NODE[prev]) paintNode(NODE[prev]);
   if (id) paintNode(NODE[id]);
   renderInfo();
+  if (id) ensureVisible(NODE[id]);
+}
+// 폰에서 고른 별이 아래 정보 창에 가려지면 보이는 곳으로 옮겨요
+function ensureVisible(n) {
+  if (!narrow() || curView !== 'star') return;
+  const [x, y] = toScreen(n.x, n.y), top = 110, bottom = els.info.getBoundingClientRect().top - 36;
+  if (y <= bottom && y >= top && x >= 24 && x <= innerWidth - 24) return;
+  follow = false;
+  panGoal = { x:view.x + (innerWidth / 2 - x), y:view.y + ((top + bottom) / 2 - y) };
 }
 function maxBuy(n) {
   let lv = lvOf(S, n.id), money = walletOf(S, n), k = 0, total = 0;
   while (lv < n.max && k < 500) { const c = costOf(n, lv, D); if (c > money) break; money -= c; total += c; lv++; k++; }
   return { k, total };
 }
+let infoOpen = false;   // 폰에서 정보 창을 펼쳤는지 (처음엔 접어서 화면을 넓게)
 function renderInfo() {
+  renderInfoBody();
+  const box = els.info, t = h('button', 'info-tog');
+  box.classList.toggle('open', infoOpen);
+  t.type = 'button'; t.setAttribute('aria-expanded', String(infoOpen));
+  t.textContent = infoOpen ? '접기 ▾' : '자세히 ▴';
+  t.addEventListener('click', () => { infoOpen = !infoOpen; renderInfo(); if (sel && curView === 'star') ensureVisible(NODE[sel]); if (curView === 'codex') layoutCodex(); });
+  box.prepend(t);
+  document.documentElement.style.setProperty('--sheet', box.offsetHeight + 'px');   // 폰 알림 자리
+}
+function renderInfoBody() {
   if (curView === 'galaxy') return renderGalaxyInfo();
   if (curView === 'codex') return renderCodexInfo();
   const box = els.info;
@@ -2115,13 +2168,13 @@ function updateHud() {
   if (D.combo > 0 && combo > 1) chips.push(`<span class="chip">연타 +${Math.round((comboMul() - 1) * 100)}%</span>`);
   if (D.autoClick > 0) chips.push(`<span class="chip minor">자동 반짝 초당 ${trim(D.autoClick)}번</span>`);
   const ready = affordableList();
-  if (D.autoBuy) chips.unshift(`<button type="button" class="chip ab" data-ab="1" aria-pressed="${S.autoBuyOn !== false}">자동 별지기 ${S.autoBuyOn !== false ? '켜짐' : '꺼짐'}</button>`);
+  if (D.autoBuy) chips.unshift(`<button type="button" class="chip ab" data-ab="1" aria-pressed="${S.autoBuyOn !== false}">자동<span class="lg"> 별지기</span> ${S.autoBuyOn !== false ? '켜짐' : '꺼짐'}</button>`);
   if (ready.length > 1) chips.unshift(`<button type="button" class="chip all" data-all="1">모두 밝히기</button>`);
   chips.unshift(ready.length
-    ? `<button type="button" class="chip go" data-go="1">▲ 지금 밝힐 수 있는 별 ${ready.length}개</button>`
+    ? `<button type="button" class="chip go" data-go="1">▲ <span class="lg">지금 밝힐 수 있는 </span><span class="sm">밝힐 </span>별 ${ready.length}개</button>`
     : `<span class="chip idle">밝힐 수 있는 별 없음 · 별빛을 더 모아요</span>`);
   const gain = shardsFor(S.run, D);
-  if (gain >= 1) chips.unshift(`<button type="button" class="chip bb" data-bb="1">빅뱅 가능 · 성운 조각 +${fmt(gain)}</button>`);
+  if (gain >= 1) chips.unshift(`<button type="button" class="chip bb" data-bb="1">빅뱅<span class="lg"> 가능 · 성운 조각</span> +${fmt(gain)}<span class="sm">조각</span></button>`);
   els.shardStat.hidden = !(S.shards || S.rebirths || gain >= 1);
   els.shardVal.textContent = fmt(S.shards);
   els.dmStat.hidden = !D.hole && !(S.dm > 0);
@@ -2138,7 +2191,7 @@ function updateHud() {
   if (nextM) chips.push(`<span class="chip next">심연의 별까지 ${nextM - tl}단계</span>`);
   // 봉인된 구역 앞까지 왔으면: 빅뱅이 몇 번 필요한지
   const wall = REGIONS.find(r => effBB(S) < r.bb && NODES.some(n => n.region === REGIONS.indexOf(r) && nodeState(n) === 'sealed'));
-  if (wall) chips.push(`<button type="button" class="chip wall" data-bb="1">🔒 ${wall.name} · 빅뱅 ${wall.bb}회 필요 (지금 ${effBB(S)}회)</button>`);
+  if (wall) chips.push(`<button type="button" class="chip wall" data-bb="1">🔒 ${wall.name} · 빅뱅 ${wall.bb}회<span class="lg"> 필요 (지금 ${effBB(S)}회)</span></button>`);
   if (D.nova && S.nova >= 100 && !novaOn()) chips.unshift(`<button type="button" class="chip nova" data-nova="1">초신성 폭발! ×${D.novaPower}</button>`);
   for (const b of S.buffs) chips.push(b.kind === 'nova'
     ? `<span class="chip nova-buff">초신성 ×${D.novaPower} · ${Math.ceil((b.until - Date.now()) / 1000)}초</span>`
@@ -2748,7 +2801,8 @@ function renderCodex() {
 function layoutCodex() {
   // 도감은 계기판 아래부터 채워요
   const a = area(), top = Math.max(a.y, document.querySelector('.hud').getBoundingClientRect().bottom + 10);
-  Object.assign(els.codex.style, { left:a.x + 'px', top:top + 'px', width:a.w + 'px', height:(a.y + a.h - top) + 'px' });
+  const bottom = narrow() ? els.info.getBoundingClientRect().top - 6 : a.y + a.h;
+  Object.assign(els.codex.style, { left:a.x + 'px', top:top + 'px', width:a.w + 'px', height:(bottom - top) + 'px' });
 }
 function renderCodexInfo() {
   const box = els.info, sum = {};
