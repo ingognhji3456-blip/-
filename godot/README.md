@@ -56,6 +56,14 @@ node tools/bake/bake.js all      # 또는 creatures | hero | props | bg | terrai
 
 ## 내보내기 (다른 사람이 해 볼 수 있게)
 
+웹 내보내기 설정(`export_presets.cfg`)이 들어 있어요. 명령줄로는:
+
+```
+godot --headless --path godot --export-release "Web" ../build/web/index.html
+```
+
+만든 파일은 `gh-pages` 브랜치에 올려 GitHub Pages로 공개해요.
+
 Godot 메뉴 **프로젝트 → 내보내기** 에서 Windows / Web(HTML5) / Android 템플릿을 받아 내보낼 수 있어요.
 웹으로 내보내면 itch.io 같은 곳에 무료로 올려 친구들이 브라우저로 해 볼 수 있어요.
 돈을 받고 팔거나 광고를 넣는 건 보호자와 함께 해요.
