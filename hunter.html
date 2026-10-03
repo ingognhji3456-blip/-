@@ -430,19 +430,19 @@ const NODE = {
 };
 // drop: [재료, 최소, 최대, 확률] · zone: 사는 지역 · deep: true=지역 바깥쪽, false=안쪽
 const MON = {
-  slime:  { n: '슬라임',     hp: 56,   atk: 4,  gold: [3, 6],     xp: 4,   drop: [['goo', 1, 2, 1]], aggro: false, zone: 1, spd: 28, size: 34 },
-  rabbit: { n: '뿔토끼',     hp: 44,   atk: 3,  gold: [2, 5],     xp: 4,   drop: [['fur', 1, 2, 1]], aggro: false, zone: 1, spd: 55, size: 34 },
-  wolf:   { n: '늑대',       hp: 150,  atk: 7,  gold: [8, 14],    xp: 12,  drop: [['pelt', 1, 2, .9]], aggro: true, zone: 2, spd: 68, size: 40 },
-  boar:   { n: '멧돼지',     hp: 240,  atk: 9,  gold: [12, 20],   xp: 16,  drop: [['tusk', 1, 1, .85], ['pelt', 1, 1, .3]], aggro: false, zone: 2, spd: 42, size: 42 },
-  bat:    { n: '동굴 박쥐',   hp: 220,  atk: 11, gold: [18, 30],   xp: 24,  drop: [['wing', 1, 2, .9]], aggro: true, zone: 3, deep: false, spd: 82, size: 38 },
-  golem:  { n: '돌 골렘',    hp: 600,  atk: 16, gold: [45, 70],   xp: 50,  drop: [['core', 1, 1, .7], ['stone', 2, 4, 1]], aggro: true, zone: 3, deep: true, spd: 34, size: 46 },
-  wisp:   { n: '얼음 정령',   hp: 420,  atk: 13, gold: [28, 42],   xp: 32,  drop: [['ice', 1, 2, 1], ['frost', 1, 1, .3]], aggro: true, zone: 4, deep: false, spd: 46, size: 40 },
-  yeti:   { n: '설인',       hp: 880,  atk: 19, gold: [60, 95],   xp: 70,  drop: [['yfur', 1, 2, .9], ['frost', 1, 1, .4]], aggro: true, zone: 4, deep: true, spd: 46, size: 60 },
-  scorp:  { n: '거대 전갈',   hp: 380,  atk: 12, gold: [22, 34],   xp: 26,  drop: [['sting', 1, 1, .8]], aggro: true, zone: 5, deep: false, spd: 52, size: 44 },
-  worm:   { n: '모래 벌레',   hp: 800,  atk: 18, gold: [55, 85],   xp: 62,  drop: [['wormshell', 1, 1, .8]], aggro: true, zone: 5, deep: true, spd: 42, size: 60 },
-  toad:   { n: '늪 두꺼비',   hp: 300,  atk: 9,  gold: [15, 24],   xp: 18,  drop: [['toadskin', 1, 2, .9]], aggro: false, zone: 6, deep: false, spd: 26, size: 44 },
-  lizard: { n: '리자드맨 전사', hp: 560, atk: 15, gold: [38, 56],   xp: 44,  drop: [['lizscale', 1, 2, .8]], aggro: true, zone: 6, deep: true, spd: 58, size: 52 },
-  dragon: { n: '고대 용',    hp: 2800, atk: 25, gold: [600, 900], xp: 400, drop: [['scale', 2, 3, 1], ['crystal', 2, 4, 1]], aggro: true, zone: 3, spd: 48, size: 84, boss: true },
+  slime:  { n: '슬라임',     hp: 350, atk: 3, gold: [10, 16], xp: 12,   drop: [['goo', 1, 2, 1]], aggro: false, zone: 1, spd: 28, size: 34 },
+  rabbit: { n: '뿔토끼',     hp: 300, atk: 3, gold: [8, 14], xp: 12,   drop: [['fur', 1, 2, 1]], aggro: false, zone: 1, spd: 55, size: 34 },
+  wolf:   { n: '늑대',       hp: 2200, atk: 6, gold: [40, 60], xp: 55,  drop: [['pelt', 1, 2, .9]], aggro: true, zone: 2, spd: 68, size: 40 },
+  boar:   { n: '멧돼지',     hp: 2600, atk: 7, gold: [50, 75], xp: 65,  drop: [['tusk', 1, 1, .85], ['pelt', 1, 1, .3]], aggro: false, zone: 2, spd: 42, size: 42 },
+  bat:    { n: '동굴 박쥐',   hp: 2000, atk: 9, gold: [70, 100], xp: 85,  drop: [['wing', 1, 2, .9]], aggro: true, zone: 3, deep: false, spd: 82, size: 38 },
+  golem:  { n: '돌 골렘',    hp: 4400, atk: 12, gold: [180, 260], xp: 200,  drop: [['core', 1, 1, .7], ['stone', 2, 4, 1]], aggro: true, zone: 3, deep: true, spd: 34, size: 46 },
+  wisp:   { n: '얼음 정령',   hp: 2600, atk: 10, gold: [110, 150], xp: 120,  drop: [['ice', 1, 2, 1], ['frost', 1, 1, .3]], aggro: true, zone: 4, deep: false, spd: 46, size: 40 },
+  yeti:   { n: '설인',       hp: 5000, atk: 14, gold: [240, 340], xp: 260,  drop: [['yfur', 1, 2, .9], ['frost', 1, 1, .4]], aggro: true, zone: 4, deep: true, spd: 46, size: 60 },
+  scorp:  { n: '거대 전갈',   hp: 2400, atk: 9, gold: [90, 130], xp: 100,  drop: [['sting', 1, 1, .8]], aggro: true, zone: 5, deep: false, spd: 52, size: 44 },
+  worm:   { n: '모래 벌레',   hp: 4600, atk: 13, gold: [210, 300], xp: 230,  drop: [['wormshell', 1, 1, .8]], aggro: true, zone: 5, deep: true, spd: 42, size: 60 },
+  toad:   { n: '늪 두꺼비',   hp: 2200, atk: 7, gold: [65, 95], xp: 75,  drop: [['toadskin', 1, 2, .9]], aggro: false, zone: 6, deep: false, spd: 26, size: 44 },
+  lizard: { n: '리자드맨 전사', hp: 4000, atk: 11, gold: [150, 220], xp: 170,  drop: [['lizscale', 1, 2, .8]], aggro: true, zone: 6, deep: true, spd: 58, size: 52 },
+  dragon: { n: '고대 용',    hp: 30000, atk: 14, gold: [2500, 3500], xp: 1500, drop: [['scale', 2, 3, 1], ['crystal', 2, 4, 1]], aggro: true, zone: 3, spd: 48, size: 84, boss: true },
 };
 const MON_SPAWN = [['slime', 30], ['rabbit', 24], ['wolf', 24], ['boar', 18], ['bat', 20], ['golem', 14], ['wisp', 18], ['yeti', 12], ['scorp', 20], ['worm', 10], ['toad', 20], ['lizard', 14]];
 
@@ -1447,7 +1447,7 @@ function chartBar(bar) {
     if (n.len >= 6 && bar >= 1) { C.notes.push({ k: 'hold', t, end: stepT(g + n.len - 1) + C.stepDur * .6, pitch, st: 0 }); for (let s = n.s - 2; s <= n.s + n.len + 1; s++) occ.add(s); }
     else { C.notes.push({ k: 'tap', t, pitch, st: 0 }); for (let s = n.s - 2; s <= n.s + 2; s++) occ.add(s); }
   }
-  const want = bar === 0 ? 0 : S.defs[bar % S.defs.length];
+  const want = bar === 0 ? 0 : Math.min(3, S.defs[bar % S.defs.length] + (C.phase2 ? 1 : 0));
   const free = []; for (let s = 0; s < S.spb; s += 2) if (!occ.has(s)) free.push([s, (s % 4 === 0 ? 0 : 1) + R() * .6]);
   free.sort((a, b) => a[1] - b[1]);
   let placed = 0;
@@ -1472,7 +1472,9 @@ function schedAudio() {
     if (bt && bt !== '.' && bt !== '-') { const n = bt === '1' ? ch[0] : bt === '3' ? ch[1] : bt === '5' ? ch[2] : bt === '6' ? ch[0] + 9 : ch[0] + 12; let gap = 1; while (s + gap < S.spb && S.bassPat[s + gap] === '.') gap++; BASS[S.bass](midiF(n - 12), t, Math.min(4, gap) * C.stepDur * .9); }
     if (S.pad && s === 0) PAD[S.pad](ch.map(midiF), t, C.barDur * .96);
     if (S.arp && S.arpPat[s] && S.arpPat[s] !== '.') { const a = S.arpPat[s], n = a === '1' ? ch[0] : a === '3' ? ch[1] : a === '5' ? ch[2] : ch[0] + 12; LEAD[S.arp](midiF(n + 12), t, C.stepDur, .45); }
-    for (const n of S.bars[bar % S.bars.length]) if (n.s === s) LEAD[S.lead](songNote(S, n.deg), t, Math.max(n.len, Math.min(n.gap, 3)) * C.stepDur, .85);
+    const loopUp = Math.floor(bar / S.bars.length) % 2 === 1;
+    for (const n of S.bars[bar % S.bars.length]) if (n.s === s) { let f = songNote(S, n.deg); if (loopUp && f < 700) f *= 2; LEAD[S.lead](f, t, Math.max(n.len, Math.min(n.gap, 3)) * C.stepDur, .85); }
+    if (C.phase2) { if (s % 4 === 0) DRUM.k(t, .75); if (s % 2 === 1) DRUM.h(t, .7); if (s === 0) DRUM.X(t, .5); if (s % 8 === 6) DRUM.s(t, .5); }
   }
   for (const q of C.sigs) {
     if (q.aud || q.t - q.lead - .05 > ahead) continue;
@@ -1495,8 +1497,14 @@ function monCenter(l) { return { x: l.mx - mPose(l).dash, y: l.groundY - CREA_H[
 function heroPos(l) { return { x: l.px, y: l.groundY - 26 * l.pk }; }
 const MOVES = ['slashDown', 'slashUp', 'thrust', 'spin'];
 function act(move, dur) { C.pAct = { move, t0: C.vis, dur: dur || .32 }; C.trail = []; }
+function enrage() {
+  C.phase2 = true; C.shake = Math.max(C.shake, .35); C.red = .25;
+  addFx({ k: 'banner', txt: '분노! 2페이즈', life: 1.4 });
+  setTimeout(() => { if (C && !C.over) VOICE[C.type].cry(); }, 120);
+}
 function hitMonster(dmg, perf, l, opts = {}) {
   dmg = Math.round(dmg); C.hp -= dmg; C.mHurt = .3; C.mKnock = opts.knock || 1;
+  if (!C.phase2 && C.hp > 0 && C.hp < C.t.hp * .5) enrage();
   const c = monCenter(l), mat = MAT[C.type] || 'fur', mc = MAT_COL[mat];
   C.hitstop = Math.max(C.hitstop, opts.stop || (perf ? .085 : .05));
   C.shake = Math.max(C.shake, opts.shake || (perf ? .17 : .09)); C.shakeA = rand(-.6, .6);
@@ -1571,7 +1579,7 @@ function blockSig(q, perf, t) {
 }
 function sigHit(q) {
   q.res = 'hit'; q.resT = C.clock;
-  const l = cLayout(), hp = heroPos(l), dmg = Math.max(1, Math.round(C.t.atk * (q.heavy ? 1.8 : 1) * (1 - ST.dr)));
+  const l = cLayout(), hp = heroPos(l), dmg = Math.max(1, Math.round(C.t.atk * (q.heavy ? 1.8 : 1) * (C.phase2 ? 1.25 : 1) * (1 - ST.dr)));
   S.hp -= dmg; C.red = q.heavy ? .55 : .4; C.shake = q.heavy ? .4 : .28; C.pHurt = .45; P.hurt = .3;
   C.combo = 0; C.milestone = 0; C.cnt.miss++;
   act('hurt', .4);
@@ -3464,7 +3472,7 @@ function drawCombat(time) {
   let flash = Math.min(1, C.mHurt / .3) * .85; if (win && dT < .4) flash = Math.sin(dT * 45) > 0 ? .9 : .2;
   const danger = mp.wind > 0 && !C.over ? (mp.heavy ? 1 : .55) * (.6 + .4 * Math.sin(vis * 20)) : 0;
   ctx.save(); if (win && dT > 1.05) ctx.globalAlpha = Math.max(0, 1 - (dT - 1.05) / .6);
-  drawCreatureOn(C.type, mst, mx, groundY - fly, l.mk, -1, 1, { flash, rim: danger ? `rgba(255,${mp.heavy ? 40 : 120},40,${.6 + danger * .4})` : 'rgba(16,12,10,.5)', rimW: danger ? 2.5 + danger * 1.5 : 1.2 });
+  drawCreatureOn(C.type, mst, mx, groundY - fly, l.mk, -1, 1, { flash, rim: danger ? `rgba(255,${mp.heavy ? 40 : 120},40,${.6 + danger * .4})` : C.phase2 ? `rgba(220,40,30,${.55 + .25 * Math.sin(vis * 6)})` : 'rgba(16,12,10,.5)', rimW: danger ? 2.5 + danger * 1.5 : C.phase2 ? 2 : 1.2 });
   ctx.restore();
   if (win && dT > .95 && dT < 2) { const k = (dT - .95) / 1.05, cy = groundY - CREA_H[C.type] * l.mk * .4 - k * 120; const sg = ctx.createRadialGradient(mx, cy, 0, mx, cy, 26); sg.addColorStop(0, `rgba(255,255,240,${.8 * (1 - k)})`); sg.addColorStop(1, 'rgba(255,255,240,0)'); ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(mx, cy, 26, 0, 6.283); ctx.fill(); if (Math.random() < .6) { const c = monCenter(l); C.sp.push({ x: c.x + rand(-30, 30) * l.mk / 2, y: c.y + rand(-20, 20) * l.mk / 2, vx: rand(-15, 15), vy: rand(-80, -30), t: 0, life: rand(.6, 1.1), col: pick(['#ffffff', '#fff3c0', ...MAT_COL[MAT[C.type] || 'fur']]), s: rand(1.5, 3), g: -20, k: 'dot' }); } }
   // 공격 예고 표시
@@ -3547,6 +3555,8 @@ function drawCombat(time) {
   rr(hx0, hy0 + 18, Math.max(0, hpW * C.hpLag / t.hp), 11, 5.5); ctx.fillStyle = 'rgba(255,240,200,.85)'; ctx.fill();
   const hg = ctx.createLinearGradient(0, hy0 + 18, 0, hy0 + 29); hg.addColorStop(0, '#ff7a86'); hg.addColorStop(1, '#d42c44');
   rr(hx0, hy0 + 18, Math.max(0, hpW * Math.max(0, C.hp) / t.hp), 11, 5.5); ctx.fillStyle = hg; ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillRect(hx0 + hpW / 2 - 1, hy0 + 16, 2, 15);
+  if (C.phase2) { ctx.font = '700 10px system-ui'; ctx.fillStyle = '#ff7a6a'; ctx.textAlign = 'left'; ctx.fillText('분노', hx0 + hpW + 6, hy0 + 23); ctx.textAlign = 'center'; }
   // ---- 공격 레인 ----
   const hitX = Math.max(70, W * .13), ex = W - 18, speed = (ex - hitX) / C.approach, lh = 25;
   const lg = ctx.createLinearGradient(hitX, 0, ex, 0); lg.addColorStop(0, 'rgba(255,93,108,.2)'); lg.addColorStop(1, 'rgba(255,93,108,.03)');
@@ -3597,7 +3607,7 @@ function drawCombat(time) {
     ctx.globalAlpha = 1 - phase * .7; label(txt, W / 2, sceneB * .5, b < last ? '#fff' : '#ffe27a', (b < last ? 52 : 62) * (1 + (1 - phase) * .25)); ctx.globalAlpha = 1;
     ctx.globalAlpha = Math.min(1, C.intro * 2); label(`${t.n}이(가) 나타났다!`, W / 2, sceneB * .5 - 56, t.boss ? '#ffb36b' : '#ffd9a0', 18); ctx.globalAlpha = 1;
   }
-  for (const f of C.fx) if (f.k === 'banner') { const k = f.t / f.life, s = 1 + Math.max(0, .3 - k) * 2; ctx.globalAlpha = k < .7 ? 1 : 1 - (k - .7) / .3; label(f.txt, W / 2, sceneB * .3, '#ffe27a', 34 * s); ctx.globalAlpha = 1; }
+  for (const f of C.fx) if (f.k === 'banner') { const k = f.t / f.life, s = 1 + Math.max(0, .3 - k) * 2, rage = f.txt.startsWith('분노'); ctx.globalAlpha = k < .7 ? 1 : 1 - (k - .7) / .3; label(f.txt, W / 2, sceneB * .3, rage ? '#ff6a5a' : '#ffe27a', (rage ? 40 : 34) * s); ctx.globalAlpha = 1; }
 }
 const mini = $('mini'), mctx = mini.getContext('2d');
 const miniBase = document.createElement('canvas'); miniBase.width = miniBase.height = 128;
