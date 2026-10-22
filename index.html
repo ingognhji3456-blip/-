@@ -150,7 +150,7 @@ ol,ul{margin:0; padding:0; list-style:none}
 .mine b{color:var(--fg)}
 
 .order{background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; gap:10px}
-.side{display:grid; grid-template-columns:1fr 1fr; gap:4px; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:3px}
+.side{display:grid; grid-template-columns:repeat(4,1fr); gap:4px; background:var(--panel); border:1px solid var(--line); border-radius:9px; padding:3px}
 .side button{border:0; background:none; padding:7px; border-radius:6px; font-weight:700; color:var(--muted); cursor:pointer}
 .side .buy[aria-pressed="true"]{background:var(--up); color:var(--on-sem)}
 .side .sell[aria-pressed="true"]{background:var(--down); color:var(--on-sem)}
@@ -177,6 +177,10 @@ ol,ul{margin:0; padding:0; list-style:none}
 .mg{font-size:12px; font-weight:700; padding:1px 7px; border-radius:6px; border:1px solid var(--line); color:var(--muted); white-space:nowrap}
 .mg.warn{background:var(--up); border-color:var(--up); color:var(--on-sem)}
 .held.cr{background:var(--up-bg); color:var(--up)}
+.shc{background:var(--down-bg); color:var(--down)}
+.nm small{overflow:hidden; white-space:nowrap}
+.nm .chip-s{flex:none}
+.nm small:has(.chip-s:not([hidden])) .sect{display:none}
 
 /* 계좌 */
 .sumgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; padding:12px 14px}
@@ -283,7 +287,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
   .top{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"brand when ctl" "tot tot tools"; gap:6px 10px; align-items:center}
   .brand{grid-area:brand} .when{grid-area:when; min-width:0} .ctl{grid-area:ctl} .tools{grid-area:tools} .stat.tot{grid-area:tot; min-width:0} .stat.idx{display:none}
   .bname,.dprog{display:none}
-  .stat.tot{overflow:hidden} .stat.tot:has(.mg:not([hidden])) .lbl{display:none}
+  .stat.tot{overflow:hidden} .stat.tot:has(.mg:not([hidden])) .lbl,.mg-k{display:none}
   .btn.icon,.btn.spd{height:32px} .btn.icon{width:32px}
   .sh h2{font-size:22px}
   .bigpx b{font-size:26px}
@@ -347,7 +351,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
         <div class="detail">
           <dl class="info" id="info"></dl>
           <div class="order">
-            <div class="side" role="group" aria-label="주문 종류"><button type="button" class="buy" data-side="buy" aria-pressed="true">매수</button><button type="button" class="sell" data-side="sell" aria-pressed="false">매도</button></div>
+            <div class="side" role="group" aria-label="주문 종류"><button type="button" class="buy" data-side="buy" aria-pressed="true">매수</button><button type="button" class="sell" data-side="sell" aria-pressed="false">매도</button><button type="button" class="sell" data-side="short" aria-pressed="false">공매도</button><button type="button" class="buy" data-side="cover" aria-pressed="false">상환</button></div>
             <div class="pay seg" role="group" aria-label="결제 방식" id="payRow"><button type="button" data-lev="1" aria-pressed="true">현금</button><button type="button" data-lev="2" aria-pressed="false">신용 2배</button><button type="button" data-lev="3" aria-pressed="false">신용 3배</button></div>
             <div class="qrow"><label for="qty">수량</label><button class="btn" type="button" id="qMinus" aria-label="한 주 빼기">−</button><input id="qty" type="number" inputmode="numeric" min="0" step="1" value="10" aria-label="주문 수량(주)"><button class="btn" type="button" id="qPlus" aria-label="한 주 더하기">+</button></div>
             <div class="quick"><button class="btn" type="button" data-q="0.1">10%</button><button class="btn" type="button" data-q="0.25">25%</button><button class="btn" type="button" data-q="0.5">50%</button><button class="btn" type="button" data-q="1">최대</button></div>
@@ -356,7 +360,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
               <div id="oLoanRow" hidden><span id="oLoanL">빌리는 돈(신용)</span><b id="oLoan">0원</b></div>
               <div><span id="oFeeL">수수료</span><b id="oFee">0원</b></div>
               <div><span>주문 뒤 현금</span><b id="oAfter">0원</b></div>
-              <div id="oPnlRow" hidden><span>팔면 손익</span><b id="oPnl">0원</b></div>
+              <div id="oPnlRow" hidden><span id="oPnlL">팔면 손익</span><b id="oPnl">0원</b></div>
             </div>
             <p class="cnote" id="oNote" hidden></p>
             <button class="go" type="button" id="goBtn">매수하기</button>
@@ -376,6 +380,8 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
           <div><span class="lbl">주식 평가</span><b id="aStock">0원</b></div>
           <div><span class="lbl">신용 대출</span><b id="aLoan">없음</b></div>
           <div><span class="lbl">담보비율</span><b id="aRatio">-</b></div>
+          <div><span class="lbl">공매도 잔고</span><b id="aShort">없음</b></div>
+          <div><span class="lbl">공매도 담보비율</span><b id="aSRatio">-</b></div>
           <div><span class="lbl">오늘 손익</span><b id="aToday">0원</b></div>
           <div><span class="lbl">실현 손익</span><b id="aReal">0원</b></div>
         </div>
@@ -417,6 +423,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
       <li>[지라시]는 반은 사실, 반은 거짓이에요. 나중에 공시나 해명이 나오면 크게 움직여요.</li>
       <li>좋은 소식에 너무 오르면 차익 실현으로 다시 밀리기도 하고, 나쁜 소식 뒤에 반등하기도 해요.</li>
       <li>주문 칸에서 <b>신용 2배·3배</b>를 고르면 내 돈의 2배·3배만큼 살 수 있어요. 빌린 돈에는 하루 0.04% 이자가 붙고, 팔면 빌린 돈부터 갚아요. 담보비율(현금과 주식 ÷ 빌린 돈)이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).</li>
+      <li><b>공매도</b>는 주식을 빌려 지금 값에 팔고, 나중에 <b>상환</b>으로 되사서 갚는 거예요. 값이 내리면 이익, 오르면 손해예요. 판 돈과 판 금액의 50%(증거금)가 담보로 묶이고, 빌린 주식에는 하루 0.02% 이자가 붙어요. 공매도 담보비율(묶인 담보 ÷ 지금 갚을 금액)이 120% 밑이면 강제로 사서 갚아요(강제 상환).</li>
       <li>5분 차트와 시세표의 작은 그래프는 날이 바뀌어도 지난 며칠과 이어져요.</li>
       <li>살 때와 팔 때 수수료 0.015%, 팔 때 세금 0.2%가 붙어요. 고소한식품과 든든은행은 10일마다 배당금을 줘요.</li>
     </ul>
@@ -474,6 +481,10 @@ const CREDIT_RATE = 0.0004;   // 신용 이자: 하루 0.04%(연 10% 안팎)
 const MAINT = 1.4;            // 담보비율이 이 밑이면 반대매매
 const NEW_MIN = 1.45;         // 신용으로 새로 살 때 지켜야 하는 담보비율
 const SAFE = 1.6;             // 이 밑이면 경고
+const SHORT_MARGIN = 0.5;     // 공매도 증거금: 판 금액의 50%를 현금에서 담보로 더 맡긴다
+const SHORT_RATE = 0.0002;    // 빌린 주식 이자: 하루 0.02%
+const SHORT_MAINT = 1.2;      // 공매도 담보비율이 이 밑이면 강제 상환
+const SHORT_WARN = 1.3;       // 이 밑이면 경고
 const KEY = 'yeouido-gaemi-v1', KEY_SET = 'yeouido-gaemi-settings';
 
 const DEFS = [
@@ -606,9 +617,9 @@ function newStock(d){
 }
 function newRegime(m){ const r = Math.random(); m.mu = r < 0.4 ? 0.0035 : r < 0.75 ? 0 : -0.0035; m.left = 5 + Math.floor(Math.random() * 8); }
 function newGame(){
-  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, stocks:{}, market:{mu:0, left:0},
+  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, short:{}, stocks:{}, market:{mu:0, left:0},
     news:[], pending:[], morning:[], trades:[], assetHist:[{d:0, v:START}], prevIdx:IDX_BASE, openTotal:START,
-    best:START, titleIdx:0, won:false, bust:false, warned:false, summary:null,
+    best:START, titleIdx:0, won:false, bust:false, warned:false, sWarned:false, summary:null,
     stats:{trades:0, wins:0, losses:0, realized:0, divs:0, fees:0, bestTrade:0, interest:0, forced:0}};
   DEFS.forEach(d => state.stocks[d.id] = newStock(d));
   newRegime(state.market);
@@ -623,6 +634,7 @@ function migrate(st){
   }
   for (const h of Object.values(st.hold)) if (typeof h.loan !== 'number') h.loan = 0;
   st.stats.interest = st.stats.interest || 0; st.stats.forced = st.stats.forced || 0;
+  st.short = st.short || {};
   return st;
 }
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 저장할 수 없으면 이번 판만 이어 간다 */ } }
@@ -635,7 +647,12 @@ function loadSettings(){
 
 const holdValue = () => Object.entries(state.hold).reduce((a, [id, h]) => a + h.qty * S(id).price, 0);
 const loans = () => Object.values(state.hold).reduce((a, h) => a + (h.loan || 0), 0);
-const total = () => state.cash + holdValue() - loans();
+// 공매도: 묶인 담보(판 돈 + 증거금)에서 지금 되사서 갚을 금액을 뺀 만큼이 내 몫
+const shortValue = () => Object.entries(state.short).reduce((a, [id, x]) => a + x.qty * S(id).price, 0);
+const shortColl = () => Object.values(state.short).reduce((a, x) => a + x.coll, 0);
+const sRatio = id => { const x = state.short[id]; return x.coll / (x.qty * S(id).price); };
+const minSRatio = () => Math.min(Infinity, ...Object.keys(state.short).map(sRatio));
+const total = () => state.cash + holdValue() - loans() + shortColl() - shortValue();
 const ratio = () => { const l = loans(); return l ? (state.cash + holdValue()) / l : Infinity; };
 const fmtRatio = r => r === Infinity ? '-' : Math.floor(r * 100) + '%';
 const indexNow = () => IDX_BASE * DEFS.reduce((a, d) => a + S(d.id).price / d.price, 0) / DEFS.length;
@@ -711,7 +728,7 @@ function tick(){
   for (let i = state.pending.length - 1; i >= 0; i--) if (state.pending[i].at <= state.clock) resolve(state.pending.splice(i, 1)[0]);
   const mk = state.market.mu / T + 0.009 / Math.sqrt(T) * randn();
   DEFS.forEach(d => step(S(d.id), d, mk));
-  marginCheck();
+  marginCheck(); shortCheck();
   if (state.t % 10 === 0) save();
   milestones();
   if (state.t >= T) closeDay();
@@ -736,7 +753,7 @@ function openDay(){
     const v = Math.round(d.shares / T * (2 + s.heat)); s.tvols = [v]; s.volume = v;
   }
   state.phase = 'open';
-  marginCheck();
+  marginCheck(); shortCheck();
   save();
 }
 function closeDay(){
@@ -745,15 +762,22 @@ function closeDay(){
   let interest = 0;
   const lo = loans();
   if (lo){ interest = Math.ceil(lo * CREDIT_RATE); state.cash -= interest; state.stats.interest += interest; }
+  let sfee = 0;
+  const sv = shortValue();
+  if (sv){ sfee = Math.ceil(sv * SHORT_RATE); state.cash -= sfee; state.stats.interest += sfee; }
   const tot = total(), idx = indexNow();
-  let div = 0;
+  let div = 0, divPaid = 0;
   if (state.day % DIV_EVERY === 0){
     for (const d of DEFS) if (d.div && state.hold[d.id]){ const a = Math.floor(state.hold[d.id].qty * S(d.id).price * d.div); div += a; }
     if (div){ state.cash += div; state.stats.divs += div; }
+    // 공매도한 종목은 빌려준 사람에게 배당금을 대신 내 준다
+    for (const d of DEFS) if (d.div && state.short[d.id]) divPaid += Math.floor(state.short[d.id].qty * S(d.id).price * d.div);
+    if (divPaid) state.cash -= divPaid;
   }
-  state.summary = {day:state.day, pnl: tot - state.openTotal, base: state.openTotal, tot: tot + div, idx, idxChg: idx / state.prevIdx - 1,
-    up: movers.slice(0, 3), down: movers.slice(-3).reverse(), div, divDay: state.day % DIV_EVERY === 0, interest};
+  state.summary = {day:state.day, pnl: tot - state.openTotal, base: state.openTotal, tot: tot + div - divPaid, idx, idxChg: idx / state.prevIdx - 1,
+    up: movers.slice(0, 3), down: movers.slice(-3).reverse(), div, divPaid, divDay: state.day % DIV_EVERY === 0, interest, sfee};
   if (div) pushFeed({tag:'배당', text:`배당금 ${won(div)}이 들어왔어요`, ids:[], t:state.t}, true);
+  if (divPaid) pushFeed({tag:'배당', text:`공매도한 종목의 배당금 ${won(divPaid)}을 대신 냈어요`, ids:[], t:state.t}, true);
   state.openTotal = total();
   state.assetHist.push({d:state.day, v:state.openTotal}); if (state.assetHist.length > 400) state.assetHist.shift();
   if (--state.market.left <= 0) newRegime(state.market);
@@ -800,7 +824,16 @@ function creditCap(p, L){
   return Math.max(0, Math.min(byCash, byRatio));
 }
 const buyCap = p => lev > 1 ? creditCap(p, lev) : maxBuy(p);
-const defaultQty = () => { const m = buyCap(S(sel).price); return Math.min(m, Math.max(1, Math.floor(m * 0.1))); };
+const shortCap = p => Math.max(0, Math.floor(state.cash / (p * (SHORT_MARGIN + FEE + TAX))));
+// 상환: 묶인 담보로 모자라는 만큼은 현금에서 낸다
+function coverCap(id){
+  const x = state.short[id]; if (!x) return 0;
+  const per = S(id).price * (1 + FEE) - x.coll / x.qty;
+  return per <= 0 ? x.qty : Math.max(0, Math.min(x.qty, Math.floor(Math.max(0, state.cash) / per)));
+}
+const sideCap = () => { const p = S(sel).price, h = state.hold[sel]; return side === 'buy' ? buyCap(p) : side === 'sell' ? (h ? h.qty : 0) : side === 'short' ? shortCap(p) : coverCap(sel); };
+// 사거나 공매도할 때는 할 수 있는 양의 10%, 팔거나 갚을 때는 전부
+const defaultQty = () => { const m = sideCap(); return side === 'sell' || side === 'cover' ? m : Math.min(m, Math.max(1, Math.floor(m * 0.1))); };
 function trade(){
   const s = S(sel), d = DEF[sel], q = getQty();
   if (state.phase !== 'open') return toast('장이 닫혀 있어요. 다음 날 9시에 열려요');
@@ -813,14 +846,58 @@ function trade(){
     h.avg = (h.avg * h.qty + amt) / (h.qty + q); h.qty += q; h.loan = (h.loan || 0) + loan; state.hold[sel] = h;
     logTrade(loan ? 'c' : 'b', sel, q, s.price, null);
     toast(loan ? `${d.name} ${num(q)}주 신용 매수 · ${wonKo(loan)} 빌렸어요` : `${d.name} ${num(q)}주 샀어요 · ${won(amt)}`, 'b'); sfx.buy();
-  } else {
+  } else if (side === 'sell'){
     const h = state.hold[sel];
     if (!h || h.qty < q){ sfx.err(); return toast('가진 주식보다 많이 팔 수 없어요'); }
     const {pnl, repay} = sellShares(sel, q, 's');
     toast(`${d.name} ${num(q)}주 팔았어요 · 손익 ${swon(pnl)}` + (repay ? ` · 대출 ${wonKo(repay)} 갚음` : ''), 's'); sfx.sell();
     if (!state.hold[sel]) qtyEl.value = 0;
+  } else if (side === 'short'){
+    if (q > shortCap(s.price)){ sfx.err(); return toast('증거금으로 낼 현금이 모자라요'); }
+    const amt = s.price * q, fee = Math.floor(amt * FEE), tax = Math.floor(amt * TAX), margin = Math.round(amt * SHORT_MARGIN);
+    state.cash -= margin + fee + tax; state.stats.fees += fee + tax; state.stats.trades++;
+    const x = state.short[sel] || {qty:0, avg:0, coll:0, cost:0};
+    x.avg = (x.avg * x.qty + amt) / (x.qty + q); x.qty += q; x.coll += amt + margin; x.cost += fee + tax; state.short[sel] = x;
+    logTrade('x', sel, q, s.price, null);
+    toast(`${d.name} ${num(q)}주 공매도 · ${won(amt)}에 팔았어요`, 's'); sfx.sell();
+  } else {
+    const x = state.short[sel];
+    if (!x){ sfx.err(); return toast('이 종목은 갚을 공매도가 없어요'); }
+    if (q > x.qty){ sfx.err(); return toast('공매도한 수량보다 많이 갚을 수 없어요'); }
+    if (q > coverCap(sel)){ sfx.err(); return toast('되사는 데 쓸 현금이 모자라요'); }
+    const {pnl} = coverShares(sel, q, 'r');
+    toast(`${d.name} ${num(q)}주 상환했어요 · 손익 ${swon(pnl)}`, 'b'); sfx.buy();
+    if (!state.short[sel]) qtyEl.value = 0;
   }
   milestones(); save(); render(true);
+}
+// 공매도 상환: 판 만큼 담보를 풀어 되사고, 남는 돈은 현금으로 돌려받는다
+function coverShares(id, q, kind, quiet){
+  const x = state.short[id], P = S(id).price, cost = P * q, fee = Math.floor(cost * FEE);
+  const rel = Math.round(x.coll * q / x.qty), openCost = Math.round(x.cost * q / x.qty);
+  const pnl = (x.avg - P) * q - fee - openCost;
+  state.cash += rel - cost - fee; x.coll -= rel; x.cost -= openCost; x.qty -= q;
+  if (!x.qty) delete state.short[id];
+  state.stats.fees += fee; state.stats.realized += pnl;
+  if (!quiet) recordSale(kind, id, q, P, pnl);
+  return {pnl, rel};
+}
+// 공매도 담보비율이 120% 밑인 종목은 전부 강제로 되사서 갚는다
+function shortCheck(){
+  const ids = Object.keys(state.short);
+  if (!ids.length){ state.sWarned = false; return; }
+  const bad = ids.filter(id => sRatio(id) < SHORT_MAINT);
+  if (bad.length){
+    const txt = bad.map(id => { const q = state.short[id].qty; coverShares(id, q, 'y'); return `${DEF[id].name} ${num(q)}주`; }).join(', ');
+    state.stats.forced++; state.sWarned = false;
+    pushFeed({tag:'강제상환', text:`공매도 담보비율이 120% 밑으로 떨어져 ${txt}를 강제로 사서 갚았어요`, ids:bad, big:false, t:state.t}, true);
+    toast(`강제 상환 · ${txt}를 되사서 갚았어요`, 'b'); sfx.err();
+    if (side === 'cover') qtyEl.value = defaultQty();
+    return;
+  }
+  const m = minSRatio();
+  if (m < SHORT_WARN){ if (!state.sWarned){ state.sWarned = true; toast(`공매도 담보비율 ${fmtRatio(m)} · 120% 밑이면 강제로 사서 갚아요`, 'b'); } }
+  else state.sWarned = false;
 }
 // 팔면 판 만큼 신용 대출부터 갚는다. quiet이면 기록은 부른 쪽에서 한 번에 남긴다
 function sellShares(id, q, kind, quiet){
@@ -856,7 +933,7 @@ function marginCheck(){
     state.stats.forced++; state.warned = false;
     pushFeed({tag:'반대매매', text:`담보비율이 140% 밑으로 떨어져 ${txt}를 강제로 팔았어요`, ids:Object.keys(sold), big:false, t:state.t}, true);
     toast(`반대매매 · ${txt}를 강제로 팔았어요`, 's'); sfx.err();
-    qtyEl.value = side === 'sell' ? (state.hold[sel] ? state.hold[sel].qty : 0) : defaultQty();
+    qtyEl.value = defaultQty();
   } else if (r < SAFE){
     if (!state.warned){ state.warned = true; toast(`담보비율 ${fmtRatio(r)} · 140% 밑이면 반대매매돼요`, 's'); }
   } else state.warned = false;
@@ -866,8 +943,7 @@ function logTrade(k, id, q, p, pnl){
   if (state.trades.length > 30) state.trades.length = 30;
 }
 function quick(f){
-  const s = S(sel), h = state.hold[sel];
-  const cap = side === 'buy' ? buyCap(s.price) : (h ? h.qty : 0);
+  const cap = sideCap();
   qtyEl.value = cap ? Math.max(1, Math.floor(cap * f)) : 0;
   updOrder();
 }
@@ -906,11 +982,11 @@ function buildList(){
   for (const d of DEFS){
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'row'; b.dataset.id = d.id;
-    b.innerHTML = `<span class="nm"><b>${d.name}</b><small>${d.sector}<i class="chip-s held" hidden>보유</i><i class="chip-s lim" hidden></i></small></span>`
+    b.innerHTML = `<span class="nm"><b>${d.name}</b><small><span class="sect">${d.sector}</span><i class="chip-s held" hidden>보유</i><i class="chip-s shc" hidden>공매도</i><i class="chip-s lim" hidden></i></small></span>`
       + `<svg class="spark" viewBox="0 0 ${T} 26" preserveAspectRatio="none" aria-hidden="true"><line x1="0" x2="${T}" y1="13" y2="13"/><polyline points=""/></svg>`
       + `<span class="px"><b></b><small></small></span>`;
     box.appendChild(b);
-    rows[d.id] = {el:b, price:b.querySelector('.px b'), chg:b.querySelector('.px small'), px:b.querySelector('.px'), poly:b.querySelector('polyline'), base:b.querySelector('line'), held:b.querySelector('.held'), lim:b.querySelector('.lim'), last:null};
+    rows[d.id] = {el:b, price:b.querySelector('.px b'), chg:b.querySelector('.px small'), px:b.querySelector('.px'), poly:b.querySelector('polyline'), base:b.querySelector('line'), held:b.querySelector('.held'), shc:b.querySelector('.shc'), lim:b.querySelector('.lim'), last:null};
   }
 }
 function updList(){
@@ -937,6 +1013,7 @@ function updList(){
     const hh = state.hold[d.id];
     r.held.hidden = !hh;
     if (hh){ r.held.textContent = hh.loan > 0 ? '신용' : '보유'; r.held.classList.toggle('cr', hh.loan > 0); }
+    r.shc.hidden = !state.short[d.id];
     const lim = s.price >= s.hiLim ? 'u' : s.price <= s.loLim ? 'd' : '';
     r.lim.hidden = !lim; r.lim.textContent = lim === 'u' ? '상한가' : '하한가'; r.lim.classList.toggle('dn', lim === 'd');
     r.el.setAttribute('aria-current', d.id === sel ? 'true' : 'false');
@@ -959,9 +1036,13 @@ function updHeader(){
   $('#totVal').textContent = wonKo(tot);
   $('#totChg').textContent = pct(tr); $('#totChg').className = 'num ' + dir(tr);
   $('#titleLbl').textContent = TITLES[titleFor(tot)][1];
-  const rt = ratio(), mg = $('#mgLbl');
-  mg.hidden = rt === Infinity;
-  if (!mg.hidden){ mg.textContent = '담보 ' + fmtRatio(rt); mg.classList.toggle('warn', rt < SAFE); }
+  // 신용과 공매도 중 강제 정리에 더 가까운 쪽 담보비율을 보여 준다
+  const rt = ratio(), sr = minSRatio(), mg = $('#mgLbl'), useShort = sr / SHORT_MAINT < rt / MAINT;
+  mg.hidden = rt === Infinity && sr === Infinity;
+  if (!mg.hidden){
+    mg.innerHTML = (useShort ? '<span class="mg-k">공매도 </span>' : '') + '담보 ' + fmtRatio(useShort ? sr : rt);
+    mg.classList.toggle('warn', useShort ? sr < SHORT_WARN : rt < SAFE);
+  }
   const pb = $('#playBtn');
   pb.innerHTML = paused || !open ? '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg>' : '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>';
   pb.setAttribute('aria-label', paused || !open ? '계속' : '멈춤');
@@ -981,7 +1062,13 @@ function updMain(){
   if (h){
     const pnl = (s.price - h.avg) * h.qty, r = s.price / h.avg - 1;
     html += `<p class="mine">${num(h.qty)}주를 평균 <b class="num">${num(h.avg)}</b>원에 갖고 있어요. 평가손익 <b class="num ${dir(pnl)}">${swon(pnl)} (${pct(r)})</b>${h.loan > 0 ? ` 그중 <b class="num">${wonKo(h.loan)}</b>은 신용으로 빌린 돈이에요.` : ''}</p>`;
-  } else html += `<p class="mine">아직 이 종목은 없어요. 오른쪽에서 수량을 정해 사 보세요.</p>`;
+  }
+  const x = state.short[sel];
+  if (x){
+    const pnl = (x.avg - s.price) * x.qty, r = 1 - s.price / x.avg, sr = sRatio(sel);
+    html += `<p class="mine">${num(x.qty)}주를 평균 <b class="num">${num(x.avg)}</b>원에 공매도했어요. 평가손익 <b class="num ${dir(pnl)}">${swon(pnl)} (${pct(r)})</b> · 담보비율 <b class="num ${sr < SHORT_WARN ? 'up' : ''}">${fmtRatio(sr)}</b>. 오를수록 손해예요.</p>`;
+  }
+  if (!h && !x) html += `<p class="mine">아직 이 종목은 없어요. 오른쪽에서 수량을 정해 사거나 공매도해 보세요.</p>`;
   $('#info').innerHTML = html;
   // 종토방
   const b = lim === 'u' ? 'lu' : lim === 'd' ? 'ld' : rate > 0.05 ? 'bu' : rate > 0.005 ? 'u' : rate < -0.05 ? 'bd' : rate < -0.005 ? 'd' : 'f';
@@ -990,34 +1077,57 @@ function updMain(){
   drawChart();
 }
 function updOrder(){
-  const s = S(sel), h = state.hold[sel], q = getQty(), buy = side === 'buy', cr = buy && lev > 1;
-  const amt = s.price * q, fee = Math.floor(amt * FEE), tax = buy ? 0 : Math.floor(amt * TAX);
-  const loan = cr ? Math.round(amt * (1 - 1 / lev)) : 0;
-  const repay = !buy && h && h.loan > 0 && q ? Math.round(h.loan * Math.min(q, h.qty) / h.qty) : 0;
-  $('#payRow').hidden = !buy;
+  const s = S(sel), h = state.hold[sel], x = state.short[sel], q = getQty(), P = s.price, cr = side === 'buy' && lev > 1;
+  const amt = P * q, fee = Math.floor(amt * FEE), tax = side === 'sell' || side === 'short' ? Math.floor(amt * TAX) : 0;
+  let extraL = '', extra = 0, after = state.cash, canTxt = '', btn = '', pnl = null, note = '';
+  if (side === 'buy'){
+    const loan = cr ? Math.round(amt * (1 - 1 / lev)) : 0;
+    if (cr){ extraL = '빌리는 돈(신용)'; extra = loan; note = `주문 금액의 ${lev === 2 ? '절반' : '3분의 1'}만 내 돈으로 내고 나머지는 빌려요. 빌린 돈에는 하루 0.04% 이자가 붙고, 담보비율이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).`; }
+    after = state.cash - (amt - loan) - fee;
+    canTxt = cr ? `신용 ${lev}배로 살 수 있는 수량 ` : '살 수 있는 수량 ';
+    btn = cr ? `${num(q)}주 신용 매수 (${lev}배)` : `${num(q)}주 매수하기`;
+  } else if (side === 'sell'){
+    const repay = h && h.loan > 0 && q ? Math.round(h.loan * Math.min(q, h.qty) / h.qty) : 0;
+    if (repay){ extraL = '갚을 신용 대출'; extra = repay; }
+    after = state.cash + amt - fee - tax - repay;
+    if (h && q) pnl = (P - h.avg) * Math.min(q, h.qty) - fee - tax;
+    canTxt = '팔 수 있는 수량 '; btn = `${num(q)}주 매도하기`;
+  } else if (side === 'short'){
+    const margin = Math.round(amt * SHORT_MARGIN);
+    extraL = '증거금(담보로 묶이는 현금)'; extra = margin;
+    after = state.cash - margin - fee - tax;
+    note = '주식을 빌려 지금 값에 팔아요. 나중에 더 싸게 되사서 갚으면(상환) 그 차이가 이익이에요. 판 돈과 증거금은 담보로 묶이고, 빌린 주식에는 하루 0.02% 이자가 붙어요. 주가가 공매도한 값보다 25%쯤 오르면(담보비율 120% 밑) 강제로 사서 갚아요.';
+    canTxt = '공매도할 수 있는 수량 '; btn = `${num(q)}주 공매도하기`;
+  } else {
+    const k = x ? Math.min(q, x.qty) : 0, rel = x && k ? Math.round(x.coll * k / x.qty) : 0;
+    if (x){ extraL = '풀려나는 담보'; extra = rel; }
+    after = state.cash + rel - amt - fee;
+    if (x && k) pnl = (x.avg - P) * k - fee - Math.round(x.cost * k / x.qty);
+    if (!x) note = '이 종목은 공매도한 게 없어요. 공매도한 종목을 되사서 갚을 때 써요.';
+    canTxt = '갚을 수 있는 수량 '; btn = `${num(q)}주 상환하기`;
+  }
+  $('#payRow').hidden = side !== 'buy';
   $('#oAmt').textContent = won(amt);
-  $('#oLoanRow').hidden = !(cr || repay);
-  $('#oLoanL').textContent = cr ? '빌리는 돈(신용)' : '갚을 신용 대출';
-  $('#oLoan').textContent = won(cr ? loan : repay);
-  $('#oFeeL').textContent = buy ? '수수료' : '수수료·세금';
+  $('#oLoanRow').hidden = !extraL;
+  $('#oLoanL').textContent = extraL; $('#oLoan').textContent = won(extra);
+  $('#oFeeL').textContent = tax ? '수수료·세금' : '수수료';
   $('#oFee').textContent = won(fee + tax);
-  $('#oAfter').textContent = won(buy ? state.cash - (amt - loan) - fee : state.cash + amt - fee - tax - repay);
-  const can = buy ? buyCap(s.price) : (h ? h.qty : 0);
-  $('#oCan').textContent = (buy ? (cr ? `신용 ${lev}배로 살 수 있는 수량 ` : '살 수 있는 수량 ') : '팔 수 있는 수량 ') + num(can) + '주 · 현금 ' + won(state.cash);
-  const note = $('#oNote');
-  note.hidden = !cr;
-  if (cr) note.textContent = `주문 금액의 ${lev === 2 ? '절반' : '3분의 1'}만 내 돈으로 내고 나머지는 빌려요. 빌린 돈에는 하루 0.04% 이자가 붙고, 담보비율이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).`;
+  $('#oAfter').textContent = won(after);
+  const can = sideCap();
+  $('#oCan').textContent = canTxt + num(can) + '주 · 현금 ' + won(state.cash);
+  const ne = $('#oNote'); ne.hidden = !note; ne.textContent = note;
   const pr = $('#oPnlRow');
-  pr.hidden = buy || !h || !q;
-  if (!pr.hidden){ const pnl = (s.price - h.avg) * Math.min(q, h.qty) - fee - tax; const e = $('#oPnl'); e.textContent = swon(pnl); e.className = dir(pnl); }
+  pr.hidden = pnl === null;
+  if (!pr.hidden){ $('#oPnlL').textContent = side === 'sell' ? '팔면 손익' : '갚으면 손익'; const e = $('#oPnl'); e.textContent = swon(pnl); e.className = dir(pnl); }
   const go = $('#goBtn');
   let err = '';
   if (state.phase !== 'open') err = '장이 닫혀 있어요';
+  else if (side === 'cover' && !x) err = '갚을 공매도가 없어요';
   else if (q <= 0) err = '수량을 정해 주세요';
-  else if (q > can) err = buy ? (cr ? '현금이나 담보가 모자라요' : '현금이 모자라요') : '가진 주식보다 많아요';
+  else if (q > can) err = side === 'buy' ? (cr ? '현금이나 담보가 모자라요' : '현금이 모자라요') : side === 'sell' ? '가진 주식보다 많아요' : side === 'short' ? '증거금이 모자라요' : q > x.qty ? '공매도한 수량보다 많아요' : '현금이 모자라요';
   go.disabled = !!err;
-  go.textContent = err || (buy ? (cr ? `${num(q)}주 신용 매수 (${lev}배)` : `${num(q)}주 매수하기`) : `${num(q)}주 매도하기`);
-  go.className = 'go' + (buy ? '' : ' sell');
+  go.textContent = err || btn;
+  go.className = 'go' + (side === 'sell' || side === 'short' ? ' sell' : '');
 }
 function updAcct(){
   const tot = total(), stock = holdValue(), today = tot - state.openTotal, ret = tot / START - 1;
@@ -1028,43 +1138,51 @@ function updAcct(){
   const lo = loans(), rt = ratio();
   set('#aLoan', lo ? won(lo) : '없음');
   set('#aRatio', fmtRatio(rt), rt < SAFE ? 'up' : '');
+  const sv = shortValue(), sr = minSRatio();
+  set('#aShort', sv ? won(sv) : '없음');
+  set('#aSRatio', fmtRatio(sr), sr < SHORT_WARN ? 'up' : '');
   const ti = titleFor(tot); $('#aTitle').textContent = TITLES[ti][1];
   if (ti < TITLES.length - 1){
     const a = Math.max(TITLES[ti][0], ti ? 0 : START), [b, name] = TITLES[ti + 1];
     $('#goalTxt').textContent = `다음 칭호 ‘${name}’까지 ${wonKo(b - tot)}`;
     $('#goalBar').style.width = Math.max(0, Math.min(100, (tot - a) / (b - a) * 100)) + '%';
   } else { $('#goalTxt').textContent = '가장 높은 칭호예요. 어디까지 불릴 수 있을까요?'; $('#goalBar').style.width = '100%'; }
-  // 가진 주식: 종목이 바뀔 때만 줄을 새로 만들고, 틱마다 글자만 바꾼다
-  const ids = DEFS.map(d => d.id).filter(id => state.hold[id]);
+  // 가진 주식과 공매도: 목록이 바뀔 때만 줄을 새로 만들고, 틱마다 글자만 바꾼다
+  const ids = DEFS.map(d => d.id).filter(id => state.hold[id]), sids = DEFS.map(d => d.id).filter(id => state.short[id]);
   const box = $('#holds');
-  const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join();
+  const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join() + '|' + sids.join();
   if (hk !== holdKey){
     holdKey = hk;
-    box.innerHTML = ids.length ? ids.map(id => `<button type="button" class="hrow" data-id="${id}"><b>${DEF[id].name}${state.hold[id].loan > 0 ? ' <i class="chip-s held cr">신용</i>' : ''}</b><span class="r" data-k="pnl"></span><small data-k="q"></small><small class="r num" data-k="r"></small></button>`).join('')
+    const row = (id, k, chip) => `<button type="button" class="hrow" data-id="${id}" data-kind="${k}"><b>${DEF[id].name}${chip}</b><span class="r" data-k="pnl"></span><small data-k="q"></small><small class="r num" data-k="r"></small></button>`;
+    box.innerHTML = ids.length || sids.length
+      ? ids.map(id => row(id, 'L', state.hold[id].loan > 0 ? ' <i class="chip-s held cr">신용</i>' : '')).join('') + sids.map(id => row(id, 'S', ' <i class="chip-s shc">공매도</i>')).join('')
       : '<p class="empty">아직 가진 주식이 없어요. 시세표에서 종목을 골라 사 보세요.</p>';
   }
   for (const el of box.querySelectorAll('.hrow')){
-    const id = el.dataset.id, h = state.hold[id], s = S(id), pnl = (s.price - h.avg) * h.qty, r = s.price / h.avg - 1;
+    const id = el.dataset.id, s = S(id), long = el.dataset.kind === 'L';
+    let pnl, r, txt;
+    if (long){ const h = state.hold[id]; pnl = (s.price - h.avg) * h.qty; r = s.price / h.avg - 1; txt = `${num(h.qty)}주 · 평균 ${num(h.avg)} → ${num(s.price)}` + (h.loan > 0 ? ` · 대출 ${wonKo(h.loan)}` : ''); }
+    else { const x = state.short[id]; pnl = (x.avg - s.price) * x.qty; r = 1 - s.price / x.avg; txt = `${num(x.qty)}주 · 공매도 ${num(x.avg)} → ${num(s.price)} · 담보 ${fmtRatio(sRatio(id))}`; }
     const p = el.querySelector('[data-k="pnl"]'); p.textContent = swon(pnl); p.className = 'r ' + dir(pnl);
-    el.querySelector('[data-k="q"]').textContent = `${num(h.qty)}주 · 평균 ${num(h.avg)} → ${num(s.price)}` + (h.loan > 0 ? ` · 대출 ${wonKo(h.loan)}` : '');
+    el.querySelector('[data-k="q"]').textContent = txt;
     const rr = el.querySelector('[data-k="r"]'); rr.textContent = pct(r); rr.className = 'r num ' + dir(r);
   }
   const st = state.stats, wr = st.wins + st.losses ? Math.round(st.wins / (st.wins + st.losses) * 100) + '%' : '-';
-  $('#recs').innerHTML = [['거래', num(st.trades) + '번'], ['이긴 매도', wr], ['최고 자산', wonKo(state.best)], ['최고 한 방', st.bestTrade > 0 ? wonKo(st.bestTrade) : '-'], ['받은 배당', won(st.divs)], ['낸 수수료·세금', won(st.fees)], ['낸 신용 이자', won(st.interest)], ['반대매매', num(st.forced) + '번']]
+  $('#recs').innerHTML = [['거래', num(st.trades) + '번'], ['이긴 거래', wr], ['최고 자산', wonKo(state.best)], ['최고 한 방', st.bestTrade > 0 ? wonKo(st.bestTrade) : '-'], ['받은 배당', won(st.divs)], ['낸 수수료·세금', won(st.fees)], ['낸 이자', won(st.interest)], ['강제 정리', num(st.forced) + '번']]
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   const tk = state.trades.length + ':' + (state.trades[0] ? state.trades[0].d + '.' + state.trades[0].t + state.trades[0].k + state.trades[0].q : '');
   if (tk !== tradeKey){
     tradeKey = tk;
-    $('#trades').innerHTML = state.trades.length ? state.trades.slice(0, 12).map(x => `<li><span class="k ${x.k === 'b' || x.k === 'c' ? 'b' : 's'}">${KIND[x.k]}</span><span class="w">${DEF[x.id].name} ${num(x.q)}주 · ${x.d}일차 ${clock(x.t)}</span><span class="num ${x.pnl === null ? '' : dir(x.pnl)}">${x.pnl === null ? won(x.p * x.q) : swon(x.pnl)}</span></li>`).join('')
+    $('#trades').innerHTML = state.trades.length ? state.trades.slice(0, 12).map(x => `<li><span class="k ${'bcry'.includes(x.k) ? 'b' : 's'}">${KIND[x.k]}</span><span class="w">${DEF[x.id].name} ${num(x.q)}주 · ${x.d}일차 ${clock(x.t)}</span><span class="num ${x.pnl === null ? '' : dir(x.pnl)}">${x.pnl === null ? won(x.p * x.q) : swon(x.pnl)}</span></li>`).join('')
       : '<li class="empty" style="display:block;border:0">아직 거래가 없어요.</li>';
   }
   drawAsset();
 }
 
-const KIND = {b:'매수', c:'신용매수', s:'매도', f:'반대매매'};
+const KIND = {b:'매수', c:'신용매수', s:'매도', f:'반대매매', x:'공매도', r:'상환', y:'강제상환'};
 
 /* 뉴스 */
-const TAGCLS = {'반대매매':'hot', '속보':'', '시장':'hot', '테마':'', '지라시':'rumor', '공시':'dis', '해명':'dis', '시황':'', '배당':'dis'};
+const TAGCLS = {'반대매매':'hot', '강제상환':'hot', '속보':'', '시장':'hot', '테마':'', '지라시':'rumor', '공시':'dis', '해명':'dis', '시황':'', '배당':'dis'};
 function pushFeed(n, live){
   n.d = state.day; state.news.unshift(n); if (state.news.length > 60) state.news.length = 60;
   addFeedItem(n, true);
@@ -1133,18 +1251,18 @@ function priceTag(g, y, w, R, txt, col, top, bot){
   g.fillStyle = col; g.beginPath(); g.roundRect ? g.roundRect(R + 2, y - 9, w - R - 3, 18, 4) : g.rect(R + 2, y - 9, w - R - 3, 18); g.fill();
   g.fillStyle = C.on; g.textAlign = 'left'; g.textBaseline = 'middle'; g.font = '600 11px "IBM Plex Mono", monospace'; g.fillText(txt, R + 6, y);
 }
-function avgLine(g, avg, Y, L, R, top, pb){
+function avgLine(g, avg, Y, L, R, top, pb, label = '내 평균', col = C.accent){
   const y = Y(avg), inside = y >= top && y <= pb, yy = Math.max(top + 6, Math.min(pb - 6, y));
-  g.strokeStyle = C.accent; g.lineWidth = 1.2; g.setLineDash([5, 4]);
+  g.strokeStyle = col; g.lineWidth = 1.2; g.setLineDash([5, 4]);
   if (inside){ g.beginPath(); g.moveTo(L, Math.round(y) + .5); g.lineTo(R, Math.round(y) + .5); g.stroke(); }
   g.setLineDash([]);
-  g.fillStyle = C.accent; g.font = '600 11px "IBM Plex Sans KR", sans-serif'; g.textAlign = 'left'; g.textBaseline = inside ? 'bottom' : 'middle';
-  g.fillText((inside ? '' : y < top ? '▲ ' : '▼ ') + '내 평균 ' + num(avg), L + 4, inside ? yy - 3 : yy);
+  g.fillStyle = col; g.font = '600 11px "IBM Plex Sans KR", sans-serif'; g.textAlign = 'left'; g.textBaseline = inside ? 'bottom' : 'middle';
+  g.fillText((inside ? '' : y < top ? '▲ ' : '▼ ') + label + ' ' + num(avg), L + 4, inside ? yy - 3 : yy);
 }
 function drawChart(){
   const c = prep($('#chart')); if (!c) return;
   if (!C) readColors();
-  const {g, w, h} = c, s = S(sel), hd = state.hold[sel], avg = hd ? hd.avg : null;
+  const {g, w, h} = c, s = S(sel), hd = state.hold[sel], avg = hd ? hd.avg : null, sx = state.short[sel] ? state.short[sel].avg : null;
   const L = 6, R = w - 64, top = 10, bot = h - 20, volH = Math.max(18, (bot - top) * 0.16), pb = bot - volH - 8;
   g.font = '11px "IBM Plex Mono", monospace';
   const key = $('#ckey');
@@ -1176,6 +1294,7 @@ function drawChart(){
     const every = Math.ceil(n / 6);
     cs.forEach((x, i) => { if ((cs.length - 1 - i) % every === 0 && x.d > 0) g.fillText(x.d + '일', X(i), h - 5); });
     if (avg) avgLine(g, avg, Y, L, R, top, pb);
+    if (sx) avgLine(g, sx, Y, L, R, top, pb, '공매도', C.down);
     priceTag(g, Y(s.price), w, R, num(s.price), s.price >= s.prevClose ? C.up : C.down, top, pb);
     key.innerHTML = `<span><i style="border-color:${C.accent}"></i>5일선</span><span><i style="border-color:${C.dim}"></i>20일선</span>`;
     return;
@@ -1190,7 +1309,7 @@ function drawChart(){
   let lo = Infinity, hi = -Infinity;
   vis.forEach(o => { if (o.p < lo) lo = o.p; if (o.p > hi) hi = o.p; });
   if (tIdx >= 0){ lo = Math.min(lo, s.prevClose); hi = Math.max(hi, s.prevClose); }
-  if (avg && avg > lo - (hi - lo) * 0.6 && avg < hi + (hi - lo) * 0.6){ lo = Math.min(lo, avg); hi = Math.max(hi, avg); }
+  for (const m of [avg, sx]) if (m && m > lo - (hi - lo) * 0.6 && m < hi + (hi - lo) * 0.6){ lo = Math.min(lo, m); hi = Math.max(hi, m); }
   if (hi - lo < s.prevClose * 0.006){ const m = (hi + lo) / 2, half = s.prevClose * 0.003; lo = m - half; hi = m + half; }
   const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
   const X = j => R - (R - L) * (n - 1 - j) / (W - 1), Y = p => top + (pb - top) * (hi - p) / (hi - lo), ly = Y(s.price);
@@ -1229,8 +1348,9 @@ function drawChart(){
   g.fillStyle = col; g.beginPath(); g.arc(lx, ly, 3.5, 0, Math.PI * 2); g.fill();
   if (state.phase === 'open' && !paused && !reduced){ g.strokeStyle = hexA(col, .35); g.lineWidth = 4; g.beginPath(); g.arc(lx, ly, 6.5, 0, Math.PI * 2); g.stroke(); }
   if (avg) avgLine(g, avg, Y, L, R, top, pb);
+  if (sx) avgLine(g, sx, Y, L, R, top, pb, '공매도', C.down);
   priceTag(g, ly, w, R, num(s.price), col, top, pb);
-  key.innerHTML = `<span><i style="border-color:${C.muted};border-top-style:dashed"></i>전일 종가</span>` + (avg ? `<span><i style="border-color:${C.accent};border-top-style:dashed"></i>내 평균</span>` : '');
+  key.innerHTML = `<span><i style="border-color:${C.muted};border-top-style:dashed"></i>전일 종가</span>` + (avg ? `<span><i style="border-color:${C.accent};border-top-style:dashed"></i>내 평균</span>` : '') + (sx ? `<span><i style="border-color:${C.down};border-top-style:dashed"></i>공매도</span>` : '');
 }
 function drawAsset(){
   const c = prep($('#achart')); if (!c) return;
@@ -1263,7 +1383,9 @@ function showClose(){
   $('#cUp').innerHTML = sm.up.map(li).join(''); $('#cDown').innerHTML = sm.down.map(li).join('');
   const cd = $('#cDiv'), notes = [];
   if (sm.divDay) notes.push(sm.div ? `배당일이에요. 배당금 ${won(sm.div)}이 들어왔어요.` : '배당일이었지만 고소한식품이나 든든은행을 갖고 있지 않아 받은 배당이 없어요.');
+  if (sm.divPaid) notes.push(`공매도한 종목의 배당금 ${won(sm.divPaid)}을 대신 냈어요.`);
   if (sm.interest) notes.push(`신용 대출 이자로 ${won(sm.interest)}을 냈어요.`);
+  if (sm.sfee) notes.push(`빌린 주식(공매도) 이자로 ${won(sm.sfee)}을 냈어요.`);
   cd.hidden = !notes.length; cd.textContent = notes.join(' ');
   const mm = $('#cMorning'); mm.innerHTML = '';
   if (!state.morning.length){ const e = document.createElement('li'); e.textContent = '아직 들어온 소식이 없어요.'; e.className = 'note'; mm.appendChild(e); }
@@ -1305,17 +1427,13 @@ function setView(v){
 }
 function select(id, go){
   sel = id; settings.sel = id; saveSettings();
-  const h = state.hold[id];
-  if (side === 'sell') qtyEl.value = h ? h.qty : 0;
-  else qtyEl.value = defaultQty();
+  qtyEl.value = defaultQty();
   if (go && narrow()) setView('chart'); else render(true);
 }
 function setSide(v){
   side = v;
   document.querySelectorAll('.side button').forEach(b => b.setAttribute('aria-pressed', b.dataset.side === v ? 'true' : 'false'));
-  const h = state.hold[sel];
-  if (v === 'sell') qtyEl.value = h ? h.qty : 0;
-  else qtyEl.value = defaultQty();
+  qtyEl.value = defaultQty();
   updOrder();
 }
 
@@ -1328,7 +1446,7 @@ function render(all){
 /* ---------- 입력 ---------- */
 document.addEventListener('pointerdown', unlockAudio, {capture:true});
 $('#list').addEventListener('click', e => { const b = e.target.closest('.row'); if (b) select(b.dataset.id, true); });
-$('#holds').addEventListener('click', e => { const b = e.target.closest('.hrow'); if (b) select(b.dataset.id, true); });
+$('#holds').addEventListener('click', e => { const b = e.target.closest('.hrow'); if (!b) return; if (b.dataset.kind === 'S' && side !== 'cover') setSide('cover'); select(b.dataset.id, true); });
 $('#feed').addEventListener('click', e => { const b = e.target.closest('.chips button'); if (b) select(b.dataset.id, true); });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
 document.querySelectorAll('.side button').forEach(b => b.addEventListener('click', () => setSide(b.dataset.side)));
