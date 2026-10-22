@@ -193,7 +193,8 @@ ol,ul{margin:0; padding:0; list-style:none}
 .chain button{width:100%; border:1px solid var(--line); background:var(--panel); border-radius:6px; padding:4px 2px; cursor:pointer; font:inherit}
 .chain button:hover{border-color:var(--dim)}
 .chain button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-bg); color:var(--chip-ink); font-weight:600}
-.chain button.own::after{content:" ●"; font-size:9px; color:var(--accent); vertical-align:middle}
+.chain button.own::after,.chain button.ownS::after{content:" ●"; font-size:9px; color:var(--accent); vertical-align:middle}
+.chain button.ownS::after{color:var(--down)}
 .nm small{overflow:hidden; white-space:nowrap}
 .nm .chip-s{flex:none}
 .nm small:has(.chip-s:not([hidden])) .sect{display:none}
@@ -405,6 +406,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
               <div class="osum">
                 <div><span>살 때 금액</span><b id="pAmt">0원</b></div>
                 <div><span>팔 때 금액</span><b id="pBid">0원</b></div>
+                <div id="pReqRow" hidden><span>새로 팔 때 맡길 증거금</span><b id="pReq">0원</b></div>
                 <div><span>수수료</span><b id="pFee">0원</b></div>
               </div>
               <div class="fbtns"><button class="go" type="button" id="pBuy">매수</button><button class="go sell" type="button" id="pSell">매도</button></div>
@@ -429,7 +431,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
           <div><span class="lbl">공매도 잔고</span><b id="aShort">없음</b></div>
           <div><span class="lbl">공매도 담보비율</span><b id="aSRatio">-</b></div>
           <div><span class="lbl">선물·옵션 평가</span><b id="aDeriv">없음</b></div>
-          <div><span class="lbl">선물 담보비율</span><b id="aFRatio">-</b></div>
+          <div><span class="lbl">선물·옵션 담보비율</span><b id="aFRatio">-</b></div>
           <div><span class="lbl">오늘 손익</span><b id="aToday">0원</b></div>
           <div><span class="lbl">실현 손익</span><b id="aReal">0원</b></div>
         </div>
@@ -472,7 +474,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
       <li>좋은 소식에 너무 오르면 차익 실현으로 다시 밀리기도 하고, 나쁜 소식 뒤에 반등하기도 해요.</li>
       <li>주문 칸에서 <b>신용 2배·3배</b>를 고르면 내 돈의 2배·3배만큼 살 수 있어요. 빌린 돈에는 하루 0.04% 이자가 붙고, 팔면 빌린 돈부터 갚아요. 담보비율(현금과 주식 ÷ 빌린 돈)이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).</li>
       <li><b>공매도</b>는 주식을 빌려 지금 값에 팔고, 나중에 <b>상환</b>으로 되사서 갚는 거예요. 값이 내리면 이익, 오르면 손해예요. 판 돈과 판 금액의 50%(증거금)가 담보로 묶이고, 빌린 주식에는 하루 0.02% 이자가 붙어요. 공매도 담보비율(묶인 담보 ÷ 지금 갚을 금액)이 120% 밑이면 강제로 사서 갚아요(강제 상환).</li>
-      <li>시세표 맨 위 <b>개미지수</b>를 누르면 <b>선물·옵션</b>을 해요. 선물은 지수가 오를지(매수) 내릴지(매도)에 걸고, 1포인트에 계약당 5,000원씩 벌거나 잃어요. 증거금 10%만 맡기는 10배 레버리지라, 유지증거금 밑으로 떨어지면 현금으로 채우고 모자라면 강제로 청산돼요. 옵션은 만기에 지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이를 받는 권리를 사는 거예요. 만기는 10일마다(10·20·30일차…) 장 마감 때예요.</li>
+      <li>시세표 맨 위 <b>개미지수</b>를 누르면 <b>선물·옵션</b>을 해요. 선물은 지수가 오를지(매수) 내릴지(매도)에 걸고, 1포인트에 계약당 5,000원씩 벌거나 잃어요. 증거금 10%만 맡기는 10배 레버리지라, 유지증거금 밑으로 떨어지면 현금으로 채우고 모자라면 강제로 청산돼요. 옵션은 만기에 지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이를 받는 권리예요. 사면 낸 값만큼만 잃고, 가진 것 없이 팔면(옵션 매도) 값을 바로 받는 대신 증거금을 맡기고 손실이 끝없이 커질 수 있어요. 만기는 10일마다(10·20·30일차…) 장 마감 때예요.</li>
       <li>5분 차트와 시세표의 작은 그래프는 날이 바뀌어도 지난 며칠과 이어져요.</li>
       <li>살 때와 팔 때 수수료 0.015%, 팔 때 세금 0.2%가 붙어요. 고소한식품과 든든은행은 10일마다 배당금을 줘요.</li>
     </ul>
@@ -541,6 +543,8 @@ const FFEE = 0.0001;          // 선물 수수료: 계약 금액의 0.01%
 const OFEE = 0.001;           // 옵션 수수료: 옵션 금액의 0.1%
 const EXP_EVERY = 10;         // 10일마다 장 마감 때 만기
 const STRIKE = 25;            // 행사가 간격(포인트)
+const OIM = 0.10, OMIN = 0.04; // 옵션 매도 증거금: 옵션 값 + max(지수의 10% - 외가 폭, 지수의 4%)
+const OMM = 0.7;              // 유지증거금은 그 위험분의 70%
 const KEY = 'yeouido-gaemi-v1', KEY_SET = 'yeouido-gaemi-settings';
 
 const DEFS = [
@@ -753,7 +757,19 @@ function quote(type, K){
 }
 const optKey = (type, K, e) => type + K + '@' + e;
 const optName = o => (o.type === 'C' ? '콜 ' : '풋 ') + num(o.K);
-function optsValue(){ let v = 0; for (const o of Object.values(state.opts)) v += optMid(o.type, o.K, ticksLeft(o.e)) * MULT * o.qty; return v; }
+// 산 옵션은 지금 값, 판 옵션은 맡긴 증거금에서 지금 되사는 값을 뺀 만큼이 내 몫
+function optsValue(){
+  let v = 0;
+  for (const o of Object.values(state.opts)){ const m = optMid(o.type, o.K, ticksLeft(o.e)) * MULT; v += o.qty > 0 ? m * o.qty : (o.margin || 0) + m * o.qty; }
+  return v;
+}
+// 옵션 매도 증거금: 옵션 값에 위험분(지수의 10%에서 외가 폭을 뺀 값, 적어도 지수의 4%)을 더한다
+const optRisk = (type, K) => { const I = indexNow(), otm = Math.max(0, type === 'C' ? K - I : I - K); return Math.max(OIM * I - otm, OMIN * I); };
+const optReqPer = (type, K, mid) => MULT * (mid + optRisk(type, K));
+const optMaintPer = (type, K, mid) => MULT * (mid + OMM * optRisk(type, K));
+function oRatio(o){ const m = optMid(o.type, o.K, ticksLeft(o.e)); return o.margin / (optMaintPer(o.type, o.K, m) * -o.qty); }
+const minORatio = () => Math.min(Infinity, ...Object.values(state.opts).filter(o => o.qty < 0).map(oRatio));
+const dRatio = () => Math.min(fRatio(), minORatio());
 function futEquity(){ const f = state.fut; return f ? f.margin + Math.sign(f.q) * (fPrice() - f.entry) * MULT * Math.abs(f.q) : 0; }
 const futMaint = () => state.fut ? FMM * fPrice() * MULT * Math.abs(state.fut.q) : 0;
 const fRatio = () => state.fut ? futEquity() / futMaint() : Infinity;
@@ -763,7 +779,17 @@ function futCap(dirn){
   const f = state.fut, closing = f && Math.sign(f.q) === -dirn ? Math.abs(f.q) : 0;
   return closing + Math.max(0, Math.floor(Math.max(0, state.cash) / (imPer() + fPrice() * MULT * FFEE)));
 }
-const optCap = (type, K) => Math.max(0, Math.floor(Math.max(0, state.cash) / (quote(type, K).ask * MULT * (1 + OFEE))));
+// 살 수 있는 계약: 판 옵션 되사기 + 현금으로 새로 사기
+function optBuyCap(type, K){
+  const o = state.opts[optKey(type, K, nextExpiry())], q = quote(type, K);
+  return (o && o.qty < 0 ? -o.qty : 0) + Math.max(0, Math.floor(Math.max(0, state.cash) / (q.ask * MULT * (1 + OFEE))));
+}
+// 팔 수 있는 계약: 가진 옵션 팔기 + 증거금을 맡기고 새로 팔기(받는 값만큼은 증거금에 보탠다)
+function optSellCap(type, K){
+  const o = state.opts[optKey(type, K, nextExpiry())], q = quote(type, K);
+  const per = optReqPer(type, K, q.mid) - q.bid * MULT * (1 - OFEE);
+  return (o && o.qty > 0 ? o.qty : 0) + (q.bid > 0 ? Math.max(0, Math.floor(Math.max(0, state.cash) / Math.max(1, per))) : 0);
+}
 // 선물 주문: 반대 방향이면 먼저 청산하고, 남는 계약은 새로 연다
 function futTrade(dirn, n, kind){
   const P = fPrice(), fee = Math.ceil(P * MULT * n * FFEE);
@@ -788,21 +814,33 @@ function futTrade(dirn, n, kind){
   else { state.stats.realized += pnl; recordSale(kind, IDX, n, P, pnl, '개미지수 선물', '계약'); }
   return pnl;
 }
-function optBuy(type, K, n){
-  const q = quote(type, K), cost = Math.round(q.ask * MULT * n), fee = Math.ceil(cost * OFEE);
-  state.cash -= cost + fee; state.stats.fees += fee; state.stats.trades++;
-  const e = nextExpiry(), key = optKey(type, K, e), o = state.opts[key] || (state.opts[key] = {type, K, e, qty:0, avg:0});
-  o.avg = (o.avg * o.qty + q.ask * n) / (o.qty + n); o.qty += n;
-  logTrade('ob', IDX, n, q.ask, null, optName(o), '계약');
-  return cost;
-}
-function optSell(key, n){
-  const o = state.opts[key], q = quote(o.type, o.K), amt = Math.round(q.bid * MULT * n), fee = Math.floor(amt * OFEE);
-  const pnl = amt - fee - Math.round(o.avg * MULT * n);
-  state.cash += amt - fee; state.stats.fees += fee; state.stats.realized += pnl;
-  recordSale('os', IDX, n, q.bid, pnl, optName(o), '계약');
-  o.qty -= n; if (!o.qty) delete state.opts[key];
-  return pnl;
+// 옵션 주문(dirn 1 매수, -1 매도): 반대 포지션을 먼저 정리하고, 남는 계약은 새로 연다.
+// 산 옵션(qty > 0)은 낸 값이 전부이고, 판 옵션(qty < 0)은 받은 값을 현금으로 받고 증거금을 따로 맡긴다
+function optTrade(type, K, dirn, n, kind){
+  const e = nextExpiry(), key = optKey(type, K, e), q = quote(type, K), px = dirn > 0 ? q.ask : q.bid;
+  const amt = Math.round(px * MULT * n), fee = dirn > 0 ? Math.ceil(amt * OFEE) : Math.floor(amt * OFEE);
+  state.cash -= fee; state.stats.fees += fee;
+  let o = state.opts[key], left = n, pnl = null;
+  if (o && Math.sign(o.qty) === -dirn){
+    const c = Math.min(left, Math.abs(o.qty)), cAmt = Math.round(px * MULT * c), base = Math.round(o.avg * MULT * c);
+    if (o.qty > 0){ state.cash += cAmt; pnl = cAmt - base; }
+    else { const rel = o.margin * c / -o.qty; state.cash += rel - cAmt; o.margin -= rel; pnl = base - cAmt; }
+    o.qty += dirn * c; left -= c;
+    if (!o.qty) delete state.opts[key];
+  }
+  if (left > 0){
+    const lAmt = Math.round(px * MULT * left);
+    o = state.opts[key] || (state.opts[key] = {type, K, e, qty:0, avg:0, margin:0});
+    const aq = Math.abs(o.qty);
+    o.avg = (o.avg * aq + px * left) / (aq + left);
+    if (dirn > 0) state.cash -= lAmt;
+    else { const m = Math.round(optReqPer(type, K, q.mid) * left); state.cash += lAmt - m; o.margin = (o.margin || 0) + m; }
+    o.qty += dirn * left;
+  }
+  const name = (type === 'C' ? '콜 ' : '풋 ') + num(K);
+  if (pnl === null){ state.stats.trades++; logTrade(kind, IDX, n, px, null, name, '계약'); }
+  else { pnl -= fee; state.stats.realized += pnl; recordSale(kind, IDX, n, px, pnl, name, '계약'); }
+  return {pnl, amt, px};
 }
 // 선물 증거금이 유지증거금 밑이면 전부 강제로 청산한다
 function futCheck(){
@@ -824,6 +862,27 @@ function futCheck(){
   } else if (r < 1.3){ if (!state.fWarned){ state.fWarned = true; toast(`선물 담보비율 ${fmtRatio(r)} · 100% 밑이면 현금으로 채우고, 모자라면 강제로 청산돼요`, 's'); } }
   else state.fWarned = false;
 }
+function optCheck(){
+  let worst = Infinity;
+  for (const o of Object.values(state.opts)){
+    if (o.qty >= 0) continue;
+    const r = oRatio(o);
+    if (r >= 1){ worst = Math.min(worst, r); continue; }
+    const n = -o.qty, m = optMid(o.type, o.K, ticksLeft(o.e)), need = Math.ceil(optReqPer(o.type, o.K, m) * n - o.margin);
+    if (state.cash >= need){
+      state.cash -= need; o.margin += need;
+      pushFeed({tag:'추가증거금', text:`${optName(o)} 매도 증거금이 모자라 현금 ${won(need)}을 더 넣었어요`, ids:[IDX], big:false, t:state.t}, true);
+      toast(`옵션 추가 증거금 · 현금 ${won(need)}을 넣었어요`, 's'); sfx.err();
+      continue;
+    }
+    const {pnl} = optTrade(o.type, o.K, 1, n, 'of');
+    state.stats.forced++;
+    pushFeed({tag:'반대매매', text:`${optName(o)} 매도 증거금이 모자라고 채울 현금도 없어 ${num(n)}계약을 강제로 되샀어요 (손익 ${swon(pnl)})`, ids:[IDX], big:false, t:state.t}, true);
+    toast(`옵션 강제 환매수 · ${optName(o)} ${num(n)}계약`, 'b'); sfx.err();
+  }
+  if (worst < 1.15){ if (!state.oWarned){ state.oWarned = true; toast(`옵션 매도 담보비율 ${fmtRatio(worst)} · 100% 밑이면 현금으로 채우고, 모자라면 강제로 되사요`, 's'); } }
+  else state.oWarned = false;
+}
 // 장 마감: 선물 일일정산, 만기면 선물·옵션 정산
 function settleDerivs(){
   let fset = 0;
@@ -843,11 +902,25 @@ function settleDerivs(){
     }
   }
   const I = indexNow();
-  for (const [key, o] of Object.entries(state.opts)) if (o.e <= state.day){
-    const iv = Math.max(0, o.type === 'C' ? I - o.K : o.K - I), amt = Math.round(iv * MULT * o.qty), pnl = amt - Math.round(o.avg * MULT * o.qty);
-    state.cash += amt; state.stats.realized += pnl;
-    recordSale('ex', IDX, o.qty, iv, pnl, optName(o), '계약');
-    exp.push(amt ? `${optName(o)} ${num(o.qty)}계약 ${won(amt)} 받음` : `${optName(o)} ${num(o.qty)}계약은 휴지조각`);
+  for (const [key, o] of Object.entries(state.opts)){
+    if (o.e > state.day){
+      // 만기 전 판 옵션: 필요한 증거금보다 많이 맡긴 만큼은 현금으로 돌려준다
+      if (o.qty < 0){ const need = Math.ceil(optReqPer(o.type, o.K, optMid(o.type, o.K, ticksLeft(o.e))) * -o.qty); if (o.margin > need){ state.cash += o.margin - need; o.margin = need; } }
+      continue;
+    }
+    const iv = Math.max(0, o.type === 'C' ? I - o.K : o.K - I), n = Math.abs(o.qty), amt = Math.round(iv * MULT * n);
+    if (o.qty > 0){
+      const pnl = amt - Math.round(o.avg * MULT * n);
+      state.cash += amt; state.stats.realized += pnl;
+      recordSale('ex', IDX, n, iv, pnl, optName(o), '계약');
+      exp.push(amt ? `${optName(o)} ${num(n)}계약 ${won(amt)} 받음` : `${optName(o)} ${num(n)}계약은 휴지조각`);
+    } else {
+      // 판 옵션: 만기 가치만큼 내주고 남은 증거금을 돌려받는다
+      const pnl = Math.round(o.avg * MULT * n) - amt;
+      state.cash += o.margin - amt; state.stats.realized += pnl;
+      recordSale('ex', IDX, n, iv, pnl, optName(o) + ' 매도', '계약');
+      exp.push(amt ? `${optName(o)} 매도 ${num(n)}계약 ${won(amt)} 내줌` : `${optName(o)} 매도 ${num(n)}계약 받은 값 그대로 지킴`);
+    }
     delete state.opts[key];
   }
   if (exp.length) pushFeed({tag:'만기', text:`선물·옵션 만기 · ` + exp.join(' · '), ids:[IDX], big:true, t:state.t}, true);
@@ -925,7 +998,7 @@ function tick(){
   const mk = state.market.mu / T + 0.009 / Math.sqrt(T) * randn();
   DEFS.forEach(d => step(S(d.id), d, mk));
   updateVol();
-  marginCheck(); shortCheck(); futCheck();
+  marginCheck(); shortCheck(); futCheck(); optCheck();
   if (state.t % 10 === 0) save();
   milestones();
   if (state.t >= T) closeDay();
@@ -951,7 +1024,7 @@ function openDay(){
   }
   state.phase = 'open';
   updateVol(true);
-  marginCheck(); shortCheck(); futCheck();
+  marginCheck(); shortCheck(); futCheck(); optCheck();
   save();
 }
 function closeDay(){
@@ -1253,7 +1326,7 @@ function updHeader(){
   $('#totChg').textContent = pct(tr); $('#totChg').className = 'num ' + dir(tr);
   $('#titleLbl').textContent = TITLES[titleFor(tot)][1];
   // 신용과 공매도 중 강제 정리에 더 가까운 쪽 담보비율을 보여 준다
-  const risks = [[ratio(), MAINT, SAFE, ''], [minSRatio(), SHORT_MAINT, SHORT_WARN, '공매도 '], [fRatio(), 1, 1.3, '선물 ']].filter(x => x[0] !== Infinity);
+  const risks = [[ratio(), MAINT, SAFE, ''], [minSRatio(), SHORT_MAINT, SHORT_WARN, '공매도 '], [fRatio(), 1, 1.3, '선물 '], [minORatio(), 1, 1.15, '옵션 ']].filter(x => x[0] !== Infinity);
   const mg = $('#mgLbl');
   mg.hidden = !risks.length;
   if (risks.length){
@@ -1281,7 +1354,7 @@ function updIdx(){
     html += `<p class="mine">선물 <b>${f.q > 0 ? '매수' : '매도'} ${num(n)}계약</b>을 평균 <b class="num">${fmtPt(f.entry0)}</b>에 갖고 있어요. 평가손익 <b class="num ${dir(pnl)}">${swon(pnl)}</b> · 증거금 <b class="num">${won(futEquity())}</b> (유지증거금 ${won(futMaint())}, 담보비율 <b class="num ${fr < 1.3 ? 'up' : ''}">${fmtRatio(fr)}</b>)</p>`;
   }
   const os = Object.values(state.opts);
-  if (os.length) html += `<p class="mine">옵션: ` + os.map(x => { const m = optMid(x.type, x.K, ticksLeft(x.e)), pnl = (m - x.avg) * MULT * x.qty; return `<b>${optName(x)}</b> ${num(x.qty)}계약 (평균 ${fmtPt(x.avg)} → ${fmtPt(m)}, <span class="num ${dir(pnl)}">${swon(pnl)}</span>)`; }).join(' · ') + `</p>`;
+  if (os.length) html += `<p class="mine">옵션: ` + os.map(x => { const m = optMid(x.type, x.K, ticksLeft(x.e)), pnl = (m - x.avg) * MULT * x.qty; return `<b>${optName(x)} ${x.qty > 0 ? '매수' : '매도'}</b> ${num(Math.abs(x.qty))}계약 (평균 ${fmtPt(x.avg)} → ${fmtPt(m)}, <span class="num ${dir(pnl)}">${swon(pnl)}</span>${x.qty < 0 ? `, 증거금 ${won(x.margin)} · 담보비율 ${fmtRatio(oRatio(x))}` : ''})`; }).join(' · ') + `</p>`;
   if (!f && !os.length) html += `<p class="mine">아직 선물이나 옵션이 없어요. 지수가 오를 것 같으면 선물 매수나 콜, 내릴 것 같으면 선물 매도나 풋을 사 보세요.</p>`;
   $('#info').innerHTML = html;
   const b = rate > 0.02 ? 'bu' : rate > 0.003 ? 'u' : rate < -0.02 ? 'bd' : rate < -0.003 ? 'd' : 'f';
@@ -1329,22 +1402,28 @@ function updDOrder(){
       const t = b.dataset.t, q = quote(t, K);
       b.textContent = fmtPt(roundOpt(q.mid, 'near'));
       b.setAttribute('aria-pressed', optSel.type === t && optSel.K === K ? 'true' : 'false');
-      b.classList.toggle('own', !!state.opts[optKey(t, K, e)]);
+      const ho = state.opts[optKey(t, K, e)];
+      b.classList.toggle('own', !!ho && ho.qty > 0); b.classList.toggle('ownS', !!ho && ho.qty < 0);
       b.setAttribute('aria-label', `${t === 'C' ? '콜' : '풋'} ${K} ${fmtPt(q.mid)}포인트`);
     }
   }
   const {type, K} = optSel, q = quote(type, K), own = state.opts[optKey(type, K, e)], n = intOf($('#pQty'));
-  const be = type === 'C' ? K + q.ask : K - q.ask;
-  $('#pSel').innerHTML = `<b>${type === 'C' ? '콜' : '풋'} ${num(K)}</b> · 살 때 <b>${fmtPt(q.ask)}</b> · 팔 때 <b>${fmtPt(q.bid)}</b> · 만기에 지수가 <b>${fmtPt(be)}</b>보다 ${type === 'C' ? '높으면' : '낮으면'} 이익` + (own ? ` · 가진 것 <b>${num(own.qty)}계약</b>(평균 ${fmtPt(own.avg)})` : '');
-  const cost = Math.round(q.ask * MULT * n);
-  $('#pAmt').textContent = won(cost); $('#pBid').textContent = won(Math.round(q.bid * MULT * n)); $('#pFee').textContent = won(Math.ceil(cost * OFEE));
-  const cap = optCap(type, K), pb = $('#pBuy'), ps = $('#pSell');
-  const eb = !open ? '장이 닫혀 있어요' : n <= 0 ? '계약 수를 정해요' : n > cap ? '현금이 모자라요' : '';
-  pb.disabled = !!eb; pb.innerHTML = eb || `${num(n)}계약 매수<small>${num(cost)}원</small>`;
-  const es = !open ? '장이 닫혀 있어요' : !own ? '가진 옵션이 없어요' : n <= 0 ? '계약 수를 정해요' : n > own.qty ? '가진 것보다 많아요' : '';
-  ps.disabled = !!es; ps.innerHTML = es || `${num(n)}계약 매도<small>가진 옵션 팔기</small>`;
-  $('#pCan').textContent = `살 수 있는 계약 ${num(cap)} · 현금 ${won(state.cash)}`;
-  $('#dNote').textContent = `옵션은 ${e}일차 장 마감(만기)에 개미지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이 × 5,000원을 받는 권리예요. 산 값만큼만 잃고, 만기가 다가올수록 시간 가치가 줄어들어요. 여기서는 사기만 할 수 있고, 매도는 가진 옵션을 파는 거예요.`;
+  const call = type === 'C', beB = call ? K + q.ask : K - q.ask, beS = call ? K + q.bid : K - q.bid;
+  const mine = !own ? '' : own.qty > 0 ? ` · 가진 것 <b>매수 ${num(own.qty)}계약</b>(평균 ${fmtPt(own.avg)})` : ` · 판 것 <b>매도 ${num(-own.qty)}계약</b>(평균 ${fmtPt(own.avg)}, 증거금 ${won(own.margin)}, 담보비율 ${fmtRatio(oRatio(own))})`;
+  $('#pSel').innerHTML = `<b>${call ? '콜' : '풋'} ${num(K)}</b> · 살 때 <b>${fmtPt(q.ask)}</b> · 팔 때 <b>${fmtPt(q.bid)}</b> · 만기에 지수가 사면 <b>${fmtPt(beB)}</b>보다 ${call ? '높아야' : '낮아야'}, 팔면 <b>${fmtPt(beS)}</b>보다 ${call ? '낮아야' : '높아야'} 이익` + mine;
+  const cost = Math.round(q.ask * MULT * n), got = Math.round(q.bid * MULT * n);
+  $('#pAmt').textContent = won(cost); $('#pBid').textContent = won(got); $('#pFee').textContent = won(Math.ceil(Math.max(cost, got) * OFEE));
+  // 매도 중 새로 여는 계약에 드는 증거금
+  const newShort = Math.max(0, n - (own && own.qty > 0 ? own.qty : 0));
+  $('#pReqRow').hidden = !newShort; $('#pReq').textContent = won(Math.round(optReqPer(type, K, q.mid) * newShort));
+  const bcap = optBuyCap(type, K), scap = optSellCap(type, K), pb = $('#pBuy'), ps = $('#pSell');
+  const longQ = own && own.qty > 0 ? own.qty : 0, shortQ = own && own.qty < 0 ? -own.qty : 0;
+  const eb = !open ? '장이 닫혀 있어요' : n <= 0 ? '계약 수를 정해요' : n > bcap ? '현금이 모자라요' : '';
+  pb.disabled = !!eb; pb.innerHTML = eb || `${num(n)}계약 매수<small>${!shortQ ? num(cost) + '원 내기' : n > shortQ ? `판 ${num(shortQ)}계약 되사고 ${num(n - shortQ)}계약 새로 사기` : '판 옵션 되사기'}</small>`;
+  const es = !open ? '장이 닫혀 있어요' : n <= 0 ? '계약 수를 정해요' : n > scap ? (q.bid <= 0 && !(own && own.qty > 0) ? '팔 값이 없어요' : '증거금이 모자라요') : '';
+  ps.disabled = !!es; ps.innerHTML = es || `${num(n)}계약 매도<small>${!longQ ? num(got) + '원 받고 새로 팔기' : n > longQ ? `가진 ${num(longQ)}계약 팔고 ${num(n - longQ)}계약 새로 팔기` : '가진 옵션 팔기'}</small>`;
+  $('#pCan').textContent = `살 수 있는 계약 ${num(bcap)} · 팔 수 있는 계약 ${num(scap)} · 현금 ${won(state.cash)}`;
+  $('#dNote').textContent = `옵션은 ${e}일차 장 마감(만기)에 개미지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이 × 5,000원을 받는 권리예요. 사면 낸 값만큼만 잃어요. 가진 것 없이 팔면(옵션 매도) 값을 바로 받지만, 만기에 그 차이를 내줘야 해서 지수가 반대로 크게 움직이면 손실이 끝없이 커질 수 있어요. 그래서 판 옵션에는 증거금(옵션 값 + 지수의 10% 안팎)을 맡기고, 유지증거금 밑으로 떨어지면 현금으로 채우거나 모자라면 강제로 되사요. 만기가 다가올수록 시간 가치가 줄어 판 쪽에 유리해져요.`;
 }
 function updMain(){
   const isI = sel === IDX;
@@ -1443,9 +1522,9 @@ function updAcct(){
   const sv = shortValue(), sr = minSRatio();
   set('#aShort', sv ? won(sv) : '없음');
   set('#aSRatio', fmtRatio(sr), sr < SHORT_WARN ? 'up' : '');
-  const dvv = futEquity() + optsValue(), fr = fRatio();
+  const dvv = futEquity() + optsValue(), dr = dRatio();
   set('#aDeriv', state.fut || Object.keys(state.opts).length ? won(dvv) : '없음');
-  set('#aFRatio', fmtRatio(fr), fr < 1.3 ? 'up' : '');
+  set('#aFRatio', fmtRatio(dr), dr < 1.3 ? 'up' : '');
   const ti = titleFor(tot); $('#aTitle').textContent = TITLES[ti][1];
   if (ti < TITLES.length - 1){
     const a = Math.max(TITLES[ti][0], ti ? 0 : START), [b, name] = TITLES[ti + 1];
@@ -1456,7 +1535,7 @@ function updAcct(){
   const ids = DEFS.map(d => d.id).filter(id => state.hold[id]), sids = DEFS.map(d => d.id).filter(id => state.short[id]);
   const box = $('#holds');
   const okeys = Object.keys(state.opts).sort();
-  const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join() + '|' + sids.join() + '|' + (state.fut ? Math.sign(state.fut.q) : '') + '|' + okeys.join();
+  const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join() + '|' + sids.join() + '|' + (state.fut ? Math.sign(state.fut.q) : '') + '|' + okeys.map(k => k + Math.sign(state.opts[k].qty)).join();
   if (hk !== holdKey){
     holdKey = hk;
     const row = (id, k, chip) => `<button type="button" class="hrow" data-id="${id}" data-kind="${k}"><b>${DEF[id].name}${chip}</b><span class="r" data-k="pnl"></span><small data-k="q"></small><small class="r num" data-k="r"></small></button>`;
@@ -1464,14 +1543,18 @@ function updAcct(){
     box.innerHTML = ids.length || sids.length || state.fut || okeys.length
       ? ids.map(id => row(id, 'L', state.hold[id].loan > 0 ? ' <i class="chip-s held cr">신용</i>' : '')).join('') + sids.map(id => row(id, 'S', ' <i class="chip-s shc">공매도</i>')).join('')
         + (state.fut ? drow('F', '개미지수 선물', `<i class="chip-s held">${state.fut.q > 0 ? '매수' : '매도'}</i>`, '') : '')
-        + okeys.map(k => { const o = state.opts[k]; return drow('O', optName(o), '<i class="chip-s shc">옵션</i>', ` data-ok="${k}"`); }).join('')
+        + okeys.map(k => { const o = state.opts[k]; return drow('O', optName(o), `<i class="chip-s ${o.qty > 0 ? 'shc' : 'held cr'}">옵션 ${o.qty > 0 ? '매수' : '매도'}</i>`, ` data-ok="${k}"`); }).join('')
       : '<p class="empty">아직 가진 주식이 없어요. 시세표에서 종목을 골라 사 보세요.</p>';
   }
   for (const el of box.querySelectorAll('.hrow')){
     const id = el.dataset.id, kind = el.dataset.kind, s = id === IDX ? null : S(id), long = kind === 'L';
     let pnl, r, txt;
     if (kind === 'F'){ const f = state.fut, n = Math.abs(f.q), P = fPrice(); pnl = Math.sign(f.q) * (P - f.entry0) * MULT * n; r = Math.sign(f.q) * (P / f.entry0 - 1); txt = `${num(n)}계약 · 평균 ${fmtPt(f.entry0)} → ${fmtPt(P)} · 담보 ${fmtRatio(fRatio())}`; }
-    else if (kind === 'O'){ const o = state.opts[el.dataset.ok], m = optMid(o.type, o.K, ticksLeft(o.e)); pnl = (m - o.avg) * MULT * o.qty; r = m / o.avg - 1; txt = `${num(o.qty)}계약 · 평균 ${fmtPt(o.avg)} → ${fmtPt(m)} · ${o.e}일차 만기`; }
+    else if (kind === 'O'){
+      const o = state.opts[el.dataset.ok], m = optMid(o.type, o.K, ticksLeft(o.e)), sh = o.qty < 0;
+      pnl = (m - o.avg) * MULT * o.qty; r = sh ? 1 - m / o.avg : m / o.avg - 1;
+      txt = `${num(Math.abs(o.qty))}계약 · ${sh ? '판 값' : '평균'} ${fmtPt(o.avg)} → ${fmtPt(m)} · ${o.e}일차 만기` + (sh ? ` · 담보 ${fmtRatio(oRatio(o))}` : '');
+    }
     else if (long){ const h = state.hold[id]; pnl = (s.price - h.avg) * h.qty; r = s.price / h.avg - 1; txt = `${num(h.qty)}주 · 평균 ${num(h.avg)} → ${num(s.price)}` + (h.loan > 0 ? ` · 대출 ${wonKo(h.loan)}` : ''); }
     else { const x = state.short[id]; pnl = (x.avg - s.price) * x.qty; r = 1 - s.price / x.avg; txt = `${num(x.qty)}주 · 공매도 ${num(x.avg)} → ${num(s.price)} · 담보 ${fmtRatio(sRatio(id))}`; }
     const p = el.querySelector('[data-k="pnl"]'); p.textContent = swon(pnl); p.className = 'r ' + dir(pnl);
@@ -1490,8 +1573,8 @@ function updAcct(){
   drawAsset();
 }
 
-const KIND = {b:'매수', c:'신용매수', s:'매도', f:'반대매매', x:'공매도', r:'상환', y:'강제상환', fb:'선물매수', fs:'선물매도', ff:'선물반대매매', ob:'옵션매수', os:'옵션매도', ex:'만기'};
-const BUYISH = new Set(['b', 'c', 'r', 'y', 'fb', 'ob']);
+const KIND = {b:'매수', c:'신용매수', s:'매도', f:'반대매매', x:'공매도', r:'상환', y:'강제상환', fb:'선물매수', fs:'선물매도', ff:'선물반대매매', ob:'옵션매수', os:'옵션매도', of:'옵션강제환매수', ex:'만기'};
+const BUYISH = new Set(['b', 'c', 'r', 'y', 'fb', 'ob', 'of']);
 
 /* 뉴스 */
 const TAGCLS = {'반대매매':'hot', '강제상환':'hot', '추가증거금':'hot', '만기':'dis', '속보':'', '시장':'hot', '테마':'', '지라시':'rumor', '공시':'dis', '해명':'dis', '시황':'', '배당':'dis'};
@@ -1775,14 +1858,14 @@ $('#holds').addEventListener('click', e => {
 // 선물·옵션 주문
 const dDone = () => { milestones(); save(); render(true); };
 document.querySelectorAll('[data-dk]').forEach(b => b.addEventListener('click', () => { dk = b.dataset.dk; updDOrder(); }));
-$('#chain').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; optSel = {type:b.dataset.t, K:+b.dataset.k}; const m = optCap(optSel.type, optSel.K); $('#pQty').value = Math.min(m, Math.max(1, Math.floor(m * 0.1))); updDOrder(); });
+$('#chain').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; optSel = {type:b.dataset.t, K:+b.dataset.k}; const m = optBuyCap(optSel.type, optSel.K); $('#pQty').value = Math.min(m, Math.max(1, Math.floor(m * 0.1))); updDOrder(); });
 for (const [inp, minus, plus] of [['#fQty', '#fMinus', '#fPlus'], ['#pQty', '#pMinus', '#pPlus']]){
   $(inp).addEventListener('input', updDOrder);
   $(minus).addEventListener('click', () => { $(inp).value = Math.max(0, intOf($(inp)) - 1); updDOrder(); });
   $(plus).addEventListener('click', () => { $(inp).value = intOf($(inp)) + 1; updDOrder(); });
 }
 $('#fQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const f = state.fut, m = futCap(1) - (f && f.q < 0 ? -f.q : 0); $('#fQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
-$('#pQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !optSel) return; const m = optCap(optSel.type, optSel.K); $('#pQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
+$('#pQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !optSel) return; const m = Math.max(optBuyCap(optSel.type, optSel.K), optSellCap(optSel.type, optSel.K)); $('#pQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
 for (const [id, d] of [['#fBuy', 1], ['#fSell', -1]]) $(id).addEventListener('click', () => {
   const n = intOf($('#fQty'));
   if (state.phase !== 'open' || n <= 0 || n > futCap(d)) return;
@@ -1796,17 +1879,12 @@ $('#fClose').addEventListener('click', () => {
   toast(`가진 선물을 모두 청산했어요 · 손익 ${swon(pnl)}`, f.q > 0 ? 's' : 'b'); sfx.sell();
   dDone();
 });
-$('#pBuy').addEventListener('click', () => {
-  const n = intOf($('#pQty')); if (!optSel || state.phase !== 'open' || n <= 0 || n > optCap(optSel.type, optSel.K)) return;
-  const cost = optBuy(optSel.type, optSel.K, n);
-  toast(`${optSel.type === 'C' ? '콜' : '풋'} ${num(optSel.K)} ${num(n)}계약 샀어요 · ${won(cost)}`, 'b'); sfx.buy();
-  dDone();
-});
-$('#pSell').addEventListener('click', () => {
-  const n = intOf($('#pQty')), key = optSel && optKey(optSel.type, optSel.K, nextExpiry()), o = key && state.opts[key];
-  if (!o || state.phase !== 'open' || n <= 0 || n > o.qty) return;
-  const pnl = optSell(key, n);
-  toast(`${optSel.type === 'C' ? '콜' : '풋'} ${num(optSel.K)} ${num(n)}계약 팔았어요 · 손익 ${swon(pnl)}`, 's'); sfx.sell();
+for (const [id, d] of [['#pBuy', 1], ['#pSell', -1]]) $(id).addEventListener('click', () => {
+  const n = intOf($('#pQty'));
+  if (!optSel || state.phase !== 'open' || n <= 0 || n > (d > 0 ? optBuyCap : optSellCap)(optSel.type, optSel.K)) return;
+  const {pnl, amt} = optTrade(optSel.type, optSel.K, d, n, d > 0 ? 'ob' : 'os');
+  toast(`${optSel.type === 'C' ? '콜' : '풋'} ${num(optSel.K)} ${num(n)}계약 ${d > 0 ? '샀어요' : '팔았어요'} · ` + (pnl !== null ? `손익 ${swon(pnl)}` : `${won(amt)} ${d > 0 ? '냈어요' : '받았어요'}`), d > 0 ? 'b' : 's');
+  d > 0 ? sfx.buy() : sfx.sell();
   dDone();
 });
 $('#feed').addEventListener('click', e => { const b = e.target.closest('.chips button'); if (b) select(b.dataset.id, true); });
