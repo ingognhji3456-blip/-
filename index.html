@@ -479,7 +479,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
       <li>주문 칸에서 <b>신용 2배·3배</b>를 고르면 내 돈의 2배·3배만큼 살 수 있어요. 빌린 돈에는 하루 0.04% 이자가 붙고, 팔면 빌린 돈부터 갚아요. 담보비율(현금과 주식 ÷ 빌린 돈)이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).</li>
       <li><b>공매도</b>는 주식을 빌려 지금 값에 팔고, 나중에 <b>상환</b>으로 되사서 갚는 거예요. 값이 내리면 이익, 오르면 손해예요. 판 돈과 판 금액의 50%(증거금)가 담보로 묶이고, 빌린 주식에는 하루 0.02% 이자가 붙어요. 공매도 담보비율(묶인 담보 ÷ 지금 갚을 금액)이 120% 밑이면 강제로 사서 갚아요(강제 상환).</li>
       <li>시세표 맨 위 <b>개미지수</b>를 누르면 <b>선물·옵션</b>을 해요. 선물은 지수가 오를지(매수) 내릴지(매도)에 걸고, 1포인트에 계약당 5,000원씩 벌거나 잃어요. 증거금 10%만 맡기는 10배 레버리지라, 유지증거금 밑으로 떨어지면 현금으로 채우고 모자라면 강제로 청산돼요. 옵션은 만기에 지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이를 받는 권리예요. 사면 낸 값만큼만 잃고, 가진 것 없이 팔면(옵션 매도) 값을 바로 받는 대신 증거금을 맡기고 손실이 끝없이 커질 수 있어요. 만기는 10일마다(10·20·30일차…) 장 마감 때예요.</li>
-      <li>시세표 위쪽 <b>레버리지 ETF</b>는 개미지수 하루 수익률에 배율을 곱해 따라가요(레버리지 ×2, 3배 ×3, 인버스 ×−1, 곱버스 ×−2). 주식처럼 사고팔고, 날마다 배율을 다시 맞춰서 지수가 출렁이면 제자리로 와도 값이 녹아요.</li>
+      <li>시세표 위쪽 <b>레버리지 ETF</b>는 개미지수 하루 수익률에 배율을 곱해 따라가요(레버리지 ×2, 3배 ×3, 인버스 ×−1, 곱버스 ×−2). 주식처럼 사고팔고, 날마다 배율을 다시 맞춰서 지수가 출렁이면 제자리로 와도 값이 녹아요. 값이 1,000원 밑으로 내려가면 장 마감 때 주식을 합쳐요(액면병합).</li>
       <li>5분 차트와 시세표의 작은 그래프는 날이 바뀌어도 지난 며칠과 이어져요.</li>
       <li>살 때와 팔 때 수수료 0.015%, 팔 때 세금 0.2%가 붙어요. 고소한식품과 든든은행은 10일마다 배당금을 줘요.</li>
     </ul>
@@ -568,7 +568,7 @@ const DEF = Object.fromEntries(DEFS.map(d => [d.id, d]));
 // 레버리지·인버스 ETF: 개미지수 하루 수익률에 배율을 곱해 따라간다(날마다 배율을 다시 맞춤)
 const ETFS = [
   {id:'LV2', name:'개미 레버리지', sector:'ETF ×2',  lev:2,  price:15800, shares:8e6,  desc:'개미지수 하루 수익률의 2배를 따라가는 ETF예요. 지수가 1% 오르면 2% 오르고, 1% 내리면 2% 내려요. 날마다 배율을 다시 맞춰서, 지수가 오르락내리락하면 제자리로 돌아와도 값이 조금씩 녹아요(음의 복리).'},
-  {id:'LV3', name:'개미 3배',     sector:'ETF ×3',  lev:3,  price:9850,  shares:3e6,  desc:'개미지수 하루 수익률의 3배를 따라가는 ETF예요. 크게 벌고 크게 잃어요. 출렁이는 장에서는 녹는 속도도 가장 빨라요.'},
+  {id:'LV3', name:'개미 3배',     sector:'ETF ×3',  lev:3,  price:9850,  shares:3e6,  desc:'개미지수 하루 수익률의 3배를 따라가는 ETF예요. 크게 벌고 크게 잃어요. 출렁이는 장에서는 곱버스와 함께 가장 빨리 녹아요.'},
   {id:'INV', name:'개미 인버스',   sector:'ETF ×−1', lev:-1, price:4950,  shares:2e6,  desc:'개미지수와 반대로 움직이는 ETF예요. 지수가 1% 내리면 1% 올라요. 공매도 없이 하락에 걸 수 있어요.'},
   {id:'IV2', name:'개미 곱버스',   sector:'ETF ×−2', lev:-2, price:2480,  shares:30e6, desc:'개미지수 하루 수익률의 −2배를 따라가는 ETF예요. 지수가 1% 내리면 2% 올라요. 개미들이 하락에 거는 ‘곱버스’예요. 오래 들고 있으면 녹기 쉬워요.'},
 ];
@@ -724,15 +724,46 @@ function etfInit(e){
 // 장중: 전날 종가(보수 뺀 값) × (1 + 배율 × 지수 수익률)
 function etfStep(e, s){
   const prev = s.price;
-  s.raw = Math.max(0.5, s.prevNav * (1 + e.lev * (indexNow() / state.prevIdx - 1)));
+  s.raw = Math.max(1e-6, s.prevNav * (1 + e.lev * (indexNow() / state.prevIdx - 1)));
   s.price = Math.min(s.hiLim, Math.max(s.loLim, roundEtf(s.raw)));
   if (s.price > s.high) s.high = s.price; if (s.price < s.low) s.low = s.price;
   const v = Math.round(e.shares / T * Math.exp(0.45 * randn()) * (1 + 20 * Math.abs(prev ? s.price / prev - 1 : 0)));
   s.volume += v; s.ticks.push(s.price); s.tvols.push(v);
 }
+// 값이 1,000원 밑으로 내려간 ETF는 장 마감 때 주식을 합친다(액면병합: 10주 → 1주, 값은 10배).
+// 합치고 남는 주식(10주 미만)은 그날 종가로 현금 정산한다
+function etfMerge(e){
+  const s = S(e.id);
+  if (s.price >= 1000) return;
+  let m = 1; while (s.price * m < 1000) m *= 10;
+  const old = s.price, up = v => v * m, dn = v => Math.round(v / m);
+  s.raw *= m; s.prevNav *= m; s.anchor *= m;
+  for (const k of ['price', 'prevClose', 'open', 'high', 'low', 'hiLim', 'loLim']) s[k] = up(s[k]);
+  s.ticks = s.ticks.map(up); s.tvols = s.tvols.map(dn); s.volume = dn(s.volume);
+  s.past.forEach(x => { x.p = x.p.map(up); x.v = x.v.map(dn); });
+  s.days.forEach(x => { x.o = up(x.o); x.h = up(x.h); x.l = up(x.l); x.c = up(x.c); x.v = dn(x.v); });
+  // 값이 작을 때 1원 단위로 반올림돼 생긴 오차를 없애고, 합친 뒤 값은 실제 순자산 가치에 맞춘다
+  const np = roundEtf(s.raw), lastBar = s.days[s.days.length - 1];
+  s.price = np; lastBar.c = np; lastBar.h = Math.max(lastBar.h, np); lastBar.l = Math.min(lastBar.l, np);
+  if (s.ticks.length) s.ticks[s.ticks.length - 1] = np;
+  s.high = Math.max(s.high, np); s.low = Math.min(s.low, np);
+  const h = state.hold[e.id];
+  if (h){
+    const nq = Math.floor(h.qty / m), fr = h.qty - nq * m;
+    if (fr){ const repay = h.loan ? Math.round(h.loan * fr / h.qty) : 0; state.cash += fr * old - repay; h.loan -= repay; state.stats.realized += Math.round((old - h.avg) * fr); }
+    if (nq){ h.qty = nq; h.avg *= m; } else delete state.hold[e.id];
+  }
+  const x = state.short[e.id];
+  if (x){
+    const nq = Math.floor(x.qty / m), fr = x.qty - nq * m;
+    if (fr){ const rel = x.coll * fr / x.qty, cs = x.cost * fr / x.qty; state.cash += rel - fr * old; x.coll -= rel; x.cost -= cs; state.stats.realized += Math.round((x.avg - old) * fr - cs); }
+    if (nq){ x.qty = nq; x.avg *= m; } else delete state.short[e.id];
+  }
+  pushFeed({tag:'공시', text:`${e.name} 값이 1,000원 밑으로 내려가 ${num(m)}주를 1주로 합쳤어요(액면병합). ${num(old)}원 → ${num(s.price)}원. ${num(m)}주가 안 되는 나머지는 종가로 현금 정산해요.`, ids:[e.id], big:true, t:state.t}, true);
+}
 function newRegime(m){ const r = Math.random(); m.mu = r < 0.4 ? 0.0035 : r < 0.75 ? 0 : -0.0035; m.left = 5 + Math.floor(Math.random() * 8); }
 function newGame(){
-  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, short:{}, fut:null, opts:{}, stocks:{}, market:{mu:0, left:0, ewv:0.012 * 0.012 / T, lastI:IDX_BASE, dvar:0.015 * 0.015},
+  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, short:{}, fut:null, opts:{}, stocks:{}, market:{mu:0, left:0, ewv:0.012 * 0.012 / T, lastI:IDX_BASE, dvar:0.028 * 0.028},
     news:[], pending:[], morning:[], trades:[], assetHist:[{d:0, v:START}], prevIdx:IDX_BASE, openTotal:START,
     best:START, titleIdx:0, won:false, bust:false, warned:false, sWarned:false, summary:null,
     stats:{trades:0, wins:0, losses:0, realized:0, divs:0, fees:0, bestTrade:0, interest:0, forced:0}};
@@ -751,7 +782,7 @@ function migrate(st){
   for (const h of Object.values(st.hold)) if (typeof h.loan !== 'number') h.loan = 0;
   st.stats.interest = st.stats.interest || 0; st.stats.forced = st.stats.forced || 0;
   st.short = st.short || {}; st.fut = st.fut || null; st.opts = st.opts || {};
-  if (!st.market.dvar) st.market.dvar = 0.015 * 0.015;
+  if (!st.market.dvar) st.market.dvar = 0.028 * 0.028;
   if (!st.market.ewv){ st.market.ewv = 0.012 * 0.012 / T; st.market.lastI = IDX_BASE * DEFS.reduce((a, d) => a + st.stocks[d.id].price / d.price, 0) / DEFS.length; }
   return st;
 }
@@ -783,7 +814,14 @@ const fPrice = () => Math.round(indexNow() * 20) / 20;   // 선물 가격: 지�
 const nextExpiry = () => { let e = Math.ceil(Math.max(state.day, 1) / EXP_EVERY) * EXP_EVERY; if (state.phase === 'closed' && state.day === e) e += EXP_EVERY; return e; };
 const ticksLeft = e => (e - state.day) * T + (state.phase === 'open' ? T - state.t : 0);
 // 지수가 최근 얼마나 흔들렸는지(틱마다 지수 수익률 제곱의 지수평균)로 옵션 변동성을 정한다
-const ivTick = () => Math.sqrt(Math.max(state.market.ewv, state.market.dvar / T)) * 1.05;
+const clampVar = v => Math.min(0.06 * 0.06, Math.max(0.006 * 0.006, v));
+function dayVar(){
+  const m = state.market;
+  if (state.phase !== 'open' || m.dvarDay === state.day) return m.dvar;
+  const r = Math.log(indexNow() / state.prevIdx), w = 0.15 * state.t / T;
+  return clampVar((1 - w) * m.dvar + w * r * r);
+}
+const ivTick = () => Math.sqrt(Math.max(state.market.ewv, dayVar() / T)) * 1.05;
 function updateVol(gap){
   const m = state.market, I = indexNow(), r = Math.log(I / (m.lastI || I));
   if (!gap) m.ewv = Math.min(0.04 * 0.04 / T, Math.max(0.005 * 0.005 / T, 0.995 * m.ewv + 0.005 * r * r));
@@ -1094,9 +1132,11 @@ function openDay(){
   save();
 }
 function closeDay(){
+  { const m = state.market; m.dvar = dayVar(); m.dvarDay = state.day; }
   const movers = DEFS.map(d => { const s = S(d.id); return {id:d.id, p:(s.price - s.prevClose) / s.prevClose, lim: s.price >= s.hiLim ? 'u' : s.price <= s.loLim ? 'd' : ''}; }).sort((a, b) => b.p - a.p);
   for (const e of ETFS){ const s = S(e.id); s.prevNav = s.raw * (1 - ETF_FEE); }
   for (const d of ALL){ const s = S(d.id); s.days.push({d:state.day, o:s.open, h:s.high, l:s.low, c:s.price, v:s.volume}); if (s.days.length > 200) s.days.shift(); }
+  ETFS.forEach(etfMerge);
   let interest = 0;
   const lo = loans();
   if (lo){ interest = Math.ceil(lo * CREDIT_RATE); state.cash -= interest; state.stats.interest += interest; }
@@ -1119,7 +1159,6 @@ function closeDay(){
   if (divPaid) pushFeed({tag:'배당', text:`공매도한 종목의 배당금 ${won(divPaid)}을 대신 냈어요`, ids:[], t:state.t}, true);
   state.openTotal = total();
   state.assetHist.push({d:state.day, v:state.openTotal}); if (state.assetHist.length > 400) state.assetHist.shift();
-  { const m = state.market, r = Math.log(indexNow() / state.prevIdx); m.dvar = Math.min(0.06 * 0.06, Math.max(0.006 * 0.006, 0.85 * m.dvar + 0.15 * r * r)); }
   if (--state.market.left <= 0) newRegime(state.market);
   const r = Math.random(), k = r < 0.2 ? 0 : r < 0.75 ? 1 : 2;
   state.morning = Array.from({length:k}, genNews);
@@ -1952,20 +1991,25 @@ $('#pQuick').addEventListener('click', e => { const b = e.target.closest('button
 for (const [id, d] of [['#fBuy', 1], ['#fSell', -1]]) $(id).addEventListener('click', () => {
   const n = intOf($('#fQty'));
   if (state.phase !== 'open' || n <= 0 || n > futCap(d)) return;
+  const opp = state.fut && Math.sign(state.fut.q) === -d;
   const pnl = futTrade(d, n, d > 0 ? 'fb' : 'fs');
+  if (opp && !state.fut) $('#fQty').value = 0;
   toast(`개미지수 선물 ${num(n)}계약 ${d > 0 ? '매수' : '매도'}` + (pnl !== null ? ` · 청산 손익 ${swon(pnl)}` : ''), d > 0 ? 'b' : 's'); d > 0 ? sfx.buy() : sfx.sell();
   dDone();
 });
 $('#fClose').addEventListener('click', () => {
   const f = state.fut; if (!f || state.phase !== 'open') return;
   const pnl = futTrade(-Math.sign(f.q), Math.abs(f.q), f.q > 0 ? 'fs' : 'fb');
+  $('#fQty').value = 0;
   toast(`가진 선물을 모두 청산했어요 · 손익 ${swon(pnl)}`, f.q > 0 ? 's' : 'b'); sfx.sell();
   dDone();
 });
 for (const [id, d] of [['#pBuy', 1], ['#pSell', -1]]) $(id).addEventListener('click', () => {
   const n = intOf($('#pQty'));
   if (!optSel || state.phase !== 'open' || n <= 0 || n > (d > 0 ? optBuyCap : optSellCap)(optSel.type, optSel.K)) return;
+  const key = optKey(optSel.type, optSel.K, nextExpiry()), had = state.opts[key], opp = had && Math.sign(had.qty) === -d;
   const {pnl, amt} = optTrade(optSel.type, optSel.K, d, n, d > 0 ? 'ob' : 'os');
+  if (opp && !state.opts[key]) $('#pQty').value = 0;
   toast(`${optSel.type === 'C' ? '콜' : '풋'} ${num(optSel.K)} ${num(n)}계약 ${d > 0 ? '샀어요' : '팔았어요'} · ` + (pnl !== null ? `손익 ${swon(pnl)}` : `${won(amt)} ${d > 0 ? '냈어요' : '받았어요'}`), d > 0 ? 'b' : 's');
   d > 0 ? sfx.buy() : sfx.sell();
   dDone();
