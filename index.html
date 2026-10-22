@@ -195,6 +195,10 @@ ol,ul{margin:0; padding:0; list-style:none}
 .chain button[aria-pressed="true"]{border-color:var(--accent); background:var(--accent-bg); color:var(--chip-ink); font-weight:600}
 .chain button.own::after,.chain button.ownS::after{content:" ●"; font-size:9px; color:var(--accent); vertical-align:middle}
 .chain button.ownS::after{color:var(--down)}
+.pside{grid-template-columns:1fr 1fr}
+.pside [data-ps="buy"][aria-pressed="true"]{background:var(--up); color:var(--on-sem)}
+.pside [data-ps="sell"][aria-pressed="true"]{background:var(--down); color:var(--on-sem)}
+#optBox .fbtns{grid-template-columns:1fr}
 .nm small{overflow:hidden; white-space:nowrap}
 .nm .chip-s{flex:none}
 .nm small:has(.chip-s:not([hidden])) .sect{display:none}
@@ -401,11 +405,11 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
             <div id="optBox" hidden>
               <table class="chain"><thead><tr><th class="up">콜 (오르면)</th><th>행사가</th><th class="down">풋 (내리면)</th></tr></thead><tbody id="chain"></tbody></table>
               <p class="dline" id="pSel"></p>
+              <div class="seg pay pside" role="group" aria-label="옵션 주문 종류"><button type="button" data-ps="buy" aria-pressed="true">매수</button><button type="button" data-ps="sell" aria-pressed="false">매도</button></div>
               <div class="qrow"><label for="pQty">계약</label><button class="btn" type="button" id="pMinus" aria-label="한 계약 빼기">−</button><input id="pQty" type="number" inputmode="numeric" min="0" step="1" value="1" aria-label="옵션 계약 수"><button class="btn" type="button" id="pPlus" aria-label="한 계약 더하기">+</button></div>
               <div class="quick" id="pQuick"><button class="btn" type="button" data-q="0.1">10%</button><button class="btn" type="button" data-q="0.25">25%</button><button class="btn" type="button" data-q="0.5">50%</button><button class="btn" type="button" data-q="1">최대</button></div>
               <div class="osum">
-                <div><span>살 때 금액</span><b id="pAmt">0원</b></div>
-                <div><span>팔 때 금액</span><b id="pBid">0원</b></div>
+                <div><span id="pAmtL">살 때 내는 금액</span><b id="pAmt">0원</b></div>
                 <div id="pReqRow" hidden><span>새로 팔 때 맡길 증거금</span><b id="pReq">0원</b></div>
                 <div><span>수수료</span><b id="pFee">0원</b></div>
               </div>
@@ -475,6 +479,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
       <li>주문 칸에서 <b>신용 2배·3배</b>를 고르면 내 돈의 2배·3배만큼 살 수 있어요. 빌린 돈에는 하루 0.04% 이자가 붙고, 팔면 빌린 돈부터 갚아요. 담보비율(현금과 주식 ÷ 빌린 돈)이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).</li>
       <li><b>공매도</b>는 주식을 빌려 지금 값에 팔고, 나중에 <b>상환</b>으로 되사서 갚는 거예요. 값이 내리면 이익, 오르면 손해예요. 판 돈과 판 금액의 50%(증거금)가 담보로 묶이고, 빌린 주식에는 하루 0.02% 이자가 붙어요. 공매도 담보비율(묶인 담보 ÷ 지금 갚을 금액)이 120% 밑이면 강제로 사서 갚아요(강제 상환).</li>
       <li>시세표 맨 위 <b>개미지수</b>를 누르면 <b>선물·옵션</b>을 해요. 선물은 지수가 오를지(매수) 내릴지(매도)에 걸고, 1포인트에 계약당 5,000원씩 벌거나 잃어요. 증거금 10%만 맡기는 10배 레버리지라, 유지증거금 밑으로 떨어지면 현금으로 채우고 모자라면 강제로 청산돼요. 옵션은 만기에 지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이를 받는 권리예요. 사면 낸 값만큼만 잃고, 가진 것 없이 팔면(옵션 매도) 값을 바로 받는 대신 증거금을 맡기고 손실이 끝없이 커질 수 있어요. 만기는 10일마다(10·20·30일차…) 장 마감 때예요.</li>
+      <li>시세표 위쪽 <b>레버리지 ETF</b>는 개미지수 하루 수익률에 배율을 곱해 따라가요(레버리지 ×2, 3배 ×3, 인버스 ×−1, 곱버스 ×−2). 주식처럼 사고팔고, 날마다 배율을 다시 맞춰서 지수가 출렁이면 제자리로 와도 값이 녹아요.</li>
       <li>5분 차트와 시세표의 작은 그래프는 날이 바뀌어도 지난 며칠과 이어져요.</li>
       <li>살 때와 팔 때 수수료 0.015%, 팔 때 세금 0.2%가 붙어요. 고소한식품과 든든은행은 10일마다 배당금을 줘요.</li>
     </ul>
@@ -560,6 +565,15 @@ const DEFS = [
   {id:'RKT', name:'로켓AI',     sector:'AI 테마', price:1850,   sig:0.060, beta:1.5,  amp:1.8, nw:1.5, shares:40e6, desc:'실적은 없지만 AI 테마로 사람이 몰리는 동전주예요. 하루에 상한가도 하한가도 가요.'},
 ];
 const DEF = Object.fromEntries(DEFS.map(d => [d.id, d]));
+// 레버리지·인버스 ETF: 개미지수 하루 수익률에 배율을 곱해 따라간다(날마다 배율을 다시 맞춤)
+const ETFS = [
+  {id:'LV2', name:'개미 레버리지', sector:'ETF ×2',  lev:2,  price:15800, shares:8e6,  desc:'개미지수 하루 수익률의 2배를 따라가는 ETF예요. 지수가 1% 오르면 2% 오르고, 1% 내리면 2% 내려요. 날마다 배율을 다시 맞춰서, 지수가 오르락내리락하면 제자리로 돌아와도 값이 조금씩 녹아요(음의 복리).'},
+  {id:'LV3', name:'개미 3배',     sector:'ETF ×3',  lev:3,  price:9850,  shares:3e6,  desc:'개미지수 하루 수익률의 3배를 따라가는 ETF예요. 크게 벌고 크게 잃어요. 출렁이는 장에서는 녹는 속도도 가장 빨라요.'},
+  {id:'INV', name:'개미 인버스',   sector:'ETF ×−1', lev:-1, price:4950,  shares:2e6,  desc:'개미지수와 반대로 움직이는 ETF예요. 지수가 1% 내리면 1% 올라요. 공매도 없이 하락에 걸 수 있어요.'},
+  {id:'IV2', name:'개미 곱버스',   sector:'ETF ×−2', lev:-2, price:2480,  shares:30e6, desc:'개미지수 하루 수익률의 −2배를 따라가는 ETF예요. 지수가 1% 내리면 2% 올라요. 개미들이 하락에 거는 ‘곱버스’예요. 오래 들고 있으면 녹기 쉬워요.'},
+];
+ETFS.forEach(e => { e.etf = true; DEF[e.id] = e; });
+const ALL = [...ETFS, ...DEFS];   // 화면과 매매에서 쓰는 전체 목록(시세 움직임은 DEFS만)
 
 const TIER = {s:[0.02,0.045], m:[0.05,0.10], b:[0.12,0.22]};
 const NEWS = {
@@ -675,13 +689,55 @@ function newStock(d){
     hiLim:upperLimit(d.price), loLim:lowerLimit(d.price), volume:0, ticks:[], tvols:[], days,
     past: days.slice(-3).map(x => Object.assign({d:x.d}, synthDay(x))), anchor:d.price, imp:[], heat:0};
 }
+/* ---------- 레버리지 ETF ---------- */
+const ETF_FEE = 0.006 / 250;     // 총보수 연 0.6%를 장 마감 때마다 나눠 뗀다
+const etfTick = p => p < 2000 ? 1 : 5;   // ETF 호가 단위
+const roundEtf = p => Math.max(1, Math.round(p / etfTick(p)) * etfTick(p));
+const etfLimits = (e, s) => { s.hiLim = roundEtf(s.prevClose * (1 + 0.3 * Math.abs(e.lev))); s.loLim = Math.max(1, roundEtf(s.prevClose * (1 - Math.min(0.9, 0.3 * Math.abs(e.lev))))); };
+// 지수의 일봉·5분 시세로 ETF의 지난 시세를 만든다(새 게임, 또는 ETF가 없던 저장본)
+function etfInit(e){
+  const st = DEFS.map(d => state.stocks[d.id]), s0 = st[0];
+  const at = get => IDX_BASE * DEFS.reduce((a, d, k) => a + get(st[k]) / d.price, 0) / DEFS.length;
+  const iDays = s0.days.map((x, j) => ({d:x.d, o:at(s => s.days[j].o), h:at(s => s.days[j].h), l:at(s => s.days[j].l), c:at(s => s.days[j].c)}));
+  const days = [], base = {};
+  let nav = 1;
+  iDays.forEach((x, j) => {
+    const pc = j ? iDays[j - 1].c : x.o, f = v => nav * (1 + e.lev * (v / pc - 1));
+    const o = f(x.o), c = f(x.c), a = f(x.h), b = f(x.l);
+    days.push({d:x.d, o, h:Math.max(o, c, a, b), l:Math.min(o, c, a, b), c, v:Math.round(e.shares * Math.exp(0.35 * randn()))});
+    nav = c * (1 - ETF_FEE); base[x.d] = {nav, idx:x.c};
+  });
+  const last = days[days.length - 1], k = e.price / last.c;
+  // d일의 5분 시세: 전날 종가(보수 뺀 값)에서 지수 수익률 × 배율
+  const path = (idx, d) => { const b = base[d - 1] || {nav:1, idx:idx[0] || 1}; return idx.map(I => Math.max(1e-4, b.nav * (1 + e.lev * (I / b.idx - 1))) * k); };
+  const vols = n => Array.from({length:n}, () => Math.round(e.shares / T * Math.exp(0.45 * randn())));
+  const past = s0.past.map((x, j) => ({d:x.d, p:path(x.p.map((_, i) => at(s => s.past[j].p[i])), x.d).map(roundEtf), v:vols(x.p.length)}));
+  const tk = path(s0.ticks.map((_, i) => at(s => s.ticks[i])), state.day);
+  const prevBar = tk.length && last.d === state.day ? days[days.length - 2] : last;
+  const raw = tk.length ? tk[tk.length - 1] : last.c * k, ticks = tk.map(roundEtf), tvols = vols(tk.length), price = roundEtf(raw);
+  const s = {raw, price, prevClose:roundEtf(prevBar.c * k), open:ticks[0] || price, high:Math.max(price, ...ticks), low:Math.min(price, ...ticks),
+    volume:tvols.reduce((a, v) => a + v, 0), ticks, tvols, past:past.slice(-3), anchor:price, imp:[], heat:0, prevNav:last.c * k * (1 - ETF_FEE),
+    days:days.map(x => ({d:x.d, o:roundEtf(x.o * k), h:roundEtf(x.h * k), l:roundEtf(x.l * k), c:roundEtf(x.c * k), v:x.v}))};
+  etfLimits(e, s);
+  return s;
+}
+// 장중: 전날 종가(보수 뺀 값) × (1 + 배율 × 지수 수익률)
+function etfStep(e, s){
+  const prev = s.price;
+  s.raw = Math.max(0.5, s.prevNav * (1 + e.lev * (indexNow() / state.prevIdx - 1)));
+  s.price = Math.min(s.hiLim, Math.max(s.loLim, roundEtf(s.raw)));
+  if (s.price > s.high) s.high = s.price; if (s.price < s.low) s.low = s.price;
+  const v = Math.round(e.shares / T * Math.exp(0.45 * randn()) * (1 + 20 * Math.abs(prev ? s.price / prev - 1 : 0)));
+  s.volume += v; s.ticks.push(s.price); s.tvols.push(v);
+}
 function newRegime(m){ const r = Math.random(); m.mu = r < 0.4 ? 0.0035 : r < 0.75 ? 0 : -0.0035; m.left = 5 + Math.floor(Math.random() * 8); }
 function newGame(){
-  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, short:{}, fut:null, opts:{}, stocks:{}, market:{mu:0, left:0, ewv:0.012 * 0.012 / T, lastI:IDX_BASE},
+  state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, short:{}, fut:null, opts:{}, stocks:{}, market:{mu:0, left:0, ewv:0.012 * 0.012 / T, lastI:IDX_BASE, dvar:0.015 * 0.015},
     news:[], pending:[], morning:[], trades:[], assetHist:[{d:0, v:START}], prevIdx:IDX_BASE, openTotal:START,
     best:START, titleIdx:0, won:false, bust:false, warned:false, sWarned:false, summary:null,
     stats:{trades:0, wins:0, losses:0, realized:0, divs:0, fees:0, bestTrade:0, interest:0, forced:0}};
   DEFS.forEach(d => state.stocks[d.id] = newStock(d));
+  ETFS.forEach(e => state.stocks[e.id] = etfInit(e));
   newRegime(state.market);
   state.morning = [genNews()];
 }
@@ -695,6 +751,7 @@ function migrate(st){
   for (const h of Object.values(st.hold)) if (typeof h.loan !== 'number') h.loan = 0;
   st.stats.interest = st.stats.interest || 0; st.stats.forced = st.stats.forced || 0;
   st.short = st.short || {}; st.fut = st.fut || null; st.opts = st.opts || {};
+  if (!st.market.dvar) st.market.dvar = 0.015 * 0.015;
   if (!st.market.ewv){ st.market.ewv = 0.012 * 0.012 / T; st.market.lastI = IDX_BASE * DEFS.reduce((a, d) => a + st.stocks[d.id].price / d.price, 0) / DEFS.length; }
   return st;
 }
@@ -726,7 +783,7 @@ const fPrice = () => Math.round(indexNow() * 20) / 20;   // 선물 가격: 지�
 const nextExpiry = () => { let e = Math.ceil(Math.max(state.day, 1) / EXP_EVERY) * EXP_EVERY; if (state.phase === 'closed' && state.day === e) e += EXP_EVERY; return e; };
 const ticksLeft = e => (e - state.day) * T + (state.phase === 'open' ? T - state.t : 0);
 // 지수가 최근 얼마나 흔들렸는지(틱마다 지수 수익률 제곱의 지수평균)로 옵션 변동성을 정한다
-const ivTick = () => Math.sqrt(state.market.ewv) * 1.1;
+const ivTick = () => Math.sqrt(Math.max(state.market.ewv, state.market.dvar / T)) * 1.05;
 function updateVol(gap){
   const m = state.market, I = indexNow(), r = Math.log(I / (m.lastI || I));
   if (!gap) m.ewv = Math.min(0.04 * 0.04 / T, Math.max(0.005 * 0.005 / T, 0.995 * m.ewv + 0.005 * r * r));
@@ -798,7 +855,7 @@ function futTrade(dirn, n, kind){
   if (f && Math.sign(f.q) === -dirn){
     const c = Math.min(left, Math.abs(f.q)), sd = Math.sign(f.q), rel = f.margin * c / Math.abs(f.q);
     state.cash += rel + sd * (P - f.entry) * MULT * c;
-    pnl = Math.round(sd * (P - f.entry0) * MULT * c) - fee;
+    pnl = Math.round(sd * (P - f.entry0) * MULT * c) - Math.round(fee * c / n);
     f.margin -= rel; f.q += dirn * c; left -= c;
     if (!f.q) state.fut = null;
   }
@@ -820,9 +877,10 @@ function optTrade(type, K, dirn, n, kind){
   const e = nextExpiry(), key = optKey(type, K, e), q = quote(type, K), px = dirn > 0 ? q.ask : q.bid;
   const amt = Math.round(px * MULT * n), fee = dirn > 0 ? Math.ceil(amt * OFEE) : Math.floor(amt * OFEE);
   state.cash -= fee; state.stats.fees += fee;
-  let o = state.opts[key], left = n, pnl = null;
+  let o = state.opts[key], left = n, pnl = null, c = 0;
   if (o && Math.sign(o.qty) === -dirn){
-    const c = Math.min(left, Math.abs(o.qty)), cAmt = Math.round(px * MULT * c), base = Math.round(o.avg * MULT * c);
+    c = Math.min(left, Math.abs(o.qty));
+    const cAmt = Math.round(px * MULT * c), base = Math.round(o.avg * MULT * c);
     if (o.qty > 0){ state.cash += cAmt; pnl = cAmt - base; }
     else { const rel = o.margin * c / -o.qty; state.cash += rel - cAmt; o.margin -= rel; pnl = base - cAmt; }
     o.qty += dirn * c; left -= c;
@@ -839,7 +897,7 @@ function optTrade(type, K, dirn, n, kind){
   }
   const name = (type === 'C' ? '콜 ' : '풋 ') + num(K);
   if (pnl === null){ state.stats.trades++; logTrade(kind, IDX, n, px, null, name, '계약'); }
-  else { pnl -= fee; state.stats.realized += pnl; recordSale(kind, IDX, n, px, pnl, name, '계약'); }
+  else { pnl -= Math.round(fee * c / n); state.stats.realized += pnl; recordSale(kind, IDX, n, px, pnl, name, '계약'); }
   return {pnl, amt, px};
 }
 // 선물 증거금이 유지증거금 밑이면 전부 강제로 청산한다
@@ -997,6 +1055,7 @@ function tick(){
   for (let i = state.pending.length - 1; i >= 0; i--) if (state.pending[i].at <= state.clock) resolve(state.pending.splice(i, 1)[0]);
   const mk = state.market.mu / T + 0.009 / Math.sqrt(T) * randn();
   DEFS.forEach(d => step(S(d.id), d, mk));
+  ETFS.forEach(e => etfStep(e, S(e.id)));
   updateVol();
   marginCheck(); shortCheck(); futCheck(); optCheck();
   if (state.t % 10 === 0) save();
@@ -1022,6 +1081,13 @@ function openDay(){
     s.open = s.price; s.ticks = [s.price];
     const v = Math.round(d.shares / T * (2 + s.heat)); s.tvols = [v]; s.volume = v;
   }
+  for (const e of ETFS){
+    const s = S(e.id);
+    if (s.ticks.length){ s.past.push({d:state.day - 1, p:s.ticks, v:s.tvols}); if (s.past.length > 3) s.past.shift(); }
+    s.prevClose = s.price; etfLimits(e, s);
+    s.ticks = []; s.tvols = []; s.volume = 0; s.high = 0; s.low = Infinity;
+    etfStep(e, s); s.open = s.price;
+  }
   state.phase = 'open';
   updateVol(true);
   marginCheck(); shortCheck(); futCheck(); optCheck();
@@ -1029,7 +1095,8 @@ function openDay(){
 }
 function closeDay(){
   const movers = DEFS.map(d => { const s = S(d.id); return {id:d.id, p:(s.price - s.prevClose) / s.prevClose, lim: s.price >= s.hiLim ? 'u' : s.price <= s.loLim ? 'd' : ''}; }).sort((a, b) => b.p - a.p);
-  for (const d of DEFS){ const s = S(d.id); s.days.push({d:state.day, o:s.open, h:s.high, l:s.low, c:s.price, v:s.volume}); if (s.days.length > 200) s.days.shift(); }
+  for (const e of ETFS){ const s = S(e.id); s.prevNav = s.raw * (1 - ETF_FEE); }
+  for (const d of ALL){ const s = S(d.id); s.days.push({d:state.day, o:s.open, h:s.high, l:s.low, c:s.price, v:s.volume}); if (s.days.length > 200) s.days.shift(); }
   let interest = 0;
   const lo = loans();
   if (lo){ interest = Math.ceil(lo * CREDIT_RATE); state.cash -= interest; state.stats.interest += interest; }
@@ -1052,6 +1119,7 @@ function closeDay(){
   if (divPaid) pushFeed({tag:'배당', text:`공매도한 종목의 배당금 ${won(divPaid)}을 대신 냈어요`, ids:[], t:state.t}, true);
   state.openTotal = total();
   state.assetHist.push({d:state.day, v:state.openTotal}); if (state.assetHist.length > 400) state.assetHist.shift();
+  { const m = state.market, r = Math.log(indexNow() / state.prevIdx); m.dvar = Math.min(0.06 * 0.06, Math.max(0.006 * 0.006, 0.85 * m.dvar + 0.15 * r * r)); }
   if (--state.market.left <= 0) newRegime(state.market);
   const r = Math.random(), k = r < 0.2 ? 0 : r < 0.75 ? 1 : 2;
   state.morning = Array.from({length:k}, genNews);
@@ -1252,7 +1320,7 @@ const narrow = () => matchMedia('(max-width:1099px)').matches;
 
 function buildList(){
   const box = $('#list');
-  for (const d of [{id:IDX, name:'개미지수', sector:'선물·옵션'}, ...DEFS]){
+  for (const d of [{id:IDX, name:'개미지수', sector:'선물·옵션'}, ...ALL]){
     const b = document.createElement('button');
     b.type = 'button'; b.className = 'row' + (d.id === IDX ? ' idx' : ''); b.dataset.id = d.id;
     b.innerHTML = `<span class="nm"><b>${d.name}</b><small><span class="sect">${d.sector}</span><i class="chip-s held" hidden>보유</i><i class="chip-s shc" hidden>${d.id === IDX ? '옵션' : '공매도'}</i><i class="chip-s lim" hidden></i></small></span>`
@@ -1263,7 +1331,7 @@ function buildList(){
   }
 }
 function updList(){
-  for (const d of [{id:IDX}, ...DEFS]){
+  for (const d of [{id:IDX}, ...ALL]){
     const isI = d.id === IDX, s = isI ? idxObj() : S(d.id), r = rows[d.id], ch = s.price - s.prevClose;
     r.price.textContent = isI ? fmtIdx(s.price) : num(s.price);
     r.chg.textContent = pct(ch / s.prevClose);
@@ -1340,7 +1408,16 @@ function updHeader(){
 }
 let talkAt = -99, talkBucket = '', talkSel = '';
 const IDX_DESC = '열 종목 값을 고르게 묶은 지수예요. 선물은 지수가 오를지 내릴지에 걸고, 옵션은 정해진 값(행사가)보다 오르거나 내리면 돈이 되는 권리를 사요. 1포인트에 계약당 5,000원이에요.';
-let dk = 'fut', optSel = null, chainKey = '';
+let dk = 'fut', optSel = null, chainKey = '', pSide = 'buy';
+// 옵션 수량 기본값: 반대 포지션이 있으면 그걸 다 정리하는 수량, 없으면 고른 쪽 한도의 10%
+function optDefaultQty(){
+  if (!optSel) return 0;
+  const o = state.opts[optKey(optSel.type, optSel.K, nextExpiry())];
+  if (pSide === 'buy' && o && o.qty < 0) return -o.qty;
+  if (pSide === 'sell' && o && o.qty > 0) return o.qty;
+  const m = (pSide === 'buy' ? optBuyCap : optSellCap)(optSel.type, optSel.K);
+  return Math.min(m, Math.max(1, Math.floor(m * 0.1)));
+}
 function updIdx(){
   const o = idxObj(), ch = o.price - o.prevClose, rate = ch / o.prevClose, e = nextExpiry(), tl = ticksLeft(e), f = state.fut;
   $('#sName').textContent = '개미지수'; $('#sSector').textContent = '선물·옵션'; $('#sDesc').textContent = IDX_DESC; $('#sLim').hidden = true;
@@ -1412,17 +1489,21 @@ function updDOrder(){
   const mine = !own ? '' : own.qty > 0 ? ` · 가진 것 <b>매수 ${num(own.qty)}계약</b>(평균 ${fmtPt(own.avg)})` : ` · 판 것 <b>매도 ${num(-own.qty)}계약</b>(평균 ${fmtPt(own.avg)}, 증거금 ${won(own.margin)}, 담보비율 ${fmtRatio(oRatio(own))})`;
   $('#pSel').innerHTML = `<b>${call ? '콜' : '풋'} ${num(K)}</b> · 살 때 <b>${fmtPt(q.ask)}</b> · 팔 때 <b>${fmtPt(q.bid)}</b> · 만기에 지수가 사면 <b>${fmtPt(beB)}</b>보다 ${call ? '높아야' : '낮아야'}, 팔면 <b>${fmtPt(beS)}</b>보다 ${call ? '낮아야' : '높아야'} 이익` + mine;
   const cost = Math.round(q.ask * MULT * n), got = Math.round(q.bid * MULT * n);
-  $('#pAmt').textContent = won(cost); $('#pBid').textContent = won(got); $('#pFee').textContent = won(Math.ceil(Math.max(cost, got) * OFEE));
+  const buyS = pSide === 'buy';
+  document.querySelectorAll('[data-ps]').forEach(b => b.setAttribute('aria-pressed', b.dataset.ps === pSide ? 'true' : 'false'));
+  $('#pAmtL').textContent = buyS ? '살 때 내는 금액' : '팔 때 받는 금액';
+  $('#pAmt').textContent = won(buyS ? cost : got); $('#pFee').textContent = won(buyS ? Math.ceil(cost * OFEE) : Math.floor(got * OFEE));
   // 매도 중 새로 여는 계약에 드는 증거금
   const newShort = Math.max(0, n - (own && own.qty > 0 ? own.qty : 0));
-  $('#pReqRow').hidden = !newShort; $('#pReq').textContent = won(Math.round(optReqPer(type, K, q.mid) * newShort));
+  $('#pReqRow').hidden = buyS || !newShort; $('#pReq').textContent = won(Math.round(optReqPer(type, K, q.mid) * newShort));
   const bcap = optBuyCap(type, K), scap = optSellCap(type, K), pb = $('#pBuy'), ps = $('#pSell');
+  pb.hidden = !buyS; ps.hidden = buyS;
   const longQ = own && own.qty > 0 ? own.qty : 0, shortQ = own && own.qty < 0 ? -own.qty : 0;
   const eb = !open ? '장이 닫혀 있어요' : n <= 0 ? '계약 수를 정해요' : n > bcap ? '현금이 모자라요' : '';
   pb.disabled = !!eb; pb.innerHTML = eb || `${num(n)}계약 매수<small>${!shortQ ? num(cost) + '원 내기' : n > shortQ ? `판 ${num(shortQ)}계약 되사고 ${num(n - shortQ)}계약 새로 사기` : '판 옵션 되사기'}</small>`;
   const es = !open ? '장이 닫혀 있어요' : n <= 0 ? '계약 수를 정해요' : n > scap ? (q.bid <= 0 && !(own && own.qty > 0) ? '팔 값이 없어요' : '증거금이 모자라요') : '';
   ps.disabled = !!es; ps.innerHTML = es || `${num(n)}계약 매도<small>${!longQ ? num(got) + '원 받고 새로 팔기' : n > longQ ? `가진 ${num(longQ)}계약 팔고 ${num(n - longQ)}계약 새로 팔기` : '가진 옵션 팔기'}</small>`;
-  $('#pCan').textContent = `살 수 있는 계약 ${num(bcap)} · 팔 수 있는 계약 ${num(scap)} · 현금 ${won(state.cash)}`;
+  $('#pCan').textContent = `${buyS ? '살 수 있는 계약 ' + num(bcap) : '팔 수 있는 계약 ' + num(scap)} · 현금 ${won(state.cash)}`;
   $('#dNote').textContent = `옵션은 ${e}일차 장 마감(만기)에 개미지수가 행사가보다 높으면(콜) 또는 낮으면(풋) 그 차이 × 5,000원을 받는 권리예요. 사면 낸 값만큼만 잃어요. 가진 것 없이 팔면(옵션 매도) 값을 바로 받지만, 만기에 그 차이를 내줘야 해서 지수가 반대로 크게 움직이면 손실이 끝없이 커질 수 있어요. 그래서 판 옵션에는 증거금(옵션 값 + 지수의 10% 안팎)을 맡기고, 유지증거금 밑으로 떨어지면 현금으로 채우거나 모자라면 강제로 되사요. 만기가 다가올수록 시간 가치가 줄어 판 쪽에 유리해져요.`;
 }
 function updMain(){
@@ -1437,7 +1518,8 @@ function updMain(){
   le.hidden = !lim; le.textContent = lim === 'u' ? '상한가' : '하한가'; le.classList.toggle('dn', lim === 'd');
   const h = state.hold[sel];
   const cells = [['전일', num(s.prevClose)], ['시가', num(s.open)], ['고가', num(s.high), dir(s.high - s.prevClose)], ['저가', num(s.low), dir(s.low - s.prevClose)],
-    ['상한가', num(s.hiLim), 'up'], ['하한가', num(s.loLim), 'down'], ['거래량', num(s.volume) + '주'], ['호가 단위', num(tickSize(s.price)) + '원']];
+    ['상한가', num(s.hiLim), 'up'], ['하한가', num(s.loLim), 'down'], ['거래량', num(s.volume) + '주'], ['호가 단위', num(d.etf ? etfTick(s.price) : tickSize(s.price)) + '원']];
+  if (d.etf) cells.push(['따라가는 것', `개미지수 하루 ×${d.lev < 0 ? '(−' + -d.lev + ')' : d.lev}`], ['총보수', '연 0.6%']);
   let html = cells.map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c || ''}">${v}</dd></div>`).join('');
   if (h){
     const pnl = (s.price - h.avg) * h.qty, r = s.price / h.avg - 1;
@@ -1524,7 +1606,7 @@ function updAcct(){
   set('#aSRatio', fmtRatio(sr), sr < SHORT_WARN ? 'up' : '');
   const dvv = futEquity() + optsValue(), dr = dRatio();
   set('#aDeriv', state.fut || Object.keys(state.opts).length ? won(dvv) : '없음');
-  set('#aFRatio', fmtRatio(dr), dr < 1.3 ? 'up' : '');
+  set('#aFRatio', fmtRatio(dr), fRatio() < 1.3 || minORatio() < 1.15 ? 'up' : '');
   const ti = titleFor(tot); $('#aTitle').textContent = TITLES[ti][1];
   if (ti < TITLES.length - 1){
     const a = Math.max(TITLES[ti][0], ti ? 0 : START), [b, name] = TITLES[ti + 1];
@@ -1532,7 +1614,7 @@ function updAcct(){
     $('#goalBar').style.width = Math.max(0, Math.min(100, (tot - a) / (b - a) * 100)) + '%';
   } else { $('#goalTxt').textContent = '가장 높은 칭호예요. 어디까지 불릴 수 있을까요?'; $('#goalBar').style.width = '100%'; }
   // 가진 주식과 공매도: 목록이 바뀔 때만 줄을 새로 만들고, 틱마다 글자만 바꾼다
-  const ids = DEFS.map(d => d.id).filter(id => state.hold[id]), sids = DEFS.map(d => d.id).filter(id => state.short[id]);
+  const ids = ALL.map(d => d.id).filter(id => state.hold[id]), sids = ALL.map(d => d.id).filter(id => state.short[id]);
   const box = $('#holds');
   const okeys = Object.keys(state.opts).sort();
   const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join() + '|' + sids.join() + '|' + (state.fut ? Math.sign(state.fut.q) : '') + '|' + okeys.map(k => k + Math.sign(state.opts[k].qty)).join();
@@ -1852,20 +1934,21 @@ $('#holds').addEventListener('click', e => {
   const k = b.dataset.kind;
   if (k === 'S' && side !== 'cover') setSide('cover');
   if (k === 'F') dk = 'fut';
-  if (k === 'O'){ const o = state.opts[b.dataset.ok]; dk = 'opt'; if (o) optSel = {type:o.type, K:o.K}; }
+  if (k === 'O'){ const o = state.opts[b.dataset.ok]; dk = 'opt'; if (o){ optSel = {type:o.type, K:o.K}; pSide = o.qty > 0 ? 'sell' : 'buy'; $('#pQty').value = optDefaultQty(); } }
   select(b.dataset.id, true);
 });
 // 선물·옵션 주문
 const dDone = () => { milestones(); save(); render(true); };
 document.querySelectorAll('[data-dk]').forEach(b => b.addEventListener('click', () => { dk = b.dataset.dk; updDOrder(); }));
-$('#chain').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; optSel = {type:b.dataset.t, K:+b.dataset.k}; const m = optBuyCap(optSel.type, optSel.K); $('#pQty').value = Math.min(m, Math.max(1, Math.floor(m * 0.1))); updDOrder(); });
+$('#chain').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; optSel = {type:b.dataset.t, K:+b.dataset.k}; $('#pQty').value = optDefaultQty(); updDOrder(); });
+document.querySelectorAll('[data-ps]').forEach(b => b.addEventListener('click', () => { pSide = b.dataset.ps; $('#pQty').value = optDefaultQty(); updDOrder(); }));
 for (const [inp, minus, plus] of [['#fQty', '#fMinus', '#fPlus'], ['#pQty', '#pMinus', '#pPlus']]){
   $(inp).addEventListener('input', updDOrder);
   $(minus).addEventListener('click', () => { $(inp).value = Math.max(0, intOf($(inp)) - 1); updDOrder(); });
   $(plus).addEventListener('click', () => { $(inp).value = intOf($(inp)) + 1; updDOrder(); });
 }
 $('#fQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; const f = state.fut, m = futCap(1) - (f && f.q < 0 ? -f.q : 0); $('#fQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
-$('#pQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !optSel) return; const m = Math.max(optBuyCap(optSel.type, optSel.K), optSellCap(optSel.type, optSel.K)); $('#pQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
+$('#pQuick').addEventListener('click', e => { const b = e.target.closest('button'); if (!b || !optSel) return; const m = (pSide === 'buy' ? optBuyCap : optSellCap)(optSel.type, optSel.K); $('#pQty').value = m ? Math.max(1, Math.floor(m * +b.dataset.q)) : 0; updDOrder(); });
 for (const [id, d] of [['#fBuy', 1], ['#fSell', -1]]) $(id).addEventListener('click', () => {
   const n = intOf($('#fQty'));
   if (state.phase !== 'open' || n <= 0 || n > futCap(d)) return;
@@ -1937,7 +2020,7 @@ $('#resetBtn').addEventListener('click', e => {
 function restart(){
   newGame(); holdKey = tradeKey = null; unseen = 0; $('#newsBadge').hidden = true;
   closeOv.hidden = true; buildFeed(); save();
-  DEFS.forEach(d => rows[d.id].last = null);
+  ALL.forEach(d => rows[d.id].last = null);
   openDay(); paused = false; select(sel, false);
   toast('1,000만원으로 새로 시작해요');
 }
@@ -1977,6 +2060,7 @@ function start(data){
   settings = loadSettings();
   const saved = (data && valid(data.state) && data.state) || loadSaved();
   if (saved) state = migrate(saved); else newGame();
+  ETFS.forEach(e => { if (!state.stocks[e.id]) state.stocks[e.id] = etfInit(e); });
   sel = DEF[settings.sel] || settings.sel === IDX ? settings.sel : 'BYS';
   $('#sndBtn').setAttribute('aria-pressed', settings.sound ? 'true' : 'false');
   if (!SPEEDS.includes(settings.speed)) settings.speed = 1;
