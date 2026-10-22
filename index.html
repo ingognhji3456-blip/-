@@ -170,6 +170,13 @@ ol,ul{margin:0; padding:0; list-style:none}
 .go.sell{background:var(--down)}
 .go:disabled{background:var(--line); color:var(--muted); cursor:not-allowed}
 .can{font-size:12px; color:var(--muted); text-align:center}
+.pay{display:grid; grid-template-columns:repeat(3,1fr)}
+.pay button{font-family:var(--f-body); font-size:13px; height:32px; padding:0 4px}
+.pay button[data-lev="2"][aria-pressed="true"],.pay button[data-lev="3"][aria-pressed="true"]{background:var(--up); color:var(--on-sem)}
+.cnote{font-size:12px; line-height:1.45; color:var(--up); background:var(--up-bg); border-radius:8px; padding:7px 9px}
+.mg{font-size:12px; font-weight:700; padding:1px 7px; border-radius:6px; border:1px solid var(--line); color:var(--muted); white-space:nowrap}
+.mg.warn{background:var(--up); border-color:var(--up); color:var(--on-sem)}
+.held.cr{background:var(--up-bg); color:var(--up)}
 
 /* 계좌 */
 .sumgrid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px 14px; padding:12px 14px}
@@ -276,6 +283,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
   .top{display:grid; grid-template-columns:auto minmax(0,1fr) auto; grid-template-areas:"brand when ctl" "tot tot tools"; gap:6px 10px; align-items:center}
   .brand{grid-area:brand} .when{grid-area:when; min-width:0} .ctl{grid-area:ctl} .tools{grid-area:tools} .stat.tot{grid-area:tot; min-width:0} .stat.idx{display:none}
   .bname,.dprog{display:none}
+  .stat.tot{overflow:hidden} .stat.tot:has(.mg:not([hidden])) .lbl{display:none}
   .btn.icon,.btn.spd{height:32px} .btn.icon{width:32px}
   .sh h2{font-size:22px}
   .bigpx b{font-size:26px}
@@ -303,7 +311,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
       <span class="dprog" aria-hidden="true"><i id="dprog"></i></span>
     </div>
     <div class="stat idx"><span class="lbl">개미지수</span><b id="idxVal">2,500.00</b><span class="num" id="idxChg">0.00%</span></div>
-    <div class="stat tot"><span class="ttl" id="titleLbl">새내기 개미</span><span><span class="lbl">총자산</span> <b id="totVal">1,000만원</b> <span class="num" id="totChg">0.00%</span></span></div>
+    <div class="stat tot"><span class="ttl" id="titleLbl">새내기 개미</span><span><span class="lbl">총자산</span> <b id="totVal">1,000만원</b> <span class="num" id="totChg">0.00%</span></span><span class="mg" id="mgLbl" hidden></span></div>
     <div class="ctl">
       <button class="btn icon" id="playBtn" type="button" aria-label="멈춤"></button>
       <button class="btn spd" id="spdBtn" type="button" aria-label="빠르기 1배, 누르면 바뀌어요">1×</button>
@@ -331,7 +339,7 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
         </div>
         <p class="desc" id="sDesc"></p>
         <div class="ctabs">
-          <div class="seg" role="group" aria-label="차트 종류"><button type="button" data-ch="min" aria-pressed="true">오늘(5분)</button><button type="button" data-ch="day" aria-pressed="false">일봉</button></div>
+          <div class="seg" role="group" aria-label="차트 종류"><button type="button" data-ch="min" aria-pressed="true">5분</button><button type="button" data-ch="day" aria-pressed="false">일봉</button></div>
           <div class="ckey" id="ckey"></div>
         </div>
         <div class="chartbox"><canvas id="chart" role="img" aria-label="주가 차트"></canvas></div>
@@ -340,14 +348,17 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
           <dl class="info" id="info"></dl>
           <div class="order">
             <div class="side" role="group" aria-label="주문 종류"><button type="button" class="buy" data-side="buy" aria-pressed="true">매수</button><button type="button" class="sell" data-side="sell" aria-pressed="false">매도</button></div>
+            <div class="pay seg" role="group" aria-label="결제 방식" id="payRow"><button type="button" data-lev="1" aria-pressed="true">현금</button><button type="button" data-lev="2" aria-pressed="false">신용 2배</button><button type="button" data-lev="3" aria-pressed="false">신용 3배</button></div>
             <div class="qrow"><label for="qty">수량</label><button class="btn" type="button" id="qMinus" aria-label="한 주 빼기">−</button><input id="qty" type="number" inputmode="numeric" min="0" step="1" value="10" aria-label="주문 수량(주)"><button class="btn" type="button" id="qPlus" aria-label="한 주 더하기">+</button></div>
             <div class="quick"><button class="btn" type="button" data-q="0.1">10%</button><button class="btn" type="button" data-q="0.25">25%</button><button class="btn" type="button" data-q="0.5">50%</button><button class="btn" type="button" data-q="1">최대</button></div>
             <div class="osum">
               <div><span>주문 금액</span><b id="oAmt">0원</b></div>
+              <div id="oLoanRow" hidden><span id="oLoanL">빌리는 돈(신용)</span><b id="oLoan">0원</b></div>
               <div><span id="oFeeL">수수료</span><b id="oFee">0원</b></div>
               <div><span>주문 뒤 현금</span><b id="oAfter">0원</b></div>
               <div id="oPnlRow" hidden><span>팔면 손익</span><b id="oPnl">0원</b></div>
             </div>
+            <p class="cnote" id="oNote" hidden></p>
             <button class="go" type="button" id="goBtn">매수하기</button>
             <p class="can" id="oCan"></p>
           </div>
@@ -363,6 +374,8 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
           <div class="big"><span class="lbl">총 수익률</span><b id="aRet">0.00%</b></div>
           <div><span class="lbl">현금</span><b id="aCash">0원</b></div>
           <div><span class="lbl">주식 평가</span><b id="aStock">0원</b></div>
+          <div><span class="lbl">신용 대출</span><b id="aLoan">없음</b></div>
+          <div><span class="lbl">담보비율</span><b id="aRatio">-</b></div>
           <div><span class="lbl">오늘 손익</span><b id="aToday">0원</b></div>
           <div><span class="lbl">실현 손익</span><b id="aReal">0원</b></div>
         </div>
@@ -397,12 +410,14 @@ kbd{font-family:var(--f-num); font-size:11px; border:1px solid var(--line); bord
     <p class="eyebrow">하는 법</p>
     <h2 id="hTitle">1,000만원으로 10억 만들기</h2>
     <ul class="rules">
-      <li>가상 종목 10개를 사고팔아 총자산을 불려요. 10억을 넘기면 ‘전설의 개미’가 돼요.</li>
+      <li>가상 종목 10개를 사고팔아 총자산(빌린 돈은 뺀 금액)을 불려요. 10억을 넘기면 ‘전설의 개미’가 돼요.</li>
       <li>장은 9시에 열려 15시 30분에 닫혀요. 1배속이면 하루가 50초쯤이에요. 장이 열려 있을 때만 사고팔 수 있어요.</li>
       <li><b class="up">빨간색</b>은 올랐다, <b class="down">파란색</b>은 내렸다는 뜻이에요. 한 종목은 하루에 전날 종가보다 30%까지만 오르고(상한가) 30%까지만 내려요(하한가).</li>
       <li>뉴스가 주가를 움직여요. 뉴스가 뜨는 순간 일부가 바로 반영되고, 나머지는 몇십 분에 걸쳐 따라와요.</li>
       <li>[지라시]는 반은 사실, 반은 거짓이에요. 나중에 공시나 해명이 나오면 크게 움직여요.</li>
       <li>좋은 소식에 너무 오르면 차익 실현으로 다시 밀리기도 하고, 나쁜 소식 뒤에 반등하기도 해요.</li>
+      <li>주문 칸에서 <b>신용 2배·3배</b>를 고르면 내 돈의 2배·3배만큼 살 수 있어요. 빌린 돈에는 하루 0.04% 이자가 붙고, 팔면 빌린 돈부터 갚아요. 담보비율(현금과 주식 ÷ 빌린 돈)이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).</li>
+      <li>5분 차트와 시세표의 작은 그래프는 날이 바뀌어도 지난 며칠과 이어져요.</li>
       <li>살 때와 팔 때 수수료 0.015%, 팔 때 세금 0.2%가 붙어요. 고소한식품과 든든은행은 10일마다 배당금을 줘요.</li>
     </ul>
     <p class="keys"><kbd>Space</kbd> 멈춤·계속 · <kbd>B</kbd> 매수 · <kbd>S</kbd> 매도 · 진행 상황은 이 브라우저에 저절로 저장돼요.</p>
@@ -455,6 +470,10 @@ const FEE = 0.00015;          // 살 때·팔 때 수수료
 const TAX = 0.002;            // 팔 때 세금
 const DIV_EVERY = 10;         // 배당 주기(일)
 const IDX_BASE = 2500;
+const CREDIT_RATE = 0.0004;   // 신용 이자: 하루 0.04%(연 10% 안팎)
+const MAINT = 1.4;            // 담보비율이 이 밑이면 반대매매
+const NEW_MIN = 1.45;         // 신용으로 새로 살 때 지켜야 하는 담보비율
+const SAFE = 1.6;             // 이 밑이면 경고
 const KEY = 'yeouido-gaemi-v1', KEY_SET = 'yeouido-gaemi-settings';
 
 const DEFS = [
@@ -571,21 +590,41 @@ function history(d){
   const k = d.price / p;
   return arr.map((x, i) => ({d: i - 39, o: roundTick(x.o * k), h: roundTick(x.h * k), l: roundTick(x.l * k), c: i === 39 ? d.price : roundTick(x.c * k), v: x.v}));
 }
+// 일봉 하나를 5분 시세로 풀어낸다(시작하기 전 날들을 5분 차트에 채우는 데 쓴다)
+function synthDay(x){
+  const w = [0]; for (let i = 1; i <= T; i++) w.push(w[i - 1] + randn());
+  const b = w.map((v, i) => v - w[T] * i / T), m = Math.max(1e-9, ...b.map(Math.abs)), k = (x.h - x.l) * 0.45 / m;
+  const p = b.map((v, i) => Math.min(x.h, Math.max(x.l, roundTick(x.o + (x.c - x.o) * i / T + k * v))));
+  p[0] = x.o; p[T] = x.c;
+  return {p, v: p.map(() => Math.round(x.v / (T + 1) * Math.exp(0.45 * randn())))};
+}
 function newStock(d){
+  const days = history(d);
   return {raw:d.price, price:d.price, prevClose:d.price, open:d.price, high:d.price, low:d.price,
-    hiLim:upperLimit(d.price), loLim:lowerLimit(d.price), volume:0, ticks:[], tvols:[], days:history(d), anchor:d.price, imp:[], heat:0};
+    hiLim:upperLimit(d.price), loLim:lowerLimit(d.price), volume:0, ticks:[], tvols:[], days,
+    past: days.slice(-3).map(x => Object.assign({d:x.d}, synthDay(x))), anchor:d.price, imp:[], heat:0};
 }
 function newRegime(m){ const r = Math.random(); m.mu = r < 0.4 ? 0.0035 : r < 0.75 ? 0 : -0.0035; m.left = 5 + Math.floor(Math.random() * 8); }
 function newGame(){
   state = {v:1, day:0, t:0, clock:0, phase:'closed', cash:START, hold:{}, stocks:{}, market:{mu:0, left:0},
     news:[], pending:[], morning:[], trades:[], assetHist:[{d:0, v:START}], prevIdx:IDX_BASE, openTotal:START,
-    best:START, titleIdx:0, won:false, bust:false, summary:null,
-    stats:{trades:0, wins:0, losses:0, realized:0, divs:0, fees:0, bestTrade:0}};
+    best:START, titleIdx:0, won:false, bust:false, warned:false, summary:null,
+    stats:{trades:0, wins:0, losses:0, realized:0, divs:0, fees:0, bestTrade:0, interest:0, forced:0}};
   DEFS.forEach(d => state.stocks[d.id] = newStock(d));
   newRegime(state.market);
   state.morning = [genNews()];
 }
 function valid(st){ return st && st.v === 1 && st.stocks && DEFS.every(d => st.stocks[d.id] && Array.isArray(st.stocks[d.id].ticks)); }
+// 예전 저장본에 새로 생긴 칸(지난 5분 시세, 신용 대출)을 채운다
+function migrate(st){
+  for (const d of DEFS){
+    const s = st.stocks[d.id];
+    if (!Array.isArray(s.past)) s.past = s.days.filter(x => !(s.ticks.length && x.d === st.day)).slice(-3).map(x => Object.assign({d:x.d}, synthDay(x)));
+  }
+  for (const h of Object.values(st.hold)) if (typeof h.loan !== 'number') h.loan = 0;
+  st.stats.interest = st.stats.interest || 0; st.stats.forced = st.stats.forced || 0;
+  return st;
+}
 function save(){ try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) { /* 저장할 수 없으면 이번 판만 이어 간다 */ } }
 function saveSettings(){ try { localStorage.setItem(KEY_SET, JSON.stringify(settings)); } catch (e) {} }
 function loadSaved(){ try { const st = JSON.parse(localStorage.getItem(KEY)); return valid(st) ? st : null; } catch (e) { return null; } }
@@ -595,7 +634,10 @@ function loadSettings(){
 }
 
 const holdValue = () => Object.entries(state.hold).reduce((a, [id, h]) => a + h.qty * S(id).price, 0);
-const total = () => state.cash + holdValue();
+const loans = () => Object.values(state.hold).reduce((a, h) => a + (h.loan || 0), 0);
+const total = () => state.cash + holdValue() - loans();
+const ratio = () => { const l = loans(); return l ? (state.cash + holdValue()) / l : Infinity; };
+const fmtRatio = r => r === Infinity ? '-' : Math.floor(r * 100) + '%';
 const indexNow = () => IDX_BASE * DEFS.reduce((a, d) => a + S(d.id).price / d.price, 0) / DEFS.length;
 const titleFor = v => { let i = 0; TITLES.forEach((t, k) => { if (v >= t[0]) i = k; }); return i; };
 
@@ -669,6 +711,7 @@ function tick(){
   for (let i = state.pending.length - 1; i >= 0; i--) if (state.pending[i].at <= state.clock) resolve(state.pending.splice(i, 1)[0]);
   const mk = state.market.mu / T + 0.009 / Math.sqrt(T) * randn();
   DEFS.forEach(d => step(S(d.id), d, mk));
+  marginCheck();
   if (state.t % 10 === 0) save();
   milestones();
   if (state.t >= T) closeDay();
@@ -681,6 +724,8 @@ function openDay(){
     const s = S(d.id);
     s.prevClose = s.price; s.hiLim = upperLimit(s.price); s.loLim = lowerLimit(s.price);
     s.raw = clampRaw(s, s.price * Math.exp(d.sig * 0.25 * randn()));
+    // 어제 5분 시세는 버리지 않고 쌓아 둔다(최근 사흘)
+    if (s.ticks.length){ s.past.push({d:state.day - 1, p:s.ticks, v:s.tvols}); if (s.past.length > 3) s.past.shift(); }
     s.volume = 0; s.ticks = []; s.tvols = [];
   }
   const morning = state.morning; state.morning = [];
@@ -691,11 +736,15 @@ function openDay(){
     const v = Math.round(d.shares / T * (2 + s.heat)); s.tvols = [v]; s.volume = v;
   }
   state.phase = 'open';
+  marginCheck();
   save();
 }
 function closeDay(){
   const movers = DEFS.map(d => { const s = S(d.id); return {id:d.id, p:(s.price - s.prevClose) / s.prevClose, lim: s.price >= s.hiLim ? 'u' : s.price <= s.loLim ? 'd' : ''}; }).sort((a, b) => b.p - a.p);
   for (const d of DEFS){ const s = S(d.id); s.days.push({d:state.day, o:s.open, h:s.high, l:s.low, c:s.price, v:s.volume}); if (s.days.length > 200) s.days.shift(); }
+  let interest = 0;
+  const lo = loans();
+  if (lo){ interest = Math.ceil(lo * CREDIT_RATE); state.cash -= interest; state.stats.interest += interest; }
   const tot = total(), idx = indexNow();
   let div = 0;
   if (state.day % DIV_EVERY === 0){
@@ -703,7 +752,7 @@ function closeDay(){
     if (div){ state.cash += div; state.stats.divs += div; }
   }
   state.summary = {day:state.day, pnl: tot - state.openTotal, base: state.openTotal, tot: tot + div, idx, idxChg: idx / state.prevIdx - 1,
-    up: movers.slice(0, 3), down: movers.slice(-3).reverse(), div, divDay: state.day % DIV_EVERY === 0};
+    up: movers.slice(0, 3), down: movers.slice(-3).reverse(), div, divDay: state.day % DIV_EVERY === 0, interest};
   if (div) pushFeed({tag:'배당', text:`배당금 ${won(div)}이 들어왔어요`, ids:[], t:state.t}, true);
   state.openTotal = total();
   state.assetHist.push({d:state.day, v:state.openTotal}); if (state.assetHist.length > 400) state.assetHist.shift();
@@ -739,44 +788,86 @@ function milestones(){
 }
 
 /* ---------- 매매 ---------- */
-let side = 'buy', sel = 'BYS';
+let side = 'buy', sel = 'BYS', lev = 1;
 const qtyEl = $('#qty');
 const getQty = () => Math.max(0, Math.floor(+qtyEl.value || 0));
-const maxBuy = p => Math.floor(state.cash / (p * (1 + FEE)));
+const maxBuy = p => Math.max(0, Math.floor(state.cash / (p * (1 + FEE))));
+// 신용: 낼 수 있는 증거금(현금)과 담보비율 145% 두 조건 중 작은 쪽
+function creditCap(p, L){
+  if (state.cash <= 0) return 0;
+  const byCash = Math.floor(state.cash / (p * (1 / L + FEE)));
+  const byRatio = Math.floor((state.cash + holdValue() - NEW_MIN * loans()) / ((NEW_MIN - 1) * p * (1 - 1 / L)));
+  return Math.max(0, Math.min(byCash, byRatio));
+}
+const buyCap = p => lev > 1 ? creditCap(p, lev) : maxBuy(p);
+const defaultQty = () => { const m = buyCap(S(sel).price); return Math.min(m, Math.max(1, Math.floor(m * 0.1))); };
 function trade(){
   const s = S(sel), d = DEF[sel], q = getQty();
   if (state.phase !== 'open') return toast('장이 닫혀 있어요. 다음 날 9시에 열려요');
   if (q <= 0) return toast('수량을 정해 주세요');
   if (side === 'buy'){
-    const amt = s.price * q, fee = Math.floor(amt * FEE);
-    if (amt + fee > state.cash){ sfx.err(); return toast('현금이 모자라요'); }
-    state.cash -= amt + fee; state.stats.fees += fee;
-    const h = state.hold[sel] || {qty:0, avg:0};
-    h.avg = (h.avg * h.qty + amt) / (h.qty + q); h.qty += q; state.hold[sel] = h;
-    logTrade('b', q, s.price, null);
-    toast(`${d.name} ${num(q)}주 샀어요 · ${won(amt)}`, 'b'); sfx.buy();
+    if (q > buyCap(s.price)){ sfx.err(); return toast(lev > 1 ? '현금이나 담보가 모자라요' : '현금이 모자라요'); }
+    const amt = s.price * q, fee = Math.floor(amt * FEE), loan = lev > 1 ? Math.round(amt * (1 - 1 / lev)) : 0;
+    state.cash -= amt - loan + fee; state.stats.fees += fee; state.stats.trades++;
+    const h = state.hold[sel] || {qty:0, avg:0, loan:0};
+    h.avg = (h.avg * h.qty + amt) / (h.qty + q); h.qty += q; h.loan = (h.loan || 0) + loan; state.hold[sel] = h;
+    logTrade(loan ? 'c' : 'b', sel, q, s.price, null);
+    toast(loan ? `${d.name} ${num(q)}주 신용 매수 · ${wonKo(loan)} 빌렸어요` : `${d.name} ${num(q)}주 샀어요 · ${won(amt)}`, 'b'); sfx.buy();
   } else {
     const h = state.hold[sel];
     if (!h || h.qty < q){ sfx.err(); return toast('가진 주식보다 많이 팔 수 없어요'); }
-    const amt = s.price * q, fee = Math.floor(amt * FEE), tax = Math.floor(amt * TAX), pnl = (s.price - h.avg) * q - fee - tax;
-    state.cash += amt - fee - tax; state.stats.fees += fee + tax; state.stats.realized += pnl;
-    if (pnl >= 0) state.stats.wins++; else state.stats.losses++;
-    if (pnl > state.stats.bestTrade) state.stats.bestTrade = pnl;
-    h.qty -= q; if (!h.qty) delete state.hold[sel];
-    logTrade('s', q, s.price, pnl);
-    toast(`${d.name} ${num(q)}주 팔았어요 · 손익 ${swon(pnl)}`, 's'); sfx.sell();
+    const {pnl, repay} = sellShares(sel, q, 's');
+    toast(`${d.name} ${num(q)}주 팔았어요 · 손익 ${swon(pnl)}` + (repay ? ` · 대출 ${wonKo(repay)} 갚음` : ''), 's'); sfx.sell();
     if (!state.hold[sel]) qtyEl.value = 0;
   }
-  state.stats.trades++;
   milestones(); save(); render(true);
 }
-function logTrade(k, q, p, pnl){
-  state.trades.unshift({k, id:sel, q, p, pnl, d:state.day, t:state.t});
+// 팔면 판 만큼 신용 대출부터 갚는다. quiet이면 기록은 부른 쪽에서 한 번에 남긴다
+function sellShares(id, q, kind, quiet){
+  const s = S(id), h = state.hold[id];
+  const amt = s.price * q, fee = Math.floor(amt * FEE), tax = Math.floor(amt * TAX), pnl = (s.price - h.avg) * q - fee - tax;
+  const repay = h.loan ? Math.round(h.loan * q / h.qty) : 0;
+  state.cash += amt - fee - tax - repay; h.loan -= repay;
+  state.stats.fees += fee + tax; state.stats.realized += pnl;
+  h.qty -= q; if (!h.qty) delete state.hold[id];
+  if (!quiet) recordSale(kind, id, q, s.price, pnl);
+  return {pnl, repay};
+}
+function recordSale(kind, id, q, p, pnl){
+  state.stats.trades++;
+  if (pnl >= 0) state.stats.wins++; else state.stats.losses++;
+  if (pnl > state.stats.bestTrade) state.stats.bestTrade = pnl;
+  logTrade(kind, id, q, p, pnl);
+}
+// 담보비율이 140% 밑이면 대출이 큰 종목부터 조금씩 강제로 팔아 150%까지 되돌린다
+function marginCheck(){
+  if (!loans()){ state.warned = false; return; }
+  let r = ratio();
+  if (r < MAINT){
+    const sold = {};
+    while (r < 1.5 && loans() > 0){
+      const id = Object.keys(state.hold).filter(k => state.hold[k].loan > 0).sort((a, b) => state.hold[b].loan - state.hold[a].loan)[0];
+      const h = state.hold[id], q = Math.min(h.qty, Math.max(1, Math.ceil(h.qty * 0.1)));
+      const x = sold[id] || (sold[id] = {q:0, pnl:0});
+      x.q += q; x.pnl += sellShares(id, q, 'f', true).pnl; r = ratio();
+    }
+    Object.entries(sold).forEach(([id, x]) => recordSale('f', id, x.q, S(id).price, x.pnl));
+    const txt = Object.entries(sold).map(([id, x]) => `${DEF[id].name} ${num(x.q)}주`).join(', ');
+    state.stats.forced++; state.warned = false;
+    pushFeed({tag:'반대매매', text:`담보비율이 140% 밑으로 떨어져 ${txt}를 강제로 팔았어요`, ids:Object.keys(sold), big:false, t:state.t}, true);
+    toast(`반대매매 · ${txt}를 강제로 팔았어요`, 's'); sfx.err();
+    qtyEl.value = side === 'sell' ? (state.hold[sel] ? state.hold[sel].qty : 0) : defaultQty();
+  } else if (r < SAFE){
+    if (!state.warned){ state.warned = true; toast(`담보비율 ${fmtRatio(r)} · 140% 밑이면 반대매매돼요`, 's'); }
+  } else state.warned = false;
+}
+function logTrade(k, id, q, p, pnl){
+  state.trades.unshift({k, id, q, p, pnl, d:state.day, t:state.t});
   if (state.trades.length > 30) state.trades.length = 30;
 }
 function quick(f){
   const s = S(sel), h = state.hold[sel];
-  const cap = side === 'buy' ? maxBuy(s.price) : (h ? h.qty : 0);
+  const cap = side === 'buy' ? buyCap(s.price) : (h ? h.qty : 0);
   qtyEl.value = cap ? Math.max(1, Math.floor(cap * f)) : 0;
   updOrder();
 }
@@ -829,18 +920,23 @@ function updList(){
     r.chg.textContent = pct(ch / s.prevClose);
     r.px.className = 'px ' + dir(ch);
     r.poly.parentNode.setAttribute('class', 'spark ' + dir(ch));
-    const tk = s.ticks.length ? s.ticks : [s.price];
+    // 날이 바뀌어도 비우지 않고 최근 78틱(6시간 반)을 어제와 이어서 보여 준다
+    const prev = s.past.length ? s.past[s.past.length - 1].p : [];
+    const tk = prev.concat(s.ticks).slice(-(T + 1));
+    if (!tk.length) tk.push(s.price);
     let lo = s.prevClose, hi = s.prevClose;
     for (const p of tk){ if (p < lo) lo = p; if (p > hi) hi = p; }
-    const span = Math.max(hi - lo, s.prevClose * 0.01), mid = (hi + lo) / 2;
+    const span = Math.max(hi - lo, s.prevClose * 0.01), mid = (hi + lo) / 2, sx = T / Math.max(1, tk.length - 1);
     const Y = p => (13 - (p - mid) / span * 22).toFixed(1);
-    r.poly.setAttribute('points', tk.map((p, i) => i + ',' + Y(p)).join(' '));
+    r.poly.setAttribute('points', tk.map((p, i) => (i * sx).toFixed(1) + ',' + Y(p)).join(' '));
     r.base.setAttribute('y1', Y(s.prevClose)); r.base.setAttribute('y2', Y(s.prevClose));
     if (r.last !== null && s.price !== r.last && !reduced && settings.speed < 4){
       r.el.classList.remove('f-up', 'f-dn'); void r.el.offsetWidth; r.el.classList.add(s.price > r.last ? 'f-up' : 'f-dn');
     }
     r.last = s.price;
-    r.held.hidden = !state.hold[d.id];
+    const hh = state.hold[d.id];
+    r.held.hidden = !hh;
+    if (hh){ r.held.textContent = hh.loan > 0 ? '신용' : '보유'; r.held.classList.toggle('cr', hh.loan > 0); }
     const lim = s.price >= s.hiLim ? 'u' : s.price <= s.loLim ? 'd' : '';
     r.lim.hidden = !lim; r.lim.textContent = lim === 'u' ? '상한가' : '하한가'; r.lim.classList.toggle('dn', lim === 'd');
     r.el.setAttribute('aria-current', d.id === sel ? 'true' : 'false');
@@ -863,6 +959,9 @@ function updHeader(){
   $('#totVal').textContent = wonKo(tot);
   $('#totChg').textContent = pct(tr); $('#totChg').className = 'num ' + dir(tr);
   $('#titleLbl').textContent = TITLES[titleFor(tot)][1];
+  const rt = ratio(), mg = $('#mgLbl');
+  mg.hidden = rt === Infinity;
+  if (!mg.hidden){ mg.textContent = '담보 ' + fmtRatio(rt); mg.classList.toggle('warn', rt < SAFE); }
   const pb = $('#playBtn');
   pb.innerHTML = paused || !open ? '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M4 2.5v11l9-5.5z"/></svg>' : '<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M3.5 2.5h3v11h-3zM9.5 2.5h3v11h-3z"/></svg>';
   pb.setAttribute('aria-label', paused || !open ? '계속' : '멈춤');
@@ -881,7 +980,7 @@ function updMain(){
   let html = cells.map(([k, v, c]) => `<div><dt>${k}</dt><dd class="${c || ''}">${v}</dd></div>`).join('');
   if (h){
     const pnl = (s.price - h.avg) * h.qty, r = s.price / h.avg - 1;
-    html += `<p class="mine">${num(h.qty)}주를 평균 <b class="num">${num(h.avg)}</b>원에 갖고 있어요. 평가손익 <b class="num ${dir(pnl)}">${swon(pnl)} (${pct(r)})</b></p>`;
+    html += `<p class="mine">${num(h.qty)}주를 평균 <b class="num">${num(h.avg)}</b>원에 갖고 있어요. 평가손익 <b class="num ${dir(pnl)}">${swon(pnl)} (${pct(r)})</b>${h.loan > 0 ? ` 그중 <b class="num">${wonKo(h.loan)}</b>은 신용으로 빌린 돈이에요.` : ''}</p>`;
   } else html += `<p class="mine">아직 이 종목은 없어요. 오른쪽에서 수량을 정해 사 보세요.</p>`;
   $('#info').innerHTML = html;
   // 종토방
@@ -891,14 +990,23 @@ function updMain(){
   drawChart();
 }
 function updOrder(){
-  const s = S(sel), h = state.hold[sel], q = getQty(), buy = side === 'buy';
+  const s = S(sel), h = state.hold[sel], q = getQty(), buy = side === 'buy', cr = buy && lev > 1;
   const amt = s.price * q, fee = Math.floor(amt * FEE), tax = buy ? 0 : Math.floor(amt * TAX);
+  const loan = cr ? Math.round(amt * (1 - 1 / lev)) : 0;
+  const repay = !buy && h && h.loan > 0 && q ? Math.round(h.loan * Math.min(q, h.qty) / h.qty) : 0;
+  $('#payRow').hidden = !buy;
   $('#oAmt').textContent = won(amt);
+  $('#oLoanRow').hidden = !(cr || repay);
+  $('#oLoanL').textContent = cr ? '빌리는 돈(신용)' : '갚을 신용 대출';
+  $('#oLoan').textContent = won(cr ? loan : repay);
   $('#oFeeL').textContent = buy ? '수수료' : '수수료·세금';
   $('#oFee').textContent = won(fee + tax);
-  $('#oAfter').textContent = won(buy ? state.cash - amt - fee : state.cash + amt - fee - tax);
-  const can = buy ? maxBuy(s.price) : (h ? h.qty : 0);
-  $('#oCan').textContent = (buy ? '살 수 있는 수량 ' : '팔 수 있는 수량 ') + num(can) + '주 · 현금 ' + won(state.cash);
+  $('#oAfter').textContent = won(buy ? state.cash - (amt - loan) - fee : state.cash + amt - fee - tax - repay);
+  const can = buy ? buyCap(s.price) : (h ? h.qty : 0);
+  $('#oCan').textContent = (buy ? (cr ? `신용 ${lev}배로 살 수 있는 수량 ` : '살 수 있는 수량 ') : '팔 수 있는 수량 ') + num(can) + '주 · 현금 ' + won(state.cash);
+  const note = $('#oNote');
+  note.hidden = !cr;
+  if (cr) note.textContent = `주문 금액의 ${lev === 2 ? '절반' : '3분의 1'}만 내 돈으로 내고 나머지는 빌려요. 빌린 돈에는 하루 0.04% 이자가 붙고, 담보비율이 140% 밑으로 떨어지면 주식이 강제로 팔려요(반대매매).`;
   const pr = $('#oPnlRow');
   pr.hidden = buy || !h || !q;
   if (!pr.hidden){ const pnl = (s.price - h.avg) * Math.min(q, h.qty) - fee - tax; const e = $('#oPnl'); e.textContent = swon(pnl); e.className = dir(pnl); }
@@ -906,9 +1014,9 @@ function updOrder(){
   let err = '';
   if (state.phase !== 'open') err = '장이 닫혀 있어요';
   else if (q <= 0) err = '수량을 정해 주세요';
-  else if (q > can) err = buy ? '현금이 모자라요' : '가진 주식보다 많아요';
+  else if (q > can) err = buy ? (cr ? '현금이나 담보가 모자라요' : '현금이 모자라요') : '가진 주식보다 많아요';
   go.disabled = !!err;
-  go.textContent = err || (buy ? `${num(q)}주 매수하기` : `${num(q)}주 매도하기`);
+  go.textContent = err || (buy ? (cr ? `${num(q)}주 신용 매수 (${lev}배)` : `${num(q)}주 매수하기`) : `${num(q)}주 매도하기`);
   go.className = 'go' + (buy ? '' : ' sell');
 }
 function updAcct(){
@@ -917,6 +1025,9 @@ function updAcct(){
   set('#aTot', wonKo(tot)); set('#aRet', pct(ret), dir(ret)); set('#aCash', won(state.cash)); set('#aStock', won(stock));
   set('#aToday', state.phase === 'open' ? swon(today) : '장 마감', state.phase === 'open' ? dir(today) : 'flat');
   set('#aReal', swon(state.stats.realized), dir(state.stats.realized));
+  const lo = loans(), rt = ratio();
+  set('#aLoan', lo ? won(lo) : '없음');
+  set('#aRatio', fmtRatio(rt), rt < SAFE ? 'up' : '');
   const ti = titleFor(tot); $('#aTitle').textContent = TITLES[ti][1];
   if (ti < TITLES.length - 1){
     const a = Math.max(TITLES[ti][0], ti ? 0 : START), [b, name] = TITLES[ti + 1];
@@ -926,31 +1037,34 @@ function updAcct(){
   // 가진 주식: 종목이 바뀔 때만 줄을 새로 만들고, 틱마다 글자만 바꾼다
   const ids = DEFS.map(d => d.id).filter(id => state.hold[id]);
   const box = $('#holds');
-  if (ids.join() !== holdKey){
-    holdKey = ids.join();
-    box.innerHTML = ids.length ? ids.map(id => `<button type="button" class="hrow" data-id="${id}"><b>${DEF[id].name}</b><span class="r" data-k="pnl"></span><small data-k="q"></small><small class="r num" data-k="r"></small></button>`).join('')
+  const hk = ids.map(id => id + (state.hold[id].loan > 0 ? '*' : '')).join();
+  if (hk !== holdKey){
+    holdKey = hk;
+    box.innerHTML = ids.length ? ids.map(id => `<button type="button" class="hrow" data-id="${id}"><b>${DEF[id].name}${state.hold[id].loan > 0 ? ' <i class="chip-s held cr">신용</i>' : ''}</b><span class="r" data-k="pnl"></span><small data-k="q"></small><small class="r num" data-k="r"></small></button>`).join('')
       : '<p class="empty">아직 가진 주식이 없어요. 시세표에서 종목을 골라 사 보세요.</p>';
   }
   for (const el of box.querySelectorAll('.hrow')){
     const id = el.dataset.id, h = state.hold[id], s = S(id), pnl = (s.price - h.avg) * h.qty, r = s.price / h.avg - 1;
     const p = el.querySelector('[data-k="pnl"]'); p.textContent = swon(pnl); p.className = 'r ' + dir(pnl);
-    el.querySelector('[data-k="q"]').textContent = `${num(h.qty)}주 · 평균 ${num(h.avg)} → ${num(s.price)}`;
+    el.querySelector('[data-k="q"]').textContent = `${num(h.qty)}주 · 평균 ${num(h.avg)} → ${num(s.price)}` + (h.loan > 0 ? ` · 대출 ${wonKo(h.loan)}` : '');
     const rr = el.querySelector('[data-k="r"]'); rr.textContent = pct(r); rr.className = 'r num ' + dir(r);
   }
   const st = state.stats, wr = st.wins + st.losses ? Math.round(st.wins / (st.wins + st.losses) * 100) + '%' : '-';
-  $('#recs').innerHTML = [['거래', num(st.trades) + '번'], ['이긴 매도', wr], ['최고 자산', wonKo(state.best)], ['최고 한 방', st.bestTrade > 0 ? wonKo(st.bestTrade) : '-'], ['받은 배당', won(st.divs)], ['낸 수수료·세금', won(st.fees)]]
+  $('#recs').innerHTML = [['거래', num(st.trades) + '번'], ['이긴 매도', wr], ['최고 자산', wonKo(state.best)], ['최고 한 방', st.bestTrade > 0 ? wonKo(st.bestTrade) : '-'], ['받은 배당', won(st.divs)], ['낸 수수료·세금', won(st.fees)], ['낸 신용 이자', won(st.interest)], ['반대매매', num(st.forced) + '번']]
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   const tk = state.trades.length + ':' + (state.trades[0] ? state.trades[0].d + '.' + state.trades[0].t + state.trades[0].k + state.trades[0].q : '');
   if (tk !== tradeKey){
     tradeKey = tk;
-    $('#trades').innerHTML = state.trades.length ? state.trades.slice(0, 12).map(x => `<li><span class="k ${x.k}">${x.k === 'b' ? '매수' : '매도'}</span><span class="w">${DEF[x.id].name} ${num(x.q)}주 · ${x.d}일차 ${clock(x.t)}</span><span class="num ${x.pnl === null ? '' : dir(x.pnl)}">${x.pnl === null ? won(x.p * x.q) : swon(x.pnl)}</span></li>`).join('')
+    $('#trades').innerHTML = state.trades.length ? state.trades.slice(0, 12).map(x => `<li><span class="k ${x.k === 'b' || x.k === 'c' ? 'b' : 's'}">${KIND[x.k]}</span><span class="w">${DEF[x.id].name} ${num(x.q)}주 · ${x.d}일차 ${clock(x.t)}</span><span class="num ${x.pnl === null ? '' : dir(x.pnl)}">${x.pnl === null ? won(x.p * x.q) : swon(x.pnl)}</span></li>`).join('')
       : '<li class="empty" style="display:block;border:0">아직 거래가 없어요.</li>';
   }
   drawAsset();
 }
 
+const KIND = {b:'매수', c:'신용매수', s:'매도', f:'반대매매'};
+
 /* 뉴스 */
-const TAGCLS = {'속보':'', '시장':'hot', '테마':'', '지라시':'rumor', '공시':'dis', '해명':'dis', '시황':'', '배당':'dis'};
+const TAGCLS = {'반대매매':'hot', '속보':'', '시장':'hot', '테마':'', '지라시':'rumor', '공시':'dis', '해명':'dis', '시황':'', '배당':'dis'};
 function pushFeed(n, live){
   n.d = state.day; state.news.unshift(n); if (state.news.length > 60) state.news.length = 60;
   addFeedItem(n, true);
@@ -992,7 +1106,7 @@ function toast(msg, kind){
 let C = null;
 function readColors(){
   const cs = getComputedStyle(document.documentElement), g = n => cs.getPropertyValue(n).trim();
-  C = {up:g('--up'), down:g('--down'), grid:g('--grid'), muted:g('--muted'), dim:g('--dim'), accent:g('--accent'), fg:g('--fg'), panel:g('--panel'), on:g('--on-sem')};
+  C = {up:g('--up'), down:g('--down'), grid:g('--grid'), line:g('--line'), muted:g('--muted'), dim:g('--dim'), accent:g('--accent'), fg:g('--fg'), panel:g('--panel'), on:g('--on-sem')};
 }
 function hexA(hex, a){
   let h = hex.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join('');
@@ -1066,29 +1180,52 @@ function drawChart(){
     key.innerHTML = `<span><i style="border-color:${C.accent}"></i>5일선</span><span><i style="border-color:${C.dim}"></i>20일선</span>`;
     return;
   }
-  const tk = s.ticks.length ? s.ticks : [s.price];
-  let lo = s.prevClose, hi = s.prevClose;
-  tk.forEach(p => { if (p < lo) lo = p; if (p > hi) hi = p; });
+  // 5분 차트: 날이 바뀌어도 비우지 않고 지난 며칠과 이어서, 가장 최근이 오른쪽 끝에 오게 그린다
+  const segs = s.past.map(x => ({d:x.d, p:x.p, v:x.v}));
+  if (s.ticks.length) segs.push({d:state.day, p:s.ticks, v:s.tvols, today:true});
+  const W = (R - L > 480 ? 3 : 2) * (T + 1), pts = [];
+  segs.forEach((sg, k) => sg.p.forEach((p, i) => pts.push({p, v:sg.v[i] || 0, k, i})));
+  const vis = pts.slice(-W), n = vis.length;
+  const tIdx = vis.findIndex(o => segs[o.k].today);
+  let lo = Infinity, hi = -Infinity;
+  vis.forEach(o => { if (o.p < lo) lo = o.p; if (o.p > hi) hi = o.p; });
+  if (tIdx >= 0){ lo = Math.min(lo, s.prevClose); hi = Math.max(hi, s.prevClose); }
   if (avg && avg > lo - (hi - lo) * 0.6 && avg < hi + (hi - lo) * 0.6){ lo = Math.min(lo, avg); hi = Math.max(hi, avg); }
   if (hi - lo < s.prevClose * 0.006){ const m = (hi + lo) / 2, half = s.prevClose * 0.003; lo = m - half; hi = m + half; }
   const pad = (hi - lo) * 0.1; lo -= pad; hi += pad;
-  const X = i => L + (R - L) * i / T, Y = p => top + (pb - top) * (hi - p) / (hi - lo);
-  yAxis(g, lo, hi, Y, L, R, Math.max(top + 8, Math.min(pb - 8, Y(s.price))));
-  g.fillStyle = C.dim; g.textBaseline = 'alphabetic';
-  [[0, '09:00', 'left'], [24, '11:00', 'center'], [48, '13:00', 'center'], [T, '15:30', 'right']].forEach(([i, l, a]) => { g.textAlign = a; g.fillText(l, X(i), h - 5); });
-  const yp = Math.round(Y(s.prevClose)) + .5;
-  g.strokeStyle = C.muted; g.lineWidth = 1; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(L, yp); g.lineTo(R, yp); g.stroke(); g.setLineDash([]);
-  const col = s.price >= s.prevClose ? C.up : C.down;
-  const mv = Math.max(1, ...s.tvols), bw = Math.max(1, (R - L) / T * 0.62);
-  s.tvols.forEach((v, i) => { g.fillStyle = hexA(i && tk[i] < tk[i - 1] ? C.down : C.up, .45); const vh = v / mv * volH; g.fillRect(X(i) - bw / 2, bot - vh, bw, vh); });
-  if (tk.length > 1){
-    g.beginPath(); tk.forEach((p, i) => i ? g.lineTo(X(i), Y(p)) : g.moveTo(X(i), Y(p)));
-    const gr = g.createLinearGradient(0, top, 0, pb); gr.addColorStop(0, hexA(col, .22)); gr.addColorStop(1, hexA(col, 0));
-    g.save(); g.lineTo(X(tk.length - 1), pb); g.lineTo(X(0), pb); g.closePath(); g.fillStyle = gr; g.fill(); g.restore();
-    g.beginPath(); tk.forEach((p, i) => i ? g.lineTo(X(i), Y(p)) : g.moveTo(X(i), Y(p)));
-    g.strokeStyle = col; g.lineWidth = 1.8; g.lineJoin = 'round'; g.stroke();
+  const X = j => R - (R - L) * (n - 1 - j) / (W - 1), Y = p => top + (pb - top) * (hi - p) / (hi - lo), ly = Y(s.price);
+  yAxis(g, lo, hi, Y, L, R, Math.max(top + 8, Math.min(pb - 8, ly)));
+  // 날 경계선과 날짜(오른쪽부터, 겹치면 건너뜀)
+  g.textBaseline = 'alphabetic'; g.textAlign = 'left'; g.font = '11px "IBM Plex Sans KR", sans-serif';
+  let minX = R + 60;
+  for (let j = n - 1; j >= 0; j--){
+    const o = vis[j]; if (o.i !== 0 && j !== 0) continue;
+    const x = Math.round(X(j)) + .5, sg = segs[o.k];
+    if (o.i === 0 && j > 0){ g.strokeStyle = C.line; g.lineWidth = 1; g.setLineDash([2, 3]); g.beginPath(); g.moveTo(x, top); g.lineTo(x, bot); g.stroke(); g.setLineDash([]); }
+    if (sg.d <= 0) continue;
+    const txt = sg.today ? `${sg.d}일차 · 오늘` : `${sg.d}일차`, tw = g.measureText(txt).width;
+    if (x + 4 + tw < minX - 8 && x + 4 + tw <= w){ g.fillStyle = sg.today ? C.fg : C.dim; g.fillText(txt, x + 4, h - 5); minX = x + 4; }
   }
-  const lx = X(tk.length - 1), ly = Y(s.price);
+  const mv = Math.max(1, ...vis.map(o => o.v)), bw = Math.max(1, (R - L) / W * 0.62);
+  vis.forEach((o, j) => { g.fillStyle = hexA(j && o.p < vis[j - 1].p ? C.down : C.up, .45); const vh = o.v / mv * volH; g.fillRect(X(j) - bw / 2, bot - vh, bw, vh); });
+  if (tIdx >= 0){
+    const yp = Math.round(Y(s.prevClose)) + .5;
+    g.strokeStyle = C.muted; g.lineWidth = 1; g.setLineDash([3, 4]); g.beginPath(); g.moveTo(X(tIdx), yp); g.lineTo(R, yp); g.stroke(); g.setLineDash([]);
+  }
+  // 날마다 그날 종가가 전날 종가보다 높으면 빨강, 낮으면 파랑
+  [...new Set(vis.map(o => o.k))].forEach(k => {
+    const sg = segs[k], js = []; vis.forEach((o, j) => { if (o.k === k) js.push(j); });
+    const pc = sg.today ? s.prevClose : k > 0 ? segs[k - 1].p[segs[k - 1].p.length - 1] : sg.p[0];
+    const col = sg.p[sg.p.length - 1] >= pc ? C.up : C.down, from = js[0] > 0 ? js[0] - 1 : js[0], to = js[js.length - 1];
+    const path = () => { g.beginPath(); g.moveTo(X(from), Y(vis[from].p)); for (let j = from + 1; j <= to; j++) g.lineTo(X(j), Y(vis[j].p)); };
+    if (to > from){
+      path(); g.lineTo(X(to), pb); g.lineTo(X(from), pb); g.closePath();
+      const gr = g.createLinearGradient(0, top, 0, pb); gr.addColorStop(0, hexA(col, sg.today ? .22 : .1)); gr.addColorStop(1, hexA(col, 0));
+      g.fillStyle = gr; g.fill();
+      path(); g.strokeStyle = col; g.lineWidth = sg.today ? 1.8 : 1.3; g.lineJoin = 'round'; g.stroke();
+    }
+  });
+  const col = s.price >= s.prevClose ? C.up : C.down, lx = X(n - 1);
   g.fillStyle = col; g.beginPath(); g.arc(lx, ly, 3.5, 0, Math.PI * 2); g.fill();
   if (state.phase === 'open' && !paused && !reduced){ g.strokeStyle = hexA(col, .35); g.lineWidth = 4; g.beginPath(); g.arc(lx, ly, 6.5, 0, Math.PI * 2); g.stroke(); }
   if (avg) avgLine(g, avg, Y, L, R, top, pb);
@@ -1124,9 +1261,10 @@ function showClose(){
   const ci = $('#cIdx'); ci.textContent = `${fmtIdx(sm.idx)} (${pct(sm.idxChg)})`; ci.className = dir(sm.idxChg);
   const li = m => `<li><span>${DEF[m.id].name}${m.lim ? ` <i class="chip-s lim${m.lim === 'd' ? ' dn' : ''}">${m.lim === 'u' ? '상한가' : '하한가'}</i>` : ''}</span><span class="num ${dir(m.p)}">${pct(m.p)}</span></li>`;
   $('#cUp').innerHTML = sm.up.map(li).join(''); $('#cDown').innerHTML = sm.down.map(li).join('');
-  const cd = $('#cDiv');
-  cd.hidden = !sm.divDay;
-  cd.textContent = sm.div ? `배당일이에요. 배당금 ${won(sm.div)}이 들어왔어요.` : '배당일이었지만 고소한식품이나 든든은행을 갖고 있지 않아 받은 배당이 없어요.';
+  const cd = $('#cDiv'), notes = [];
+  if (sm.divDay) notes.push(sm.div ? `배당일이에요. 배당금 ${won(sm.div)}이 들어왔어요.` : '배당일이었지만 고소한식품이나 든든은행을 갖고 있지 않아 받은 배당이 없어요.');
+  if (sm.interest) notes.push(`신용 대출 이자로 ${won(sm.interest)}을 냈어요.`);
+  cd.hidden = !notes.length; cd.textContent = notes.join(' ');
   const mm = $('#cMorning'); mm.innerHTML = '';
   if (!state.morning.length){ const e = document.createElement('li'); e.textContent = '아직 들어온 소식이 없어요.'; e.className = 'note'; mm.appendChild(e); }
   state.morning.forEach(n => { const e = document.createElement('li'); e.textContent = n.text; mm.appendChild(e); });
@@ -1169,7 +1307,7 @@ function select(id, go){
   sel = id; settings.sel = id; saveSettings();
   const h = state.hold[id];
   if (side === 'sell') qtyEl.value = h ? h.qty : 0;
-  else { const s = S(id), m = maxBuy(s.price); qtyEl.value = Math.min(m, Math.max(1, Math.floor(m * 0.1))); }
+  else qtyEl.value = defaultQty();
   if (go && narrow()) setView('chart'); else render(true);
 }
 function setSide(v){
@@ -1177,7 +1315,7 @@ function setSide(v){
   document.querySelectorAll('.side button').forEach(b => b.setAttribute('aria-pressed', b.dataset.side === v ? 'true' : 'false'));
   const h = state.hold[sel];
   if (v === 'sell') qtyEl.value = h ? h.qty : 0;
-  else { const m = maxBuy(S(sel).price); qtyEl.value = Math.min(m, Math.max(1, Math.floor(m * 0.1))); }
+  else qtyEl.value = defaultQty();
   updOrder();
 }
 
@@ -1194,6 +1332,11 @@ $('#holds').addEventListener('click', e => { const b = e.target.closest('.hrow')
 $('#feed').addEventListener('click', e => { const b = e.target.closest('.chips button'); if (b) select(b.dataset.id, true); });
 document.querySelectorAll('.tabs button').forEach(b => b.addEventListener('click', () => setView(b.dataset.v)));
 document.querySelectorAll('.side button').forEach(b => b.addEventListener('click', () => setSide(b.dataset.side)));
+document.querySelectorAll('[data-lev]').forEach(b => b.addEventListener('click', () => {
+  lev = +b.dataset.lev;
+  document.querySelectorAll('[data-lev]').forEach(x => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+  qtyEl.value = defaultQty(); updOrder();
+}));
 document.querySelectorAll('.quick button').forEach(b => b.addEventListener('click', () => quick(+b.dataset.q)));
 document.querySelectorAll('[data-ch]').forEach(b => b.addEventListener('click', () => {
   settings.chart = b.dataset.ch; saveSettings();
@@ -1275,14 +1418,14 @@ function frame(now){
 function start(data){
   settings = loadSettings();
   const saved = (data && valid(data.state) && data.state) || loadSaved();
-  if (saved) state = saved; else newGame();
+  if (saved) state = migrate(saved); else newGame();
   sel = DEF[settings.sel] ? settings.sel : 'BYS';
   $('#sndBtn').setAttribute('aria-pressed', settings.sound ? 'true' : 'false');
   if (!SPEEDS.includes(settings.speed)) settings.speed = 1;
   showSpeed();
   document.querySelectorAll('[data-ch]').forEach(x => x.setAttribute('aria-pressed', x.dataset.ch === settings.chart ? 'true' : 'false'));
   buildList(); buildFeed();
-  const m = maxBuy(S(sel).price); qtyEl.value = Math.min(m, Math.max(1, Math.floor(m * 0.1)));
+  qtyEl.value = defaultQty();
   setView('chart');
   if (state.day === 0){
     if (settings.seen){ openDay(); paused = false; render(true); }
