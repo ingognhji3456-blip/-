@@ -38,8 +38,18 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 #bg,#back,#fx{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none}
 #bg{image-rendering:pixelated}
 .deck{position:absolute; left:0; top:0; display:block; touch-action:none; filter:drop-shadow(0 .5rem 0 rgba(10,4,30,.45))}
-.deck canvas{display:block; width:100%; height:100%; image-rendering:pixelated; transition:transform .12s cubic-bezier(.3,1.6,.5,1)}
+.deck canvas{display:block; width:100%; height:100%; image-rendering:pixelated; transition:transform .12s cubic-bezier(.3,1.6,.5,1), filter .2s}
 .deck.hit canvas{transform:scale(.93) rotate(-1.5deg); transition-duration:.04s}
+.deck.cooling canvas{filter:brightness(.62) saturate(.7)}
+.deck.nope{animation:nope .3s}
+@keyframes nope{20%{translate:-.35rem 0} 40%{translate:.35rem 0} 60%{translate:-.2rem 0} 80%{translate:.15rem 0}}
+.deck.ready canvas{animation:ready .4s}
+@keyframes ready{40%{transform:scale(1.06)}}
+/* 쿨타임: 덱 오른쪽 위에서 금색이 한 바퀴 돌아요 */
+.cd{position:absolute; left:0; top:0; width:3.2rem; height:3.2rem; margin:-1.6rem 0 0 -1.6rem; border-radius:50%; pointer-events:none; z-index:4;
+  background:conic-gradient(var(--gold) calc(var(--p,0) * 1turn), #2b1d57 0); border:.18rem solid var(--ink); box-shadow:0 .2rem 0 var(--ink)}
+.cd b{position:absolute; inset:.32rem; display:grid; place-items:center; border-radius:50%; background:var(--ink-2); font-size:1rem; color:#fff}
+.cd.pulse{animation:pop .3s}
 .tap-hint{position:absolute; left:0; top:0; transform:translate(-50%,0); padding:.35rem .8rem; border-radius:.6rem; background:var(--gold); color:var(--ink);
   border:.14rem solid var(--ink); box-shadow:0 .2rem 0 var(--ink); font-size:1rem; white-space:nowrap; pointer-events:none; animation:bob 1s ease-in-out infinite}
 .tap-hint::before{content:""; position:absolute; left:50%; top:-.55rem; margin-left:-.45rem; border:.45rem solid transparent; border-bottom-color:var(--ink); border-top:0}
@@ -74,6 +84,7 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
   <canvas id="back"></canvas>
   <button class="deck" id="deck" type="button" aria-label="덱 눌러서 카드 뽑기"><canvas id="deckCv" width="25" height="39"></canvas></button>
   <div class="tap-hint" id="tapHint" hidden>눌러서 카드 뽑기!</div>
+  <div class="cd" id="cd" role="timer" aria-label="다음 카드까지 남은 시간" hidden><b class="num" id="cdText">5</b></div>
   <canvas id="fx"></canvas>
   <div class="xp" id="xp" aria-label="별 레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
 </div>
@@ -91,6 +102,8 @@ const SUITS = [
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 // 카드 한 장을 뽑을 때마다 별 1개. 레벨마다 필요한 별이 12%씩 늘어요
 const STARS_PER_CARD = 1;
+// 한 장 뽑으면 다음 장까지 기다리는 시간 (초)
+const DRAW_COOLDOWN = 5;
 const xpNeed = L => Math.floor(30 * 1.12 ** (L - 1));
 const fmt = n => Math.floor(n).toLocaleString('ko-KR');
 </script>
@@ -155,6 +168,8 @@ const Sound = (() => {
       if (!ready()) return; const n = performance.now(); if (n - lastFlick < 40) return; lastFlick = n;
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
     },
+    nope() { if (!ready()) return; tone(200, 0.12, { type:'triangle', vol: 0.07 }); },
+    back() { if (!ready()) return; tone(1175, 0.06, { type:'triangle', vol: 0.06 }); tone(1568, 0.09, { type:'triangle', vol: 0.05, at: 0.05 }); },
     level() { if (!ready()) return; [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.16, { vol: 0.07, at: i * 0.08 })); },
   };
 })();
@@ -294,6 +309,7 @@ function layout() {
   deckW = 25 * ps; deckH = 39 * ps; deckX = W / 2; deckY = top + avail / 2;
   Object.assign(deckBtn.style, { left: (deckX - deckW / 2) + 'px', top: (deckY - deckH / 2) + 'px', width: deckW + 'px', height: deckH + 'px' });
   const hint = $('tapHint'); hint.style.left = deckX + 'px'; hint.style.top = (deckY + deckH / 2 + 0.6 * REM) + 'px';
+  const cd = $('cd'); cd.style.left = (deckX + deckW / 2 - 0.2 * REM) + 'px'; cd.style.top = (deckY - deckH / 2 + 0.4 * REM) + 'px';
   for (const cv of [backCv, fxCv]) { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
   bgLayout();
 }
@@ -394,6 +410,14 @@ function renderFx() {
     if (!front) {
       g.globalAlpha = 0.22; g.strokeStyle = '#ffd84a'; g.lineWidth = Math.max(2, ps * 0.5);
       g.beginPath(); g.arc(deckX, deckY, deckH * 0.78, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+      const left = cooldownLeft();
+      if (left > 0) {
+        const a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * (1 - left / DRAW_COOLDOWN);
+        g.strokeStyle = '#ffd84a'; g.lineWidth = Math.max(3, ps * 0.8);
+        g.beginPath(); g.arc(deckX, deckY, deckH * 0.78, a0, a1); g.stroke();
+        g.fillStyle = '#fff6c2'; const d = Math.max(4, ps * 1.4);
+        g.fillRect(deckX + Math.cos(a1) * deckH * 0.78 - d / 2, deckY + Math.sin(a1) * deckH * 0.78 - d / 2, d, d);
+      }
     }
     for (const f of flyers) if (f.front === front) drawFlyer(g, f);
   }
@@ -438,7 +462,35 @@ function addXp(x) {
   burst(r.left + 2 * REM, r.top, 26, ['#62b9ff', '#ffffff', '#ff79d9'], 220);
   save();
 }
+let cdEnd = 0, cdShown = false, toldCooldown = false;
+const cooldownLeft = () => Math.max(0, (cdEnd - performance.now()) / 1000);
+function deny() {
+  Sound.nope();
+  deckBtn.classList.remove('nope'); void deckBtn.offsetWidth; deckBtn.classList.add('nope');
+  const cd = $('cd'); cd.classList.remove('pulse'); void cd.offsetWidth; cd.classList.add('pulse');
+  if (!toldCooldown) { toldCooldown = true; toast('쿨타임이 끝나면 다시 뽑을 수 있어요'); }
+}
+function paintCooldown() {
+  const left = cooldownLeft(), cd = $('cd');
+  if (left > 0) {
+    cd.style.setProperty('--p', (1 - left / DRAW_COOLDOWN).toFixed(3));
+    const txt = left >= 1 ? String(Math.ceil(left)) : left.toFixed(1);
+    if ($('cdText').textContent !== txt) $('cdText').textContent = txt;
+    return;
+  }
+  if (!cdShown) return;
+  cdShown = false; cd.hidden = true;
+  deckBtn.classList.remove('cooling'); deckBtn.setAttribute('aria-label', '덱 눌러서 카드 뽑기');
+  deckBtn.classList.remove('ready'); void deckBtn.offsetWidth; deckBtn.classList.add('ready');
+  rings.push({ x: deckX, y: deckY, t: 0, life: 0.5, c: '#fff6c2', r: deckH * 0.7 });
+  $('tapHint').hidden = S.draws >= 3;
+  Sound.back();
+}
 function draw() {
+  if (cooldownLeft() > 0) { deny(); return; }
+  cdEnd = performance.now() + DRAW_COOLDOWN * 1000; cdShown = true;
+  $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
+  paintCooldown();
   S.draws++;
   spawnCard(Math.floor(rnd() * 13), Math.floor(rnd() * 4));
   addXp(STARS_PER_CARD);
@@ -446,7 +498,7 @@ function draw() {
   deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
   clearTimeout(draw.tm); draw.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
   rings.push({ x: deckX, y: deckY, t: 0, life: 0.45, c: '#ffd84a', r: deckH * 0.55 });
-  if (S.draws >= 3) $('tapHint').hidden = true;
+  $('tapHint').hidden = true;
   paintXp();
 }
 function paintXp() {
@@ -472,6 +524,7 @@ let last = performance.now(), simT = 0, saveT = 0;
 function frame(t) {
   const dt = Math.min((t - last) / 1000, 0.1); last = t;
   simT += dt;
+  paintCooldown();
   stepFx(dt);
   bgDraw(simT, dt);
   renderFx();
