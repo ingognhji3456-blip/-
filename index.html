@@ -56,6 +56,9 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 @keyframes bob{50%{transform:translate(-50%,-.3rem)}}
 
 /* 맨 아래: 별 레벨 */
+/* 가진 능력 (별 막대 바로 위) */
+.abil{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(3.2rem + var(--safe-b)); width:min(40rem, calc(100% - 1.6rem)); display:flex; flex-wrap:wrap; justify-content:center; gap:.3rem; pointer-events:none; z-index:5}
+.abil span{padding:.12rem .55rem .18rem; border-radius:.55rem; background:rgba(16,6,40,.85); border:.12rem solid var(--ink); font-size:.78rem; color:var(--muted); white-space:nowrap}
 .xp{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(40rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
   height:2.2rem; display:flex; align-items:center; gap:.55rem; padding:0 .6rem; background:rgba(16,6,40,.85); border-radius:.7rem; border:.14rem solid var(--ink); z-index:5}
 .xp .ico{width:1.55rem; height:1.55rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
@@ -68,10 +71,38 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 @keyframes pop{40%{transform:scale(1.35)}}
 
 /* 알림 */
-.toasts{position:fixed; left:50%; top:calc(1rem + var(--safe-t)); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.35rem; z-index:60; pointer-events:none; width:max-content; max-width:calc(100vw - 2rem)}
+.toasts{position:fixed; left:50%; top:calc(1rem + var(--safe-t)); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.35rem; z-index:80; pointer-events:none; width:max-content; max-width:calc(100vw - 2rem)}
 .toast{padding:.4rem 1rem; border-radius:.7rem; background:rgba(34,19,74,.94); border:.14rem solid #5fb8ff; color:#fff; font-size:.95rem; box-shadow:0 .2rem 0 var(--ink); animation:tin .25s ease-out; text-align:center}
 .toast.out{opacity:0; transform:translateY(-.4rem); transition:.3s}
 @keyframes tin{from{opacity:0; transform:translateY(-.5rem) scale(.95)}}
+
+/* 레벨 보상: 카드 3장을 뒤집어요 */
+.lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
+  background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
+  padding:calc(1rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}
+.lv-ov h3{margin:0; font-weight:400; font-size:1.45rem; text-align:center; text-wrap:balance; text-shadow:0 .13rem 0 var(--ink),.13rem 0 0 var(--ink),-.13rem 0 0 var(--ink),0 -.13rem 0 var(--ink)}
+.lv-ov p{margin:0; font-size:.85rem; color:var(--muted); text-align:center}
+.reveal{display:flex; justify-content:center; gap:.9rem}
+.rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; animation:rvin .35s ease-out backwards}
+@keyframes rvin{from{opacity:0; transform:translateY(1.5rem) scale(.8)}}
+.rv .face{width:6rem; height:8.4rem; position:relative; perspective:30rem; transition:filter .3s}
+.rv .face > *{position:absolute; inset:0; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; transition:transform .45s}
+.rv .face canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
+.rv .face .ae{position:absolute; left:0; right:0; top:15%; height:51%; display:grid; place-items:center; font-size:2.4rem; line-height:1; filter:drop-shadow(0 .15rem 0 rgba(0,0,0,.45))}
+.rv .face .front{transform:rotateY(180deg)}
+.rv.open .face .backside{transform:rotateY(-180deg)}
+.rv.open .face .front{transform:rotateY(0)}
+.rv:not(.open) .face{animation:wiggle 1.6s ease-in-out infinite}
+@keyframes wiggle{0%,70%,100%{transform:rotate(0)} 80%{transform:rotate(-3deg)} 90%{transform:rotate(3deg)}}
+.rv .lbl{font-size:.8rem; line-height:1.25; min-height:3.2rem; opacity:0; transition:opacity .3s .25s}
+.rv .lbl small{display:block; margin-top:.1rem; font-size:.74rem; color:var(--muted)}
+.rv.open .lbl{opacity:1}
+.rv .lbl b{display:block; font-weight:400; font-size:.92rem; color:var(--gc)}
+.rv.open.glow .face{filter:drop-shadow(0 0 .7rem var(--gc)) drop-shadow(0 0 .25rem var(--gc))}
+.lv-acts{display:flex; gap:.6rem}
+.lv-acts button{padding:.55rem 1.4rem .7rem; border-radius:.75rem; border:.15rem solid var(--ink); font-size:1.05rem; color:#fff; background:var(--c,#38d064);
+  box-shadow:inset 0 -.3rem 0 rgba(0,0,0,.22), 0 .22rem 0 var(--ink); text-shadow:var(--ol-s)}
+.lv-acts button:active{transform:translateY(.15rem)}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01s !important; animation-iteration-count:1 !important; transition-duration:.01s !important}
@@ -86,8 +117,10 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
   <div class="tap-hint" id="tapHint" hidden>눌러서 카드 뽑기!</div>
   <div class="cd" id="cd" role="timer" aria-label="다음 카드까지 남은 시간" hidden><b class="num" id="cdText">5</b></div>
   <canvas id="fx"></canvas>
+  <div class="abil" id="abil" aria-label="가진 능력" hidden></div>
   <div class="xp" id="xp" aria-label="별 레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
 </div>
+<div class="lv-ov" id="lvOv" role="dialog" aria-modal="true" aria-label="레벨 보상" hidden></div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
 <script id="core-rules">
@@ -106,6 +139,49 @@ const STARS_PER_CARD = 1;
 const DRAW_COOLDOWN = 5;
 const xpNeed = L => Math.floor(30 * 1.12 ** (L - 1));
 const fmt = n => Math.floor(n).toLocaleString('ko-KR');
+// 레벨이 오르면 카드 3장을 받아요. 장마다 등급이 따로 정해져요 (확률 %)
+const LEVEL_CARDS = 3;
+const GRADES = [
+  { name:'일반', chance:55, color:'#dfe2f5' },
+  { name:'희귀', chance:28, color:'#4fc3ff' },
+  { name:'영웅', chance:12, color:'#c77dff' },
+  { name:'전설', chance:4,  color:'#ffc23c' },
+  { name:'신화', chance:1,  color:'#ff6bd5' },
+];
+function rollGrade(rnd) {
+  let x = rnd() * 100;
+  for (let i = 0; i < GRADES.length; i++) { x -= GRADES[i].chance; if (x < 0) return i; }
+  return 0;
+}
+// 능력 카드: 장마다 능력 하나와 등급 하나가 무작위로 붙어요. v는 등급별 세기(일반 → 신화). 같은 능력은 겹쳐 쌓여요
+const ABILITIES = [
+  { id:'quick', icon:'⏱️', name:'빠른 손',    v:[3, 6, 10, 18, 30],    text: v => `쿨타임 −${v}%` },
+  { id:'bag',   icon:'⭐', name:'별 주머니',  v:[1, 2, 3, 5, 8],       text: v => `뽑을 때마다 별 +${v}` },
+  { id:'shine', icon:'💫', name:'별빛',       v:[10, 20, 35, 60, 100], text: v => `모든 별 +${v}%` },
+  { id:'twin',  icon:'🃏', name:'두 장 뽑기', v:[5, 10, 15, 25, 40],   text: v => `${v}% 확률로 한 장 더` },
+  { id:'lucky', icon:'🍀', name:'행운 별',    v:[3, 6, 10, 15, 25],    text: v => `${v}% 확률로 그 카드 별 ×5` },
+  { id:'flash', icon:'⚡', name:'번개 손',    v:[4, 8, 12, 20, 30],    text: v => `${v}% 확률로 쿨타임 없이 바로 또` },
+  { id:'paw',   icon:'🐾', name:'고양이 손',  v:[30, 20, 12, 8, 5],    text: v => `${v}초마다 저절로 한 장` },
+];
+const MIN_COOLDOWN = 0.5;
+// cards: { 능력 id: [등급별 장수] } → 지금 적용되는 값
+function abilityStats(cards) {
+  const st = { bag:0, shine:0, twin:0, lucky:0, flash:0, pawRate:0, count:0 };
+  let cdMul = 1;
+  for (const A of ABILITIES) (cards[A.id] || []).forEach((n, g) => {
+    if (!n) return;
+    st.count += n;
+    if (A.id === 'quick') cdMul *= (1 - A.v[g] / 100) ** n;
+    else if (A.id === 'paw') st.pawRate += n / A.v[g];
+    else st[A.id] += A.v[g] * n;
+  });
+  st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul);
+  st.lucky = Math.min(100, st.lucky);
+  st.flash = Math.min(80, st.flash);
+  st.stars = (STARS_PER_CARD + st.bag) * (1 + st.shine / 100);
+  return st;
+}
+const fmtStar = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR');
 </script>
 
 <script>
@@ -118,7 +194,7 @@ const rnd = Math.random;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:2, level:1, xp:0, draws:0, lastSeen:Date.now() });
+const fresh = () => ({ v:2, level:1, xp:0, draws:0, pending:0, cards:{}, lastSeen:Date.now() });
 // 예전 저장(코인·업그레이드가 있던 판)에서는 별 레벨과 뽑은 장수만 가져와요
 function revive(raw) {
   const S = fresh();
@@ -127,6 +203,11 @@ function revive(raw) {
   if (raw.xp >= 0) S.xp = raw.xp;
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
+  if (raw.pending >= 0) S.pending = Math.floor(raw.pending);
+  if (raw.cards && typeof raw.cards === 'object') for (const A of ABILITIES) {
+    const row = raw.cards[A.id];
+    if (Array.isArray(row)) S.cards[A.id] = GRADES.map((_, g) => row[g] >= 0 ? Math.floor(row[g]) : 0);
+  }
   return S;
 }
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; } }
@@ -164,6 +245,7 @@ const Sound = (() => {
   }
   return {
     ready,
+    flip(t) { if (!ready()) return; hiss(0.06, { vol: 0.12, freq: 3000 }); if (t > 0) [784, 988, 1175, 1568, 2093].slice(0, 1 + t).forEach((f, i) => tone(f, 0.14, { type:'triangle', vol: 0.09, at: i * 0.06 })); },
     flick() {
       if (!ready()) return; const n = performance.now(); if (n - lastFlick < 40) return; lastFlick = n;
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
@@ -231,7 +313,18 @@ function bigPip(g, s, cx, cy, n, color) {
 }
 function cardShape(g, oy, outline, fill) {
   g.fillStyle = outline; g.fillRect(1, oy, 23, 35); g.fillRect(0, oy + 1, 25, 33);
+  if (typeof fill === 'function') { for (let y = 1; y < 34; y++) for (let x = 1; x < 24; x++) if (!((x === 1 || x === 23) && (y === 1 || y === 33))) px(g, x, oy + y, fill(x, y)); return; }
   g.fillStyle = fill; g.fillRect(2, oy + 1, 21, 33); g.fillRect(1, oy + 2, 23, 31);
+}
+// 등급마다 카드 바탕: 일반 흰색, 희귀 파란 지그재그, 영웅 무지개 사선, 전설 금빛 줄무늬, 신화 어두운 바탕에 무지개 반짝이
+function paper(grade) {
+  switch (grade) {
+    case 1: return (x, y) => (y + Math.abs((x % 6) - 3)) % 5 === 0 ? '#a7cdf9' : '#dcebff';
+    case 2: return (x, y) => `hsl(${((x + y) * 14) % 360},85%,86%)`;
+    case 3: return (x, y) => (x + y) % 7 < 2 ? '#fff0a8' : '#ffd24a';
+    case 4: return (x, y) => (x * 7 + y * 13) % 17 === 0 ? `hsl(${(x * 30 + y * 10) % 360},100%,72%)` : '#1c1442';
+    default: return '#f6f4ff';
+  }
 }
 const sprites = new Map();
 function faceSprite(r, s) {
@@ -239,7 +332,7 @@ function faceSprite(r, s) {
   if (sprites.has(key)) return sprites.get(key);
   const cv = mk(25, 35), g = cv.getContext('2d');
   cardShape(g, 0, INK, '#f6f4ff');
-  const col = SUITS[s].red ? SUIT_RED : SUIT_BLACK, rank = RANKS[r];
+  const rank = RANKS[r], col = SUITS[s].red ? SUIT_RED : SUIT_BLACK;
   glyphs(g, rank, 2, 2, col);
   map(g, PIP5[s], 2, 8, col);
   glyphs(g, rank, 22, 32, col, true);
@@ -251,6 +344,20 @@ function faceSprite(r, s) {
     map(g, BIG[rank], 10, 15, col);
     g.fillStyle = col; g.fillRect(8, 23, 9, 2);
   } else bigPip(g, s, 12, 17, r === 0 ? 13 : 11, col);
+  sprites.set(key, cv);
+  return cv;
+}
+// 능력 카드: 등급 바탕 위에 그림 칸(능력 그림은 화면에서 얹어요), 아래에 등급 점 1~5개
+function abilitySprite(grade) {
+  const key = 'a' + grade;
+  if (sprites.has(key)) return sprites.get(key);
+  const cv = mk(25, 35), g = cv.getContext('2d'), col = GRADES[grade].color;
+  cardShape(g, 0, grade === 3 ? '#7a4b00' : INK, paper(grade));
+  g.fillStyle = INK; g.fillRect(3, 4, 19, 20);
+  g.fillStyle = col; g.fillRect(4, 5, 17, 18);
+  g.fillStyle = '#22134a'; g.fillRect(5, 6, 15, 16);
+  const n = grade + 1, x0 = 12 - Math.floor((4 * n + 1) / 2);
+  for (let i = 0; i < n; i++) { g.fillStyle = INK; g.fillRect(x0 + i * 4, 26, 5, 5); g.fillStyle = col; g.fillRect(x0 + i * 4 + 1, 27, 3, 3); }
   sprites.set(key, cv);
   return cv;
 }
@@ -304,7 +411,7 @@ function layout() {
   const s = land ? clamp(Math.min(W / 820, H / 400), 0.7, 1.6) : clamp(Math.min(W / 400, H / 760), 0.7, 1.4);
   document.documentElement.style.setProperty('--s', s.toFixed(3));
   REM = 16 * s;
-  const top = 1.5 * REM, bot = H - 4 * REM, avail = Math.max(120, bot - top);
+  const top = 1.5 * REM, bot = H - 6 * REM, avail = Math.max(120, bot - top);
   ps = Math.max(2, Math.floor(Math.min(avail * 0.8 / 39, (land ? W * 0.22 : W * 0.4) / 25, H * (land ? 0.5 : 0.34) / 39)));
   deckW = 25 * ps; deckH = 39 * ps; deckX = W / 2; deckY = top + avail / 2;
   Object.assign(deckBtn.style, { left: (deckX - deckW / 2) + 'px', top: (deckY - deckH / 2) + 'px', width: deckW + 'px', height: deckH + 'px' });
@@ -361,7 +468,7 @@ function bgDraw(t, dt) {
 /* ---------- 날아가는 카드와 별 ---------- */
 const flyers = [], pops = [], sparks = [], rings = [];
 const FONT = px => `700 ${px}px "Pixelify Sans", Jua, "Apple SD Gothic Neo", sans-serif`;
-function spawnCard(r, s) {
+function spawnCard(r, s, pop) {
   const x0 = deckX, y0 = deckY - deckH * 0.1;
   let ang = rnd() * Math.PI * 2;
   if (land && Math.sin(ang) > 0.55) ang = -ang;
@@ -369,7 +476,7 @@ function spawnCard(r, s) {
   const k = 0.6 + rnd() * 0.4;
   if (flyers.length > 40) flyers.shift();
   flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: 0, life: 1.4, r1: (rnd() - 0.5) * 1.3,
-    sc1: ps * (land ? 0.65 + rnd() * 0.35 : 0.48 + rnd() * 0.22), front: rnd() < 0.4, popped: false });
+    sc1: ps * (land ? 0.65 + rnd() * 0.35 : 0.48 + rnd() * 0.22), front: rnd() < 0.4, pop });
 }
 function drawFlyer(g, f) {
   const p = f.t / f.life, m = 1 - Math.pow(1 - Math.min(1, f.t / 0.45), 3);
@@ -392,7 +499,7 @@ function drawPop(g, p) {
   g.lineWidth = Math.max(3, fs * 0.28); g.strokeStyle = INK;
   const y = p.y - p.t * 26;
   g.strokeText(p.text, p.x, y);
-  g.fillStyle = '#62b9ff'; g.fillText(p.text, p.x, y);
+  g.fillStyle = p.color || '#62b9ff'; g.fillText(p.text, p.x, y);
   g.globalAlpha = 1;
 }
 function burst(x, y, n, colors, speed) {
@@ -412,7 +519,7 @@ function renderFx() {
       g.beginPath(); g.arc(deckX, deckY, deckH * 0.78, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
       const left = cooldownLeft();
       if (left > 0) {
-        const a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * (1 - left / DRAW_COOLDOWN);
+        const a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * (1 - left / cdLen);
         g.strokeStyle = '#ffd84a'; g.lineWidth = Math.max(3, ps * 0.8);
         g.beginPath(); g.arc(deckX, deckY, deckH * 0.78, a0, a1); g.stroke();
         g.fillStyle = '#fff6c2'; const d = Math.max(4, ps * 1.4);
@@ -434,7 +541,7 @@ function renderFx() {
 function stepFx(dt) {
   for (let i = flyers.length - 1; i >= 0; i--) {
     const f = flyers[i]; f.t += dt;
-    if (!f.popped && f.t >= 0.28) { f.popped = true; if (pops.length < 16) pops.push({ x: f.x1, y: f.y1, t: 0, life: 1.2, text: `+${STARS_PER_CARD} ★` }); }
+    if (f.pop && f.t >= 0.28) { if (pops.length < 16) pops.push({ x: f.x1, y: f.y1, t: 0, life: 1.2, ...f.pop }); f.pop = null; }
     if (f.t >= f.life) flyers.splice(i, 1);
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
@@ -452,17 +559,19 @@ function toast(msg) {
 }
 function addXp(x) {
   S.xp += x;
-  let up = false;
-  while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; up = true; }
+  let up = 0;
+  while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; up++; }
   if (!up) return;
+  S.pending += up;
   Sound.level();
-  toast(`⭐ 별 레벨 ${S.level}!`);
+  setTimeout(() => LvOv.show(), 700);
   const xp = $('xp'), r = xp.getBoundingClientRect();
   xp.classList.remove('lvup'); void xp.offsetWidth; xp.classList.add('lvup');
   burst(r.left + 2 * REM, r.top, 26, ['#62b9ff', '#ffffff', '#ff79d9'], 220);
   save();
 }
-let cdEnd = 0, cdShown = false, toldCooldown = false;
+let cdEnd = 0, cdLen = DRAW_COOLDOWN, cdShown = false, toldCooldown = false, pawAcc = 0;
+let AB = abilityStats({});
 const cooldownLeft = () => Math.max(0, (cdEnd - performance.now()) / 1000);
 function deny() {
   Sound.nope();
@@ -473,7 +582,7 @@ function deny() {
 function paintCooldown() {
   const left = cooldownLeft(), cd = $('cd');
   if (left > 0) {
-    cd.style.setProperty('--p', (1 - left / DRAW_COOLDOWN).toFixed(3));
+    cd.style.setProperty('--p', (1 - left / cdLen).toFixed(3));
     const txt = left >= 1 ? String(Math.ceil(left)) : left.toFixed(1);
     if ($('cdText').textContent !== txt) $('cdText').textContent = txt;
     return;
@@ -486,20 +595,51 @@ function paintCooldown() {
   $('tapHint').hidden = S.draws >= 3;
   Sound.back();
 }
+// 덱에서 카드를 꺼내요. 두 장 뽑기 능력이 있으면 더 나오고, 행운 별이 터지면 그 카드 별이 ×5
+function drawCards(paw) {
+  let n = 1;
+  if (AB.twin) n += Math.floor(AB.twin / 100) + (rnd() * 100 < AB.twin % 100 ? 1 : 0);
+  for (let i = 0; i < n; i++) {
+    S.draws++;
+    const lucky = AB.lucky > 0 && rnd() * 100 < AB.lucky;
+    const stars = AB.stars * (lucky ? 5 : 1);
+    const text = `${paw && i === 0 ? '🐾 ' : ''}+${fmtStar(stars)} ★${lucky ? ' 행운!' : ''}`;
+    spawnCard(Math.floor(rnd() * 13), Math.floor(rnd() * 4), { text, color: lucky ? '#7dff9a' : '#62b9ff' });
+    addXp(stars);
+  }
+  Sound.flick();
+  paintXp();
+}
 function draw() {
   if (cooldownLeft() > 0) { deny(); return; }
-  cdEnd = performance.now() + DRAW_COOLDOWN * 1000; cdShown = true;
+  cdLen = AB.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
   $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
   paintCooldown();
-  S.draws++;
-  spawnCard(Math.floor(rnd() * 13), Math.floor(rnd() * 4));
-  addXp(STARS_PER_CARD);
-  Sound.flick();
+  drawCards(false);
+  // 번개 손: 쿨타임을 바로 끝내요 (다음 장면에서 덱이 다시 밝아져요)
+  if (AB.flash > 0 && rnd() * 100 < AB.flash) {
+    cdEnd = performance.now();
+    pops.push({ x: deckX, y: deckY - deckH * 0.62, t: 0, life: 1.3, text: '⚡ 바로 또!', color: '#ffd84a' });
+  }
   deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
   clearTimeout(draw.tm); draw.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
   rings.push({ x: deckX, y: deckY, t: 0, life: 0.45, c: '#ffd84a', r: deckH * 0.55 });
   $('tapHint').hidden = true;
-  paintXp();
+}
+// 덱 위에 지금 가진 능력을 짧게 보여 줘요
+function paintAbilities() {
+  AB = abilityStats(S.cards);
+  const has = id => (S.cards[id] || []).some(n => n > 0);
+  const chips = [];
+  if (has('quick')) chips.push(['⏱️', `쿨타임 ${fmtStar(AB.cooldown)}초`]);
+  if (has('bag') || has('shine')) chips.push(['⭐', `한 장에 별 ${fmtStar(AB.stars)}`]);
+  if (has('twin')) chips.push(['🃏', `한 장 더 ${AB.twin}%`]);
+  if (has('lucky')) chips.push(['🍀', `별 ×5 ${AB.lucky}%`]);
+  if (has('flash')) chips.push(['⚡', `바로 또 ${AB.flash}%`]);
+  if (has('paw')) chips.push(['🐾', `${fmtStar(1 / AB.pawRate)}초마다 저절로`]);
+  const box = $('abil');
+  box.replaceChildren(...chips.map(([icon, text]) => { const c = document.createElement('span'); c.textContent = `${icon} ${text}`; return c; }));
+  box.hidden = !chips.length;
 }
 function paintXp() {
   const n = xpNeed(S.level);
@@ -508,12 +648,77 @@ function paintXp() {
   $('xpText').textContent = `${fmt(S.xp)} / ${fmt(n)} ★`;
 }
 
+/* ---------- 레벨 보상: 카드 3장 ---------- */
+const LvOv = (() => {
+  const ov = $('lvOv');
+  let open = false;
+  function close() {
+    ov.hidden = true; ov.replaceChildren(); open = false;
+    if (S.pending > 0) setTimeout(show, 300);
+  }
+  function show() {
+    if (open || S.pending <= 0) return;
+    open = true;
+    // 뽑는 순간 바로 저장해요. 뒤집기 전에 창을 닫아도 받은 카드는 남아요
+    const cards = Array.from({ length: LEVEL_CARDS }, () => ({ a: ABILITIES[Math.floor(rnd() * ABILITIES.length)], g: rollGrade(rnd) }));
+    S.pending--;
+    for (const c of cards) { const row = S.cards[c.a.id] || (S.cards[c.a.id] = GRADES.map(() => 0)); row[c.g]++; }
+    paintAbilities();
+    save();
+    const lv = S.level - S.pending;
+    const row = document.createElement('div'); row.className = 'reveal';
+    let flipped = 0;
+    const done = document.createElement('div'); done.className = 'lv-acts';
+    const all = document.createElement('button'); all.type = 'button'; all.textContent = '모두 뒤집기'; all.style.setProperty('--c', '#b05cff');
+    const ok = document.createElement('button'); ok.type = 'button'; ok.textContent = '확인'; ok.hidden = true;
+    const sum = document.createElement('p'); sum.hidden = true;
+    const flip = (rv, c) => {
+      if (rv.classList.contains('open')) return;
+      rv.classList.add('open'); if (c.g >= 2) rv.classList.add('glow');
+      Sound.flip(c.g);
+      if (++flipped === cards.length) {
+        all.hidden = true; ok.hidden = false; ok.focus({ preventScroll: true });
+        sum.hidden = false;
+        sum.textContent = `능력은 바로 적용됐어요 · 지금까지 받은 능력 카드 ${fmt(AB.count)}장`;
+      }
+    };
+    cards.forEach((c, i) => {
+      const G = GRADES[c.g];
+      const back = mk(25, 35); back.className = 'backside'; back.getContext('2d').drawImage(backSprite(false), 0, 0);
+      const art = mk(25, 35); art.getContext('2d').drawImage(abilitySprite(c.g), 0, 0);
+      const icon = document.createElement('span'); icon.className = 'ae'; icon.textContent = c.a.icon;
+      const front = document.createElement('div'); front.className = 'front'; front.append(art, icon);
+      const face = document.createElement('div'); face.className = 'face'; face.append(back, front);
+      const lbl = document.createElement('div'); lbl.className = 'lbl';
+      const b = document.createElement('b'); b.textContent = `${G.name} · ${c.a.name}`;
+      const small = document.createElement('small'); small.textContent = c.a.text(c.a.v[c.g]);
+      lbl.append(b, small);
+      const rv = document.createElement('button'); rv.type = 'button'; rv.className = 'rv';
+      rv.style.setProperty('--gc', G.color); rv.style.animationDelay = (i * 0.1) + 's';
+      rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
+      rv.append(face, lbl);
+      rv.addEventListener('click', () => { flip(rv, c); rv.setAttribute('aria-label', `${G.name} ${c.a.name}: ${c.a.text(c.a.v[c.g])}`); });
+      row.append(rv);
+    });
+    all.addEventListener('click', () => [...row.children].forEach((rv, i) => setTimeout(() => rv.click(), i * 160)));
+    ok.addEventListener('click', close);
+    done.append(all, ok);
+    const h3 = document.createElement('h3'); h3.textContent = `⭐ 별 레벨 ${lv}! 능력 카드 ${LEVEL_CARDS}장`;
+    const tip = document.createElement('p'); tip.textContent = '카드를 눌러 뒤집어 보세요. 능력과 등급은 장마다 따로 정해져요.';
+    ov.replaceChildren(h3, tip, row, sum, done);
+    ov.hidden = false;
+    all.focus({ preventScroll: true });
+  }
+  return { show, close, get open() { return open; } };
+})();
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && LvOv.open) { const all = $('lvOv').querySelector('.lv-acts button:not([hidden])'); if (all) all.click(); } });
+
 /* ---------- 조작 ---------- */
 deckBtn.addEventListener('pointerdown', e => { e.preventDefault(); Sound.ready(true); draw(); });
 deckBtn.addEventListener('click', e => { if (e.detail === 0) draw(); });
 deckBtn.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
-  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === document.body && !e.repeat) { e.preventDefault(); Sound.ready(true); draw(); }
+  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === document.body && !e.repeat && !LvOv.open) { e.preventDefault(); Sound.ready(true); draw(); }
 });
 addEventListener('resize', layout);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
@@ -525,6 +730,10 @@ function frame(t) {
   const dt = Math.min((t - last) / 1000, 0.1); last = t;
   simT += dt;
   paintCooldown();
+  if (AB.pawRate > 0 && !LvOv.open) {
+    pawAcc += dt * AB.pawRate;
+    for (let k = 0; pawAcc >= 1 && k < 3; k++) { pawAcc--; drawCards(true); }
+  }
   stepFx(dt);
   bgDraw(simT, dt);
   renderFx();
@@ -542,7 +751,9 @@ function start(data) {
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
   $('tapHint').hidden = S.draws >= 3;
   paintXp();
+  paintAbilities();
   save();
+  if (S.pending > 0) setTimeout(() => LvOv.show(), 600);
   requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
 }
 const hot = window.claude && window.claude.hot;
