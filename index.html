@@ -46,7 +46,9 @@ button[disabled]{cursor:default}
 .deck.cooling canvas{filter:brightness(.62) saturate(.7)}
 .deck.empty{cursor:default}
 .deck.refilled canvas{animation:refilled .45s cubic-bezier(.2,.9,.3,1.4)}
-@keyframes refilled{0%{transform:translateY(-.6rem) scale(.9)} 60%{transform:translateY(.1rem) scale(1.04)}}
+.deck.refilled canvas{animation-duration:.7s}
+@keyframes refilled{0%{transform:scale(.94)} 15%{transform:translateX(-.3rem) rotate(-5deg)} 30%{transform:translateX(.3rem) rotate(5deg)} 45%{transform:translateX(-.18rem) rotate(-3deg)}
+  60%{transform:translateX(.1rem) rotate(1deg)} 78%{transform:translateY(-.3rem) scale(1.05)} 100%{transform:none}}
 /* 덱 남은 장수 (덱 아래 가장자리) */
 .deck-count{position:absolute; left:0; top:0; transform:translate(-50%,-50%); z-index:4; pointer-events:none; white-space:nowrap; padding:.04rem .45rem .08rem; border-radius:.5rem;
   font-size:.78rem; line-height:1.3; color:#fff; background:rgba(16,6,40,.88); border:.12rem solid var(--ink); box-shadow:0 .12rem 0 var(--ink)}
@@ -887,6 +889,7 @@ const Sound = (() => {
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
     },
     coin() { if (!ready()) return; tone(988, 0.05, { vol: 0.04 }); tone(1480, 0.08, { vol: 0.035, at: 0.04 }); },
+    deal() { if (!ready()) return; const n = performance.now(); if (n - lastFlick < 50) return; lastFlick = n; hiss(0.04, { vol: 0.09, freq: 3200, to: 1800, q: 0.9 }); },
     shuffle() {   // 덱을 다시 채울 때: 촤르륵 섞는 소리
       if (!ready()) return;
       for (let i = 0; i < 7; i++) setTimeout(() => hiss(0.035, { vol: 0.12, freq: 2400 + i * 300, q: 0.8 }), i * 45);
@@ -1464,7 +1467,23 @@ function bgDraw(t, dt) {
 }
 
 /* ---------- 날아가는 카드와 숫자 ---------- */
-const flyers = [], pops = [], sparks = [], rings = [];
+const flyers = [], pops = [], sparks = [], rings = [], inbound = [];
+// 덱을 채울 때 날아오는 카드 뒷면: 덱 둘레 어딘가에서 빙글 돌며 덱 맨 위로 (0.45초)
+const T_IN = 0.45;
+function dealIn() {
+  const a = rnd() * Math.PI * 2, d = deckH * (1.25 + rnd() * 0.5);
+  const x0 = clamp(deckX + Math.cos(a) * d, 13 * ps, W - 13 * ps), y0 = clamp(deckY + Math.sin(a) * d * 0.8, 18 * ps, H - 18 * ps);   // 화면 안에서 출발
+  if (inbound.length < 16) inbound.push({ x0, y0, r0: (rnd() - 0.5) * 2.4, t: 0 });
+}
+function drawInbound(g, c) {
+  const k = Math.min(1, c.t / T_IN), m = k * k * (3 - 2 * k), tx = deckX, ty = deckY - deckH / 2 + 17.5 * ps;
+  const x = c.x0 + (tx - c.x0) * m, y = c.y0 + (ty - c.y0) * m - Math.sin(Math.PI * k) * deckH * 0.25;
+  g.save();
+  g.globalAlpha = Math.min(1, c.t / 0.08) * (k > 0.9 ? 1 - (k - 0.9) / 0.1 : 1);
+  g.translate(x, y); g.rotate(c.r0 * (1 - m)); g.scale(ps * (0.75 + 0.25 * m), ps * (0.75 + 0.25 * m));
+  g.drawImage(backSprite(false), -12.5, -17.5);
+  g.restore();
+}
 const FONT = px => `400 ${px}px "Jersey 10", Jua, "Apple SD Gothic Neo", sans-serif`;
 const ease = {
   out: k => 1 - (1 - k) ** 3,
@@ -1576,6 +1595,7 @@ function renderFx() {
     }
     if (!front) Auto.draw(g);
     if (front) for (const f of flyers) drawFlyer(g, f);
+    if (front) for (const c of inbound) drawInbound(g, c);
   }
   const g = fctx;
   for (const r of rings) {
@@ -1598,6 +1618,16 @@ function stepFx(dt) {
     if (f.t >= T_LIFE) flyers.splice(i, 1);
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
+  for (let i = inbound.length - 1; i >= 0; i--) {
+    const c = inbound[i]; c.t += dt;
+    if (c.t >= T_IN) {   // 덱에 탁 내려앉아요
+      inbound.splice(i, 1);
+      rings.push({ x: deckX, y: deckY - deckH / 2 + 17.5 * ps, t: 0, life: 0.3, c: '#8fe0ff', r: deckW * 0.6 });
+      deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
+      clearTimeout(dealIn.tm); dealIn.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
+      Sound.deal();
+    }
+  }
   for (let i = sparks.length - 1; i >= 0; i--) { const s = sparks[i]; s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 420 * dt; if (s.t >= s.life) sparks.splice(i, 1); }
   for (let i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t >= rings[i].life) rings.splice(i, 1); }
 }
@@ -1705,10 +1735,12 @@ function paintPacks() {
 /* ---------- 덱: 남은 카드 · 다 쓰면 다시 채우기 ---------- */
 const Deck = (() => {
   const pill = $('deckCount');
-  let refillEnd = 0, refillLen = 0, shown = '', cap = 0;
+  let refillEnd = 0, refillLen = 0, shown = '', cap = 0, spawnT = 0;
   const layersOf = (n, c) => !n ? -1 : n === 1 ? 0 : Math.max(1, Math.min(4, Math.ceil(4 * (n - 1) / Math.max(1, c - 1))));
+  // 채우는 중이면 고리가 찬 만큼 덱이 두꺼워져요 (빈 자리 → 한 장 → 밑에 1~4줄)
+  const refillLayers = k => k < 0.12 ? -1 : Math.min(4, Math.floor((k - 0.12) / 0.88 * 5));
   function paint() {
-    const n = S.deck.length, c = Math.max(cap, n), layers = refillEnd ? -1 : layersOf(n, c);
+    const n = S.deck.length, c = Math.max(cap, n), layers = refillEnd ? refillLayers(progress()) : layersOf(n, c);
     const key = layers + '|' + (refillEnd ? Math.ceil((refillEnd - performance.now()) / 100) : n);
     if (key === shown) return;
     shown = key;
@@ -1726,18 +1758,28 @@ const Deck = (() => {
   }
   function start() {
     if (refillEnd) return;
-    refillLen = refillTime(S.up.refill); refillEnd = performance.now() + refillLen * 1000;
+    refillLen = refillTime(S.up.refill); refillEnd = performance.now() + refillLen * 1000; spawnT = 0;
     paint();
   }
+  const progress = () => refillEnd ? clamp(1 - (refillEnd - performance.now()) / (refillLen * 1000), 0, 1) : 0;
   function finish() {
     refillEnd = 0; cap = deckSize(S.up.deck); S.deck = newDeck(rnd, cap); shown = '';
     paint(); save();
     Sound.shuffle();
-    deckBtn.classList.remove('refilled'); void deckBtn.offsetWidth; deckBtn.classList.add('refilled');
+    deckBtn.classList.remove('refilled'); void deckBtn.offsetWidth; deckBtn.classList.add('refilled');   // 촤르륵 섞고 통 튀어요
     rings.push({ x: deckX, y: deckY, t: 0, life: 0.6, c: '#8fe0ff', r: deckH * 0.7 });
     burst(deckX, deckY - deckH * 0.3, 18, ['#8fe0ff', '#ffffff', '#c8ecff'], 200);
   }
-  function step() { if (refillEnd && performance.now() >= refillEnd) finish(); else paint(); }
+  function step(dt) {
+    if (refillEnd && performance.now() >= refillEnd) { finish(); return; }
+    // 채우는 동안 카드 뒷면이 한 장씩 날아와 덱 위에 쌓여요 (채우는 시간에 맞춰 열 장쯤)
+    if (refillEnd && !reduced() && refillEnd - performance.now() > 250) {
+      spawnT += dt;
+      const every = clamp(refillLen / 10, 0.12, 1.4);
+      if (spawnT >= every) { spawnT -= every; dealIn(); }
+    }
+    paint();
+  }
   // 덱 늘리기를 사면 지금 덱에도 늘어난 만큼 카드를 섞어 넣어요 (채우는 중이면 다 채울 때 늘어요)
   function sync() {
     const want = deckSize(S.up.deck);
@@ -1750,8 +1792,7 @@ const Deck = (() => {
   }
   // 환생: 업그레이드가 처음으로 돌아가니 덱도 새로
   function reset() { refillEnd = 0; cap = deckSize(S.up.deck); S.deck = newDeck(rnd, cap); shown = ''; paint(); }
-  return { init, start, step, sync, reset, paint, get refilling() { return refillEnd > 0; },
-    get progress() { return refillEnd ? clamp(1 - (refillEnd - performance.now()) / (refillLen * 1000), 0, 1) : 0; } };
+  return { init, start, step, sync, reset, paint, get refilling() { return refillEnd > 0; }, get progress() { return progress(); } };
 })();
 
 /* ---------- 뽑기와 쿨타임 ---------- */
@@ -2550,7 +2591,7 @@ function frame(t) {
   paintCooldown();
   stepDeck(dt);
   stepFx(dt);
-  Deck.step();
+  Deck.step(dt);
   Auto.step(dt);
   bgDraw(simT, dt);
   renderFx();
