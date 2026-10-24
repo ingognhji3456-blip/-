@@ -414,6 +414,11 @@ button[disabled]{cursor:default}
 .ubuy:active:not([disabled]){transform:translateY(.12rem); box-shadow:inset 0 -.1rem 0 #1b8a3e, 0 .04rem 0 var(--ink)}
 .ubuy[disabled]{background:#26174f; color:#a99ad9; text-shadow:none; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.07)}
 .ubuy[disabled] .ico{opacity:.5}
+.uprow.u-auto{--uc:#ffffff} .uprow.u-gold{--uc:#ffe27e} .uprow.u-pack{--uc:#c77dff}
+.uprow.locked{opacity:.62; background:linear-gradient(180deg,#2e2066,#251854)}
+.uprow.locked .ui .pix{filter:grayscale(.6) brightness(.8)}
+.ubuy.lock[disabled]{background:#1c1042; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
+.ubuy.lock .pix{width:1.1rem; height:1.1rem}
 .ubuy.max[disabled]{background:linear-gradient(180deg,#ffe27e,#ffc23d 55%,#f0a21f); color:var(--ink); font-size:.78rem; box-shadow:inset 0 -.2rem 0 #c7800f, 0 .16rem 0 var(--ink)}
 
 /* 옆 창은 조금 더 촘촘하게, 세로 화면의 좁은 업그레이드 창은 사기 단추를 아래 줄로 */
@@ -536,9 +541,12 @@ const PACKS = [
 ];
 const PACK = Object.fromEntries(PACKS.map(P => [P.g, P]));
 const PACK_MILESTONE = 5;   // 5레벨마다 영웅 팩 이상
-function rollPack(rnd, level) {
+// luck(0~1)만큼 영웅 이상 팩의 확률이 커지고, 그만큼 희귀 팩이 줄어요 (좋은 팩 업그레이드)
+function rollPack(rnd, level, luck = 0) {
+  const ch = PACKS.map(P => P.g > 1 ? P.chance * (1 + luck) : 0);
+  ch[0] = 100 - ch.reduce((a, b) => a + b, 0);
   let x = rnd() * 100, g = PACKS[0].g;
-  for (const P of PACKS) { x -= P.chance; if (x < 0) { g = P.g; break; } }
+  for (let i = 0; i < PACKS.length; i++) { x -= ch[i]; if (x < 0) { g = PACKS[i].g; break; } }
   return level % PACK_MILESTONE === 0 ? Math.max(g, 2) : g;
 }
 // 서로 다른 능력으로 팩 크기만큼, 등급은 장마다 따로 (팩의 최소 등급 · 꼭 들어가는 등급을 지켜요)
@@ -548,11 +556,20 @@ function rollOffer(rnd, packG = 1) {
   if (P.sure && !out.some(c => c.g >= P.sure)) out[Math.floor(rnd() * out.length)].g = P.sure;
   return out;
 }
-// 코인 업그레이드: 단계마다 per만큼 세지고, 살 때마다 값이 grow배씩 올라요 (처음엔 싸요)
+// 자동 손가락: 처음엔 손가락 1개가 10초마다 눌러요. 단계마다 조금씩 빨라지고(최소 1.5초), 10단계마다 손가락이 1개 늘어요(최대 5개)
+const AUTO_MAX_FINGERS = 5;
+const autoFingers = lv => lv > 0 ? Math.min(AUTO_MAX_FINGERS, 1 + Math.floor(lv / 10)) : 0;
+const autoEvery = lv => Math.max(1.5, 10 * 0.93 ** (lv - 1));
+const GOLD_MUL = 3;   // 황금 카드는 코인 · XP ×3
+// 코인 업그레이드: 단계마다 세지고, 살 때마다 값이 grow배씩 올라요 (처음엔 싸요). rb가 있으면 환생을 그만큼 해야 열려요.
+// text(lv)는 지금 효과, next(lv)는 다음 단계 값(짧게)
 const UPGRADES = [
-  { id:'xp',   name:'XP 늘리기',    per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 XP +${10 * lv}%` },
+  { id:'xp',   name:'XP 늘리기',    per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 XP +${10 * lv}%`, next: lv => `+${10 * lv}%` },
   { id:'cd',   name:'쿨타임 줄이기', per:4,  max:40,       base:20, grow:1.55, text: lv => `쿨타임 −${Math.round((1 - 0.96 ** lv) * 100)}%` },
-  { id:'coin', name:'코인 더 받기',  per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 코인 +${10 * lv}%` },
+  { id:'coin', name:'코인 더 받기',  per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 코인 +${10 * lv}%`, next: lv => `+${10 * lv}%` },
+  { id:'auto', name:'자동 손가락',  rb:1, max:40, base:40,  grow:1.3,  text: lv => lv ? `손가락 ${autoFingers(lv)}개 · ${fmtSec(autoEvery(lv))}초마다` : '아직 손가락이 없어요', next: lv => `${autoFingers(lv)}개 · ${fmtSec(autoEvery(lv))}초` },
+  { id:'gold', name:'황금 카드',    rb:1, per:1,  max:20, base:60,  grow:1.42, text: lv => `황금 카드 ${lv}% (코인 · XP ×${GOLD_MUL})`, next: lv => `${lv}%` },
+  { id:'pack', name:'좋은 팩',      rb:1, per:10, max:10, base:120, grow:1.75, text: lv => `좋은 팩 확률 +${10 * lv}%`, next: lv => `+${10 * lv}%` },
 ];
 const UPGRADE = Object.fromEntries(UPGRADES.map(U => [U.id, U]));
 const upCost = (U, lv) => Math.round(U.base * U.grow ** lv);
@@ -577,6 +594,7 @@ function equipStats(cards, level, up = {}, rebirths = 0) {
   st.coinPct = st.coin + grow + UPGRADE.coin.per * (up.coin || 0);
   st.xpPct = st.xp + grow + UPGRADE.xp.per * (up.xp || 0);
   st.mul = rebirthMul(rebirths);
+  st.gold = UPGRADE.gold.per * (up.gold || 0);
   return st;
 }
 // 카드 한 장에서 받는 코인과 XP
@@ -586,11 +604,12 @@ function cardGain(r, s, st, rnd) {
   if (SUITS[s].red) coinPct += st.red; else xpPct += st.black;
   const jackpot = st.jackpot > 0 && rnd() * 100 < st.jackpot;
   const meteor = st.meteor > 0 && rnd() * 100 < st.meteor;
-  const mul = st.mul || 1;
+  const golden = st.gold > 0 && rnd() * 100 < st.gold;
+  const mul = (st.mul || 1) * (golden ? GOLD_MUL : 1);
   return {
     coins: rankValue(r) * (1 + coinPct / 100) * (jackpot ? 5 : 1) * mul,
     xp: BASE_XP * (1 + xpPct / 100) * (meteor ? 5 : 1) * mul,
-    jackpot, meteor,
+    jackpot, meteor, golden,
   };
 }
 // 두 장 뽑기: 100%마다 한 장은 꼭 더, 남은 %는 확률로
@@ -702,6 +721,8 @@ const Sound = (() => {
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
     },
     coin() { if (!ready()) return; tone(988, 0.05, { vol: 0.04 }); tone(1480, 0.08, { vol: 0.035, at: 0.04 }); },
+    tap() { if (!ready()) return; const n = performance.now(); if (n - lastFlick < 60) return; lastFlick = n; hiss(0.05, { vol: 0.08, freq: 2200, to: 4200, q: 0.8 }); tone(1600, 0.03, { type:'triangle', vol: 0.025 }); },
+    gold() { if (!ready()) return; arp([1319, 1760, 2349], 0.05, { type:'triangle', vol: 0.06, dur: 0.18 }); },
     jackpot() { if (!ready()) return; arp([1047, 1319, 1568, 2093, 2637], 0.05, { vol: 0.06 }); },
     nope() { if (!ready()) return; tone(200, 0.12, { type:'triangle', vol: 0.07 }); },
     back() { if (!ready()) return; tone(1175, 0.06, { type:'triangle', vol: 0.06 }); tone(1568, 0.09, { type:'triangle', vol: 0.05, at: 0.05 }); },
@@ -973,6 +994,34 @@ const ICON_DRAW = {
     '.KKwwwwwwKK..',
     '..KKKKKKKK...',
     '.............'], 0, 1),
+  finger: g => pmap(g, [   // 위를 가리키는 흰 장갑 손가락
+    '.....KKK.....',
+    '....KWWWK....',
+    '....KWWWK....',
+    '....KWWWK....',
+    '....KWWWKKK..',
+    '..KKKWWWKWWK.',
+    '.KWWKWWWKWWWK',
+    '.KWWKWWWKWWWK',
+    '.KWWWWWWWWWWK',
+    '.KwWWWWWWWWwK',
+    '..KwwWWWWwwK.',
+    '...KBBBBBBK..',
+    '...KKKKKKKK..'], 0, 0),
+  lock: g => pmap(g, [
+    '....KKKKK....',
+    '...KwwwwwK...',
+    '..KwK...KwK..',
+    '..KwK...KwK..',
+    '..KwK...KwK..',
+    '.KKKKKKKKKKK.',
+    '.KYYYYYYYYYK.',
+    '.KYYYKKKYYYK.',
+    '.KYYYKKKYYYK.',
+    '.KYYYYKYYYYK.',
+    '.KyyyyKyyyyK.',
+    '.KyyyyyyyyyK.',
+    '.KKKKKKKKKKK.'], 0, 0),
   close: g => pmap(g, [
     'KKK.......KKK',
     'KWWK.....KWWK',
@@ -1057,7 +1106,9 @@ function pix(id, cls) {
   cv.setAttribute('aria-hidden', 'true');
   return cv;
 }
-const UP_ICON = { xp:'xp', cd:'quick', coin:'coin' };
+const UP_ICON = { xp:'xp', cd:'quick', coin:'coin', auto:'finger', gold:'jackpot', pack:'bag' };
+// 잠긴 환생 업그레이드에 보여 줄 한 줄 설명
+const UP_ABOUT = { auto:'손가락이 덱을 대신 눌러 줘요', gold:'가끔 황금 카드가 나와 코인 · XP ×3', pack:'영웅 · 전설 · 신화 팩이 더 잘 나와요' };
 // 능력 카드 그림 한 장 (등급 틀 + 능력 그림이 한 캔버스에)
 function cardArt(c) {
   const art = h('div', 'art'), cv = mk(25, 35);
@@ -1174,7 +1225,7 @@ function shadowSprite() {
   sprites.set('shadow', cv);
   return cv;
 }
-function spawnCard(r, s, lines, delay = 0) {
+function spawnCard(r, s, lines, delay = 0, gold = false) {
   // 덱 맨 위 카드 자리에서 출발해요
   const x0 = deckX, y0 = deckY - deckH / 2 + 17.5 * ps;
   let ang = rnd() * Math.PI * 2;
@@ -1183,7 +1234,7 @@ function spawnCard(r, s, lines, delay = 0) {
   const k = 0.75 + rnd() * 0.25;
   if (flyers.length > 40) flyers.shift();
   flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: -delay, r1: (rnd() - 0.5) * 0.9,
-    sc1: ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25), lines });
+    sc1: ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25), lines, gold });
 }
 // 들기(0.1초) → 휘어 날아가며 뒤집기(0.5초) → 머물기 → 천천히 사라지기
 function drawFlyer(g, f) {
@@ -1216,6 +1267,7 @@ function drawFlyer(g, f) {
   g.save(); g.translate(ps * (1 + lift * 3), ps * (1.5 + lift * 5)); g.scale(sc * Math.max(0.08, sx), sc); g.drawImage(shadowSprite(), -12.5, -17.5); g.restore();
   g.globalAlpha = alpha;
   g.scale(sc * Math.max(0.08, sx), sc);
+  if (f.gold && face) { g.fillStyle = '#ffe27e'; g.fillRect(-14.5, -19.5, 29, 39); g.fillStyle = '#ffb400'; g.fillRect(-13.5, -18.5, 27, 37); }   // 황금 카드는 금테
   g.drawImage(face ? f.spr : backSprite(false), -12.5, -17.5);
   g.restore();
 }
@@ -1263,6 +1315,7 @@ function renderFx() {
         g.fillRect(deckX + Math.cos(a1) * ringR - d / 2, deckY + Math.sin(a1) * ringR - d / 2, d, d);
       }
     }
+    if (!front) Auto.draw(g);
     if (front) for (const f of flyers) drawFlyer(g, f);
   }
   const g = fctx;
@@ -1278,7 +1331,11 @@ function renderFx() {
 function stepFx(dt) {
   for (let i = flyers.length - 1; i >= 0; i--) {
     const f = flyers[i]; f.t += dt;
-    if (f.lines && f.t >= T_LIFT + T_FLY * 0.8) { if (pops.length < 14) pops.push({ x: f.x1, y: f.y1 - ps * 4, t: 0, life: 1.4, lines: f.lines }); f.lines = null; }
+    if (f.lines && f.t >= T_LIFT + T_FLY * 0.8) {
+      if (pops.length < 14) pops.push({ x: f.x1, y: f.y1 - ps * 4, t: 0, life: 1.4, lines: f.lines });
+      if (f.gold) burst(f.x1, f.y1, 14, ['#ffe27e', '#ffb400', '#ffffff'], 170);
+      f.lines = null;
+    }
     if (f.t >= T_LIFE) flyers.splice(i, 1);
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
@@ -1307,7 +1364,8 @@ function refresh() {
 // 환생할 수 있는지 (레벨이 됐고, 아직 안 뜯은 카드 팩이 없을 때)
 const canRebirth = () => S.level >= rebirthNeed(S.rb) && !S.pending && !S.offer;
 // 지금 코인으로 살 수 있는 업그레이드가 있는지
-const canUpgrade = () => UPGRADES.some(U => S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
+const upOpen = U => S.rb >= (U.rb || 0);   // 환생 업그레이드는 환생을 해야 열려요
+const canUpgrade = () => UPGRADES.some(U => upOpen(U) && S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
 function paintTop() {
   $('coins').textContent = fmt(Math.floor(S.coins));
   if (Sheet.open && Sheet.mode !== 'inv') Sheet.render();   // 업그레이드 · 환생 창은 코인과 레벨을 보여 줘요
@@ -1390,26 +1448,29 @@ function paintCooldown() {
   Sound.back();
 }
 // 덱에서 카드를 꺼내요. 두 장 뽑기가 터지면 더 나와요
-function drawCards() {
+// auto: 자동 손가락이 누른 것 (소리를 작게)
+function drawCards(auto) {
   const n = 1 + (ST.twin ? extraCards(ST.twin, rnd) : 0);
-  let big = false;
+  let big = false, gold = false;
   for (let i = 0; i < n; i++) {
     const r = Math.floor(rnd() * 13), s = Math.floor(rnd() * 4);
     const got = cardGain(r, s, ST, rnd);
     S.draws++;
     S.coins += got.coins;
-    const lines = [];
-    if (i > 0) lines.push(['한 장 더!', '#ffffff', 0.72]);
-    lines.push([`+${fmt(got.coins)} 코인`, '#ffd34d', 1.05]);
-    if (got.jackpot) lines.push(['대박! 코인 ×5', '#ffd34d', 0.78]);
-    lines.push([`+${fmt(got.xp)} XP`, '#62b9ff', 0.88]);
-    if (got.meteor) lines.push(['별똥별! XP ×5', '#9fd6ff', 0.78]);
-    spawnCard(r, s, lines, i * 0.14);
+    const lines = [], z = auto ? 0.8 : 1;   // 자동 손가락이 뽑은 숫자는 조금 작게
+    if (i > 0) lines.push(['한 장 더!', '#ffffff', 0.72 * z]);
+    lines.push([`+${fmt(got.coins)} 코인`, '#ffd34d', 1.05 * z]);
+    if (got.jackpot) lines.push(['대박! 코인 ×5', '#ffd34d', 0.78 * z]);
+    lines.push([`+${fmt(got.xp)} XP`, '#62b9ff', 0.88 * z]);
+    if (got.meteor) lines.push(['별똥별! XP ×5', '#9fd6ff', 0.78 * z]);
+    if (got.golden) lines.unshift([`황금 카드! ×${GOLD_MUL}`, '#ffe27e', 0.8 * z]);
+    spawnCard(r, s, lines, i * 0.14, got.golden);
     if (got.jackpot || got.meteor) big = true;
+    if (got.golden) gold = true;
     addXp(got.xp);
   }
-  Sound.flick();
-  if (big) Sound.jackpot(); else Sound.coin();
+  if (auto) Sound.tap(); else Sound.flick();
+  if (big) Sound.jackpot(); else if (gold) Sound.gold(); else if (!auto) Sound.coin();
   const box = $('coinbox'); box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
   paintTop(); paintXp();
 }
@@ -1425,6 +1486,60 @@ function draw() {
   rings.push({ x: deckX, y: deckY, t: 0, life: 0.45, c: '#ffd84a', r: deckH * 0.55 });
   $('tapHint').hidden = true;
 }
+
+/* ---------- 자동 손가락 ---------- */
+// 덱 둘레 금색 원 위에 손가락이 고르게 둘러서서, 저마다 시간이 되면 덱을 콕 눌러 카드 한 장을 뽑아요 (내 쿨타임과는 따로).
+// 첫 손가락은 오른쪽에서 조금 위(쿨타임 동그라미를 피해서)부터, 나머지는 원을 똑같이 나눠 서요. 카드 팩 창이 떠 있는 동안은 쉬어요
+const Auto = (() => {
+  const START = -18 * Math.PI / 180;
+  const TAP = 0.24;
+  let list = [], lv = -1;
+  function sync() {
+    const L = S.up.auto || 0, n = autoFingers(L);
+    if (L === lv && list.length === n) return;
+    lv = L;
+    const every = n ? autoEvery(L) : 1;
+    while (list.length < n) list.push({ t: every * (1 - list.length / n), tap: 0 });   // 새 손가락은 엇갈려서 눌러요
+    list.length = n;
+  }
+  function step(dt) {
+    sync();
+    if (!list.length) return;
+    const every = autoEvery(lv);
+    for (const f of list) {
+      if (f.tap > 0) { f.tap += dt; if (f.tap >= TAP) f.tap = 0; }
+      if (LvOv.open) continue;
+      f.t += dt;
+      if (f.t >= every) { f.t -= every; f.tap = 1e-4; tap(); }
+    }
+  }
+  function tap() {
+    drawCards(true);
+    deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
+    clearTimeout(tap.tm); tap.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
+  }
+  // 뒤 캔버스에 손가락을 그려요: 원 위에서 덱 가운데를 가리키고, 누를 때 덱 쪽으로 콕 들어가요
+  function draw(g) {
+    if (!list.length) return;
+    const R = deckH * 0.68, every = autoEvery(lv), spr = iconSprite('finger'), sc = ps * 0.8, n = list.length;
+    list.forEach((f, i) => {
+      const a = START + i * Math.PI * 2 / n;
+      let poke = 0;
+      if (!reduced()) {
+        if (f.tap > 0) poke = Math.sin(Math.PI * f.tap / TAP) * 0.55;
+        else { const left = every - f.t; if (left < 0.35) poke = -0.18 * (1 - left / 0.35); }   // 누르기 직전에 살짝 뒤로
+      }
+      const r = R * (1 - poke * 0.25);
+      g.save();
+      g.translate(deckX + Math.cos(a) * r, deckY + Math.sin(a) * r);
+      g.rotate(a - Math.PI / 2);
+      g.scale(sc, sc);
+      g.drawImage(spr, -6.5, -13);
+      g.restore();
+    });
+  }
+  return { step, draw, get count() { sync(); return list.length; } };
+})();
 
 /* ---------- 환생 ---------- */
 // 레벨 · XP · 코인 · 업그레이드는 처음으로, 능력 카드와 뽑은 장수는 그대로. 보너스가 한 단계 커져요
@@ -1479,7 +1594,7 @@ function discard(id) {
 /* ---------- 코인 업그레이드 ---------- */
 function buyUpgrade(id) {
   const U = UPGRADE[id], lv = S.up[id];
-  if (lv >= U.max) return false;
+  if (lv >= U.max || !upOpen(U)) return false;
   const cost = upCost(U, lv);
   if (S.coins < cost) { Sound.nope(); toast(`코인이 ${fmt(cost - S.coins)} 모자라요`); return false; }
   S.coins -= cost; S.up[id]++;
@@ -1525,6 +1640,8 @@ const Sheet = (() => {
     if (ST.jackpot) add('jackpot', '코인 ×5 확률', `${ST.jackpot}%`, 'var(--coin)');
     if (ST.meteor) add('meteor', 'XP ×5 확률', `${ST.meteor}%`, 'var(--xp)');
     if (ST.twin) add('twin', '한 장 더 확률', `${ST.twin}%`);
+    if (ST.gold) add('jackpot', `황금 카드 ×${GOLD_MUL}`, `${ST.gold}%`, '#ffe27e');
+    if (Auto.count) add('finger', `자동 손가락 ${Auto.count}개`, fmtSec(autoEvery(S.up.auto)), null, '초');
     if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', fmtSec(ST.cooldown), null, '초');
     return out;
   }
@@ -1533,22 +1650,27 @@ const Sheet = (() => {
     title('up', '업그레이드');
     const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(Math.floor(S.coins))), h('span', null, '코인'), h('small', null, '살 때마다 값이 올라요'));
     body.append(wallet);
+    let rbSec = false;
     for (const U of UPGRADES) {
-      const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv), can = !max && S.coins >= cost;
-      const row = h('div', `uprow u-${U.id}` + (can ? ' can' : '') + (bumped === U.id ? ' bump' : ''));
+      // 환생 업그레이드는 따로 묶고, 환생 전에는 자물쇠로 잠가 둬요
+      if (U.rb && !rbSec) { rbSec = true; body.append(sec('환생 업그레이드', S.rb >= U.rb ? '' : `환생 ${U.rb}번 하면 열려요`)); }
+      const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv), locked = !upOpen(U), can = !max && !locked && S.coins >= cost;
+      const row = h('div', `uprow u-${U.id}` + (can ? ' can' : '') + (locked ? ' locked' : '') + (bumped === U.id ? ' bump' : ''));
       const tt = h('span', 'ut');
       const name = h('b', null, U.name); name.append(h('em', 'lvb num', `Lv ${lv}${isFinite(U.max) ? '/' + U.max : ''}`));
       const eff = h('span');
-      if (max) eff.append(`${U.text(lv)} · 최대`);
+      if (locked) eff.append(UP_ABOUT[U.id]);
+      else if (max) eff.append(`${U.text(lv)} · 최대`);
       else if (U.id === 'cd') eff.append(`쿨타임 ${fmtSec(ST.cooldown)}초 `, h('span', 'nx', `→ ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`));
-      else eff.append(`${U.text(lv)} `, h('span', 'nx', `→ +${U.per * (lv + 1)}%`));
+      else eff.append(`${U.text(lv)} `, h('span', 'nx', `→ ${U.next(lv + 1)}`));
       tt.append(name, eff);
-      if (isFinite(U.max)) {   // 끝이 있는 업그레이드는 얼마나 왔는지 막대로
+      if (isFinite(U.max) && !locked) {   // 끝이 있는 업그레이드는 얼마나 왔는지 막대로
         const bar = h('span', 'upbar'), fill = h('i'); fill.style.width = (100 * lv / U.max).toFixed(1) + '%';
         bar.append(fill); tt.append(bar);
       }
       const buy = h('button', 'ubuy'); buy.type = 'button'; buy.dataset.k = 'u' + U.id;
-      if (max) { buy.classList.add('max'); buy.textContent = '최대'; buy.disabled = true; }
+      if (locked) { buy.classList.add('lock'); buy.append(pix('lock')); buy.disabled = true; buy.setAttribute('aria-label', `${U.name}: 환생 ${U.rb}번 하면 열려요`); }
+      else if (max) { buy.classList.add('max'); buy.textContent = '최대'; buy.disabled = true; }
       else {
         buy.append(h('i', 'ico'), h('span', 'num', fmt(cost)));
         buy.disabled = !can;
@@ -1722,7 +1844,7 @@ const LvOv = (() => {
     if (!S.offer) {
       if (S.pending <= 0) return;
       S.pending--;
-      S.pack = rollPack(rnd, S.level - S.pending); S.offer = rollOffer(rnd, S.pack); save();
+      S.pack = rollPack(rnd, S.level - S.pending, UPGRADE.pack.per * S.up.pack / 100); S.offer = rollOffer(rnd, S.pack); save();
     }
     Sheet.close();
     open = true; busy = false;
@@ -1946,6 +2068,7 @@ function frame(t) {
   paintCooldown();
   stepDeck(dt);
   stepFx(dt);
+  Auto.step(dt);
   bgDraw(simT, dt);
   renderFx();
   saveT += dt; if (saveT >= 5) { saveT = 0; save(); }
