@@ -66,8 +66,17 @@ button[disabled]{cursor:default}
 .coinbox .ico{width:1.4rem; height:1.4rem; flex:none; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
 .coinbox b{font-size:1.1rem; line-height:1; white-space:nowrap; color:#fff}
 .coinbox.bump b{animation:pop .25s}
-.bonus{display:flex; gap:.5rem; padding:.02rem .5rem; border-radius:.45rem; background:rgba(16,6,40,.75); font-size:.66rem; white-space:nowrap}
-.bonus .c{color:var(--coin)} .bonus .x{color:var(--xp)}
+.bonus{position:absolute; right:calc(.8rem + var(--safe-r)); bottom:calc(.6rem + var(--safe-b)); display:flex; flex-direction:column; align-items:flex-end; gap:.25rem; z-index:5; pointer-events:none}
+.port .bonus{bottom:calc(2.75rem + var(--safe-b))}
+.bonus span{display:flex; align-items:center; gap:.3rem; padding:.12rem .5rem .14rem .3rem; border-radius:.5rem; background:rgba(16,6,40,.85); border:.12rem solid var(--ink);
+  font-size:.7rem; white-space:nowrap; animation:bin .35s cubic-bezier(.2,.9,.3,1.2) both}
+.bonus span.bump{animation:bump .4s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes bin{from{opacity:0; transform:translateX(.8rem)}}
+@keyframes bump{40%{transform:scale(1.15)}}
+.bonus .ico{width:.95rem; height:.95rem; flex:none; background:center/contain no-repeat; image-rendering:pixelated}
+.bonus b{font-weight:400}
+.bonus .b-coin{color:var(--coin)} .bonus .b-coin .ico{background-image:var(--ico-coin)}
+.bonus .b-xp{color:var(--xp)} .bonus .b-xp .ico{background-image:var(--ico-star)}
 
 /* 아래: 능력 카드 3칸 · 인벤토리 · XP 막대 */
 .dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(44rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
@@ -107,30 +116,44 @@ button[disabled]{cursor:default}
 
 /* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
-  background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
   padding:calc(1rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}
-.lv-ov h3{margin:0; font-weight:400; font-size:1.1rem; text-align:center; text-wrap:balance; text-shadow:var(--ol)}
-.lv-ov p{margin:0; font-size:.74rem; color:var(--muted); text-align:center; min-height:1.15rem}
+.lv-ov::before{content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
+  opacity:0; transition:opacity .35s ease}
+.lv-ov.in::before{opacity:1}
+.lv-ov h3{margin:0; font-weight:400; font-size:1.1rem; text-align:center; text-wrap:balance; text-shadow:var(--ol); opacity:0}
+.lv-ov.in h3{animation:drop .5s .1s cubic-bezier(.2,.9,.3,1.25) both}
+@keyframes drop{from{opacity:0; transform:translateY(-1.2rem) scale(.92)} to{opacity:1}}
+.lv-ov p{margin:0; font-size:.74rem; color:var(--muted); text-align:center; min-height:1.15rem; transition:opacity .25s}
 .reveal{display:flex; justify-content:center; gap:.9rem}
 .rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
-  animation:rvin .35s ease-out backwards; transition:transform .2s, opacity .2s, background .2s}
-@keyframes rvin{from{opacity:0; transform:translateY(1.5rem) scale(.8)}}
-.rv .face{width:5.6rem; height:7.84rem; position:relative; perspective:30rem; transition:filter .3s}
-.rv .face > *{position:absolute; inset:0; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; transition:transform .45s}
+  transition:transform .28s cubic-bezier(.3,1.4,.5,1), opacity .25s, background .2s, box-shadow .2s}
+.rv .face{width:5.6rem; height:7.84rem; position:relative; perspective:30rem; transition:filter .5s}
+.rv .face > *{position:absolute; inset:0; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; transition:transform .5s cubic-bezier(.45,.05,.25,1)}
 .rv .face canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
-.rv .face .front{transform:rotateY(180deg); --ae:2.3rem}
+.rv .face .front{transform:rotateY(180deg); --ae:2.3rem; overflow:hidden}
+/* 뒤집히고 나면 빛이 한 번 스쳐요 */
+.rv .face .front::after{content:""; position:absolute; inset:0; background:linear-gradient(115deg,transparent 36%,rgba(255,255,255,.65) 50%,transparent 64%); transform:translateX(-130%); pointer-events:none}
+.rv.open .face .front::after{animation:shine .9s .3s ease-out forwards}
+@keyframes shine{to{transform:translateX(130%)}}
 .rv.open .face .backside{transform:rotateY(-180deg)}
 .rv.open .face .front{transform:rotateY(0)}
-.rv:not(.open) .face{animation:wiggle 1.6s ease-in-out infinite}
+.rv.open .face{animation:lift .5s ease-out}
+@keyframes lift{45%{transform:translateY(-.6rem) scale(1.1)}}
+.rv.dealt:not(.open) .face{animation:wiggle 1.6s .3s ease-in-out infinite}
 @keyframes wiggle{0%,70%,100%{transform:rotate(0)} 80%{transform:rotate(-3deg)} 90%{transform:rotate(3deg)}}
-.rv .lbl{font-size:.8rem; line-height:1.25; min-height:3.2rem; opacity:0; transition:opacity .3s .25s}
+.rv .lbl{font-size:.8rem; line-height:1.25; min-height:3.2rem; opacity:0; transform:translateY(.4rem); transition:opacity .3s .28s, transform .3s .28s}
 .rv .lbl small{display:block; margin-top:.1rem; font-size:.74rem; color:var(--muted)}
-.rv.open .lbl{opacity:1}
+.rv.open .lbl{opacity:1; transform:none}
 .rv .lbl b{display:block; font-weight:400; font-size:.92rem; color:var(--gc)}
 .rv.open.glow .face{filter:drop-shadow(0 0 .7rem var(--gc)) drop-shadow(0 0 .25rem var(--gc))}
-.reveal.has-sel .rv:not(.sel){opacity:.5}
-.rv.sel{transform:translateY(-.45rem); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold)}
-.lv-acts{display:flex; gap:.6rem}
+.reveal.has-sel .rv:not(.sel){opacity:.45; transform:scale(.94)}
+.rv.sel{transform:translateY(-.5rem) scale(1.04); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold)}
+.rv .face > .spark{position:absolute; inset:auto; left:50%; top:45%; width:.32rem; height:.32rem; margin:-.16rem 0 0 -.16rem; background:var(--gc); pointer-events:none; transition:none}
+.lv-acts{display:flex; gap:.6rem; transition:opacity .25s}
+/* 고른 카드만 아래 칸으로 날아가고 나머지는 사라져요 */
+.lv-ov.out::before{opacity:0}
+.lv-ov.out h3,.lv-ov.out p,.lv-ov.out .lv-acts,.lv-ov.out .rv:not(.sel){opacity:0; transition:opacity .25s}
+.lv-ov.out h3{animation:none}
 .btn{padding:.4rem 1rem .5rem; border-radius:.6rem; border:.13rem solid var(--ink); font-size:.85rem; color:#fff; background:var(--c,var(--green));
   box-shadow:inset 0 -.24rem 0 rgba(0,0,0,.22), 0 .18rem 0 var(--ink); text-shadow:var(--ol-s)}
 .btn:active:not([disabled]){transform:translateY(.15rem)}
@@ -186,8 +209,8 @@ button[disabled]{cursor:default}
   <canvas id="fx"></canvas>
   <div class="top">
     <div class="coinbox" id="coinbox" aria-label="코인"><i class="ico"></i><b class="num" id="coins">0</b></div>
-    <div class="bonus" id="bonus" hidden><span class="c" id="bonusCoin"></span><span class="x" id="bonusXp"></span></div>
   </div>
+  <div class="bonus" id="bonus" aria-label="지금 붙은 보너스" hidden><span class="b-coin" id="bonusCoin" hidden><i class="ico"></i><b class="num"></b></span><span class="b-xp" id="bonusXp" hidden><i class="ico"></i><b class="num"></b></span></div>
   <div class="dock">
     <div class="equip" id="equip" aria-label="낀 능력 카드"></div>
     <div class="xp" id="xp" aria-label="레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
@@ -215,9 +238,10 @@ const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
 // 카드 숫자 값 = 기본 코인: 2~10은 그대로, J 11 · Q 12 · K 13, A가 가장 높은 14
 const rankValue = r => r === 0 ? 14 : r + 1;
 const isRoyal = r => r === 0 || r >= 10;   // J · Q · K · A
-// 카드 한 장마다 기본 XP 1. 레벨마다 필요한 XP가 12%씩 늘어요
+// 카드 한 장마다 기본 XP 1. 레벨 1은 XP 3이면 오르고, 갈수록 필요한 XP가 점점 많아져요
+// (레벨 1 → 3, 2 → 5, 3 → 9, 5 → 19, 10 → 61, 20 → 221, 30 → 481)
 const BASE_XP = 1;
-const xpNeed = L => Math.floor(30 * 1.12 ** (L - 1));
+const xpNeed = L => Math.floor(3 + 2 * (L - 1) + 0.5 * (L - 1) ** 2);
 // 한 장 뽑으면 다음 장까지 기다리는 시간 (초)
 const DRAW_COOLDOWN = 5;
 const MIN_COOLDOWN = 0.5;
@@ -624,42 +648,80 @@ function bgDraw(t, dt) {
 /* ---------- 날아가는 카드와 숫자 ---------- */
 const flyers = [], pops = [], sparks = [], rings = [];
 const FONT = px => `700 ${px}px "Pixelify Sans", Jua, "Apple SD Gothic Neo", sans-serif`;
-function spawnCard(r, s, lines) {
-  const x0 = deckX, y0 = deckY - deckH * 0.1;
+const ease = {
+  out: k => 1 - (1 - k) ** 3,
+  inOut: k => 0.5 - Math.cos(Math.PI * k) / 2,
+  back: k => { const c = 1.35; return 1 + (c + 1) * (k - 1) ** 3 + c * (k - 1) ** 2; },
+};
+const T_LIFT = 0.1, T_FLY = 0.5, T_HOLD = 1.3, T_LIFE = 1.75;
+function shadowSprite() {
+  if (sprites.has('shadow')) return sprites.get('shadow');
+  const cv = mk(25, 35); cardShape(cv.getContext('2d'), 0, '#0b0424', '#0b0424');
+  sprites.set('shadow', cv);
+  return cv;
+}
+function spawnCard(r, s, lines, delay = 0) {
+  // 덱 맨 위 카드 자리에서 출발해요
+  const x0 = deckX, y0 = deckY - deckH / 2 + 17.5 * ps;
   let ang = rnd() * Math.PI * 2;
   if (land && Math.sin(ang) > 0.55) ang = -ang;
   const rx = land ? Math.min(W * 0.26, deckW * 3.2) : W * 0.34, ry = land ? H * 0.3 : Math.min(H * 0.24, deckH * 1.3);
-  const k = 0.6 + rnd() * 0.4;
+  const k = 0.75 + rnd() * 0.25;
   if (flyers.length > 40) flyers.shift();
-  flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: 0, life: 1.4, r1: (rnd() - 0.5) * 1.3,
-    sc1: ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25), front: rnd() < 0.4, lines });
+  flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: -delay, r1: (rnd() - 0.5) * 0.9,
+    sc1: ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25), lines });
 }
+// 들기(0.1초) → 휘어 날아가며 뒤집기(0.5초) → 머물기 → 천천히 사라지기
 function drawFlyer(g, f) {
-  const p = f.t / f.life, m = 1 - Math.pow(1 - Math.min(1, f.t / 0.45), 3);
-  const x = f.x0 + (f.x1 - f.x0) * m, y = f.y0 + (f.y1 - f.y0) * m - Math.max(0, f.t - 0.45) * 14;
-  const flip = Math.min(1, f.t / 0.2), sx = Math.abs(Math.cos(flip * Math.PI));
-  const sc = ps * 0.95 + (f.sc1 - ps * 0.95) * m;
+  const t = f.t;
+  if (t < 0) return;
+  let x, y, rot = 0, sc, sx = 1, face = true, alpha = 1, lift;
+  const ly = f.y0 - ps * 3;   // 덱에서 살짝 들린 자리
+  if (reduced()) { x = f.x1; y = f.y1; sc = f.sc1; lift = 0; alpha = t > T_HOLD ? Math.max(0, 1 - (t - T_HOLD) / (T_LIFE - T_HOLD)) : Math.min(1, t / 0.15); }
+  else if (t < T_LIFT) {
+    const k = ease.out(t / T_LIFT);
+    x = f.x0; y = f.y0 + (ly - f.y0) * k; sc = ps * (1 + 0.06 * k); face = false; lift = 0.25 * k;
+  } else {
+    const u = Math.min(1, (t - T_LIFT) / T_FLY), m = ease.out(u), b = ease.back(u);
+    // 위로 휘는 길 (2차 베지에)
+    const cx = (f.x0 + f.x1) / 2, cy = Math.min(ly, f.y1) - Math.hypot(f.x1 - f.x0, f.y1 - ly) * 0.3;
+    x = (1 - m) * (1 - m) * f.x0 + 2 * (1 - m) * m * cx + m * m * f.x1;
+    y = (1 - m) * (1 - m) * ly + 2 * (1 - m) * m * cy + m * m * f.y1;
+    rot = f.r1 * b;
+    sc = ps * 1.06 + (f.sc1 - ps * 1.06) * b;
+    const fe = ease.inOut(clamp((u - 0.05) / 0.55, 0, 1));
+    sx = Math.abs(Math.cos(fe * Math.PI)); face = fe >= 0.5;
+    lift = 0.25 + 0.75 * Math.sin(Math.PI * Math.min(1, u * 1.05));
+    if (u >= 1) lift = 0;
+    if (t > T_HOLD) { const k = (t - T_HOLD) / (T_LIFE - T_HOLD); alpha = Math.max(0, 1 - k * k); y -= ease.out(k) * 12; sc *= 1 - 0.06 * k; }
+  }
   g.save();
-  g.globalAlpha = p < 0.62 ? 1 : Math.max(0, 1 - (p - 0.62) / 0.38);
-  g.translate(x, y); g.rotate(f.r1 * m);
+  g.translate(x, y); g.rotate(rot);
+  // 그림자: 높이 들릴수록 멀어지고 옅어져요
+  g.globalAlpha = alpha * (0.32 - 0.12 * lift);
+  g.save(); g.translate(ps * (1 + lift * 3), ps * (1.5 + lift * 5)); g.scale(sc * Math.max(0.08, sx), sc); g.drawImage(shadowSprite(), -12.5, -17.5); g.restore();
+  g.globalAlpha = alpha;
   g.scale(sc * Math.max(0.08, sx), sc);
-  g.drawImage(flip >= 0.5 ? f.spr : backSprite(false), -12.5, -17.5);
+  g.drawImage(face ? f.spr : backSprite(false), -12.5, -17.5);
   g.restore();
 }
 // 숫자: 여러 줄 [글자, 색, 크기(rem)]
 function drawPop(g, p) {
-  const k = p.t / p.life;
-  g.globalAlpha = Math.max(0, k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3);
+  const k = Math.min(1, p.t / p.life), pin = Math.min(1, p.t / 0.24);
+  const sIn = 0.55 + 0.45 * ease.back(pin);
+  g.globalAlpha = Math.max(0, k < 0.72 ? Math.min(1, p.t / 0.08) : 1 - (k - 0.72) / 0.28);
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
-  let y = p.y - p.t * 26;
+  g.save(); g.translate(p.x, p.y - ease.out(k) * 34); g.scale(sIn, sIn);
+  let y = 0;
   for (const [text, color, size] of p.lines) {
     const fs = Math.round(REM * size * (land ? 1 : 0.88));
     g.font = FONT(fs);
     g.lineWidth = Math.max(3, fs * 0.28); g.strokeStyle = INK;
-    g.strokeText(text, p.x, y);
-    g.fillStyle = color; g.fillText(text, p.x, y);
+    g.strokeText(text, 0, y);
+    g.fillStyle = color; g.fillText(text, 0, y);
     y += fs * 1.05;
   }
+  g.restore();
   g.globalAlpha = 1;
 }
 function burst(x, y, n, colors, speed) {
@@ -687,7 +749,7 @@ function renderFx() {
         g.fillRect(deckX + Math.cos(a1) * ringR - d / 2, deckY + Math.sin(a1) * ringR - d / 2, d, d);
       }
     }
-    for (const f of flyers) if (f.front === front) drawFlyer(g, f);
+    if (front) for (const f of flyers) drawFlyer(g, f);
   }
   const g = fctx;
   for (const r of rings) {
@@ -702,8 +764,8 @@ function renderFx() {
 function stepFx(dt) {
   for (let i = flyers.length - 1; i >= 0; i--) {
     const f = flyers[i]; f.t += dt;
-    if (f.lines && f.t >= 0.28) { if (pops.length < 14) pops.push({ x: f.x1, y: f.y1, t: 0, life: 1.3, lines: f.lines }); f.lines = null; }
-    if (f.t >= f.life) flyers.splice(i, 1);
+    if (f.lines && f.t >= T_LIFT + T_FLY * 0.8) { if (pops.length < 14) pops.push({ x: f.x1, y: f.y1 - ps * 4, t: 0, life: 1.4, lines: f.lines }); f.lines = null; }
+    if (f.t >= T_LIFE) flyers.splice(i, 1);
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
   for (let i = sparks.length - 1; i >= 0; i--) { const s = sparks[i]; s.t += dt; s.x += s.vx * dt; s.y += s.vy * dt; s.vy += 420 * dt; if (s.t >= s.life) sparks.splice(i, 1); }
@@ -732,8 +794,12 @@ function paintTop() {
   $('coins').textContent = fmt(S.coins);
   const b = $('bonus');
   b.hidden = !(ST.coinPct || ST.xpPct);
-  $('bonusCoin').hidden = !ST.coinPct; $('bonusCoin').textContent = `💰 코인 +${fmt(ST.coinPct)}%`;
-  $('bonusXp').hidden = !ST.xpPct; $('bonusXp').textContent = `⭐ XP +${fmt(ST.xpPct)}%`;
+  // 값이 바뀌면 살짝 튀어요
+  for (const [id, v, label] of [['bonusCoin', ST.coinPct, '코인'], ['bonusXp', ST.xpPct, 'XP']]) {
+    const el = $(id), txt = `${label} +${fmt(v)}%`, t = el.querySelector('b');
+    el.hidden = !v;
+    if (t.textContent !== txt) { if (t.textContent) { el.classList.remove('bump'); void el.offsetWidth; el.classList.add('bump'); } t.textContent = txt; }
+  }
 }
 function paintXp() {
   const n = xpNeed(S.level);
@@ -817,7 +883,7 @@ function drawCards() {
     if (got.jackpot) lines.push(['🎰 대박! 코인 ×5', '#ffd34d', 0.78]);
     lines.push([`+${fmt(got.xp)} XP`, '#62b9ff', 0.88]);
     if (got.meteor) lines.push(['🌠 별똥별! XP ×5', '#9fd6ff', 0.78]);
-    spawnCard(r, s, lines);
+    spawnCard(r, s, lines, i * 0.14);
     if (got.jackpot || got.meteor) big = true;
     addXp(got.xp);
   }
@@ -943,12 +1009,35 @@ const Sheet = (() => {
 })();
 
 /* ---------- 레벨 보상: 3장 중 1장 고르기 ---------- */
+// 화면이 서서히 어두워지고 → 덱에서 3장을 한 장씩 나눠 주고 → 차례로 들썩이며 뒤집혀요.
+// 고르면 그 카드가 아래 칸(칸이 다 찼으면 인벤토리 단추)으로 날아가 끼워져요
 const LvOv = (() => {
   const ov = $('lvOv');
-  let open = false;
+  let open = false, busy = false;
+  const ms = n => reduced() ? 0 : n;
+  // 카드 그림(.face)의 가운데를 기준으로 움직이게 해요
+  function originAtFace(rv) {
+    const r = rv.getBoundingClientRect(), f = rv.querySelector('.face').getBoundingClientRect();
+    rv.style.transformOrigin = `${f.left + f.width / 2 - r.left}px ${f.top + f.height / 2 - r.top}px`;
+    return f;
+  }
   function close() {
-    ov.hidden = true; ov.replaceChildren(); open = false;
-    if (S.pending > 0) setTimeout(show, 350);
+    ov.classList.remove('in');
+    setTimeout(() => {
+      ov.hidden = true; ov.classList.remove('out'); ov.replaceChildren(); open = false; busy = false;
+      if (S.pending > 0) setTimeout(show, 350);
+    }, ms(320));
+  }
+  function sparkle(rv, color, n) {
+    const f = rv.querySelector('.face');
+    for (let i = 0; i < n; i++) {
+      const sp = h('i', 'spark'); sp.style.background = color;
+      f.append(sp);
+      const a = (i / n) * Math.PI * 2 + rnd() * 0.4, d = 40 + rnd() * 35;
+      const an = sp.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d}px) scale(.4)`, opacity: 0 }],
+        { duration: 650 + rnd() * 250, easing: 'cubic-bezier(.2,.8,.3,1)' });
+      an.onfinish = () => sp.remove();
+    }
   }
   function show() {
     if (open) return;
@@ -958,9 +1047,9 @@ const LvOv = (() => {
       S.pending--; S.offer = rollOffer(rnd); save();
     }
     Sheet.close();
-    open = true;
+    open = true; busy = false;
     const offer = S.offer, lv = S.level - S.pending;
-    const row = h('div', 'reveal'), tip = h('p', null, '카드가 뒤집히고 있어요…');
+    const row = h('div', 'reveal'), tip = h('p', null, '카드를 나눠 주고 있어요…');
     const take = h('button', 'btn', '이 카드 받기'); take.type = 'button'; take.disabled = true;
     let flipped = 0, sel = -1;
     const items = offer.map((c, i) => {
@@ -970,11 +1059,12 @@ const LvOv = (() => {
       const face = h('div', 'face'); face.append(back, front);
       const lbl = h('div', 'lbl'); lbl.append(h('b', null, `${G.name} · ${A.name}`), h('small', null, cardText(c)));
       const rv = h('button', 'rv'); rv.type = 'button';
-      rv.style.setProperty('--gc', G.color); rv.style.animationDelay = (i * 0.1) + 's';
+      rv.style.setProperty('--gc', G.color);
       rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
       rv.append(face, lbl);
       const it = { rv, c, open: false };
       rv.addEventListener('click', () => {
+        if (busy) return;
         if (!it.open) { flip(it); return; }
         if (sel === i) { choose(); return; }   // 고른 카드를 한 번 더 누르면 바로 받아요
         select(i);
@@ -987,6 +1077,7 @@ const LvOv = (() => {
       it.open = true; it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow');
       it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}. 누르면 골라요`);
       Sound.flip(it.c.g);
+      if (it.c.g >= 2 && !reduced()) setTimeout(() => sparkle(it.rv, GRADES[it.c.g].color, 6 + it.c.g * 3), 260);
       if (++flipped === items.length && sel < 0) tip.textContent = '마음에 드는 카드를 하나 골라요';
     }
     function select(i) {
@@ -994,24 +1085,58 @@ const LvOv = (() => {
       items.forEach((it, j) => it.rv.classList.toggle('sel', j === i));
       row.classList.add('has-sel');
       take.disabled = false;
-      const c = items[i].c, full = S.equip.indexOf(null) < 0;
-      tip.textContent = full ? '칸이 다 찼어요. 받으면 인벤토리로 가요' : `받으면 ${S.equip.indexOf(null) + 1}번 칸에 바로 껴요`;
+      const c = items[i].c, free = S.equip.indexOf(null);
+      tip.textContent = free < 0 ? '칸이 다 찼어요. 받으면 인벤토리로 가요' : `받으면 ${free + 1}번 칸에 바로 껴요`;
       take.textContent = `${ABILITY[c.a].icon} 이 카드 받기`;
     }
     function choose() {
-      if (sel < 0) return;
-      const c = items[sel].c;
-      S.offer = null;
-      close();
-      takeCard(c);
-      Sound.equip();
+      if (sel < 0 || busy) return;
+      busy = true;
+      const it = items[sel], c = it.c, free = S.equip.indexOf(null);
+      const target = free >= 0 ? $('equip').children[free] : $('equip').querySelector('.bag');
+      ov.classList.add('out');
+      if (target && !reduced()) {
+        const from = getComputedStyle(it.rv).transform;
+        const f = originAtFace(it.rv), t = target.getBoundingClientRect();
+        const dx = t.left + t.width / 2 - (f.left + f.width / 2), dy = t.top + t.height / 2 - (f.top + f.height / 2);
+        const sc = Math.max(0.15, Math.min(t.width / f.width, t.height / f.height));
+        it.rv.style.transition = 'none';
+        it.rv.animate([
+          { transform: from === 'none' ? 'none' : from },
+          { transform: `translate(${dx * 0.1}px, ${dy * 0.1 - 24}px) scale(1.08) rotate(-4deg)`, offset: 0.28 },
+          { transform: `translate(${dx}px, ${dy}px) scale(${sc}) rotate(0deg)`, opacity: 0.35 },
+        ], { duration: 620, easing: 'cubic-bezier(.55,0,.35,1)', fill: 'forwards' });
+      }
+      setTimeout(() => {
+        S.offer = null;
+        takeCard(c);
+        Sound.equip();
+        close();
+      }, ms(600));
     }
     take.addEventListener('click', choose);
     const acts = h('div', 'lv-acts'); acts.append(take);
     ov.replaceChildren(h('h3', null, `⭐ 레벨 ${lv}! 능력 카드 3장 중 하나를 골라요`), tip, row, acts);
     ov.hidden = false;
-    items.forEach((it, i) => setTimeout(() => { if (open && ov.contains(it.rv)) flip(it); }, 550 + i * 320));
-    items[0].rv.focus({ preventScroll: true });
+    void ov.offsetWidth;
+    ov.classList.add('in');
+    // 덱 맨 위 카드 자리에서 한 장씩 날아와 자리를 잡아요
+    const d = deckBtn.getBoundingClientRect(), dx0 = d.left + d.width / 2, dy0 = d.top + d.width * 0.7;
+    items.forEach((it, i) => {
+      const delay = 200 + i * 140;
+      if (reduced()) { it.rv.classList.add('dealt'); return; }
+      const f = originAtFace(it.rv), sc = d.width / f.width;
+      const a = it.rv.animate([
+        { transform: `translate(${dx0 - (f.left + f.width / 2)}px, ${dy0 - (f.top + f.height / 2)}px) scale(${sc}) rotate(${(i - 1) * 14}deg)`, opacity: 0 },
+        { opacity: 1, offset: 0.12 },
+        { transform: 'none', opacity: 1 },
+      ], { duration: 580, delay, easing: 'cubic-bezier(.2,.85,.3,1.12)', fill: 'backwards' });
+      a.onfinish = () => { it.rv.style.transformOrigin = ''; it.rv.classList.add('dealt'); };
+      setTimeout(() => Sound.flick(), delay);
+    });
+    const firstFlip = ms(200 + 2 * 140 + 580 + 180);
+    items.forEach((it, i) => setTimeout(() => { if (open && !busy && ov.contains(it.rv)) flip(it); }, firstFlip + i * ms(340)));
+    items[0].rv.focus({ preventScroll: true, focusVisible: false });
   }
   return { show, close, get open() { return open; } };
 })();
@@ -1053,6 +1178,7 @@ function start(data) {
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
   $('tapHint').hidden = S.draws >= 3;
   refresh();
+  if (S.xp >= xpNeed(S.level)) addXp(0);
   save();
   if (S.pending > 0 || S.offer) setTimeout(() => LvOv.show(), 600);
   requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
