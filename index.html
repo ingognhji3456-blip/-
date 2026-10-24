@@ -5,20 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>한 장 더</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="덱을 눌러 카드를 뽑고 별을 모아 레벨을 올리는 픽셀 카드 뽑기 게임.">
+<meta name="description" content="덱을 눌러 카드를 뽑아 코인과 XP를 모으고, 레벨이 오르면 능력 카드 3장 중 하나를 골라 3칸에 끼는 픽셀 카드 뽑기 게임.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Jua&display=swap">
 <style>
-/* 레이아웃: 보라색 픽셀 배경 한가운데 덱 하나. 누르면 카드가 튀어나가고, 맨 아래 별 막대가 레벨을 보여 줘요.
-   크기는 html 글자 크기(--s)로 한꺼번에 맞춰요. */
+/* 레이아웃: 보라색 픽셀 배경 한가운데 덱 하나. 위 가운데 코인, 아래에 능력 카드 3칸 · 인벤토리 · XP 막대.
+   가로 화면은 3칸이 XP 막대 오른쪽에, 세로 화면은 XP 막대 위에 놓여요. 크기는 html 글자 크기(--s)로 한꺼번에 맞춰요. */
 :root{
   color-scheme:dark;
-  --ink:#160a33; --ink-2:#22134a;
-  --text:#ffffff; --muted:#d3c8ff;
-  --gold:#ffc83d; --cyan:#2fd0f5;
+  --ink:#160a33; --ink-2:#22134a; --panel:#2c1b5e; --panel-hi:#3b2780; --panel-lo:#1d1042;
+  --text:#ffffff; --muted:#d3c8ff; --dim:#9d8ed8;
+  --gold:#ffc83d; --coin:#ffd34d; --xp:#62b9ff; --green:#38d064; --red:#ff3b55;
   --f-pix:"Pixelify Sans","Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-ui:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --ol:0 .13rem 0 var(--ink),.13rem 0 0 var(--ink),-.13rem 0 0 var(--ink),0 -.13rem 0 var(--ink);
   --ol-s:0 .08rem 0 var(--ink),.08rem 0 0 var(--ink),-.08rem 0 0 var(--ink),0 -.08rem 0 var(--ink);
   --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
   --safe-l:env(safe-area-inset-left,0px); --safe-r:env(safe-area-inset-right,0px);
@@ -30,7 +31,8 @@ html,body{height:100%; overflow:hidden}
 body{margin:0; background:var(--ink); color:var(--text); font-family:var(--f-ui); font-size:1rem; line-height:1.35;
   -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased}
 button{font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; padding:0; border:0; background:none}
-button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
+button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.25rem}
+button[disabled]{cursor:default}
 .num{font-family:var(--f-pix); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em}
 
 /* 무대 */
@@ -38,6 +40,7 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 #bg,#back,#fx{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none}
 #bg{image-rendering:pixelated}
 .deck{position:absolute; left:0; top:0; display:block; touch-action:none; filter:drop-shadow(0 .5rem 0 rgba(10,4,30,.45))}
+.deck:focus-visible{outline-offset:.4rem}
 .deck canvas{display:block; width:100%; height:100%; image-rendering:pixelated; transition:transform .12s cubic-bezier(.3,1.6,.5,1), filter .2s}
 .deck.hit canvas{transform:scale(.93) rotate(-1.5deg); transition-duration:.04s}
 .deck.cooling canvas{filter:brightness(.62) saturate(.7)}
@@ -51,16 +54,37 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 .cd b{position:absolute; inset:.32rem; display:grid; place-items:center; border-radius:50%; background:var(--ink-2); font-size:1rem; color:#fff}
 .cd.pulse{animation:pop .3s}
 .tap-hint{position:absolute; left:0; top:0; transform:translate(-50%,0); padding:.35rem .8rem; border-radius:.6rem; background:var(--gold); color:var(--ink);
-  border:.14rem solid var(--ink); box-shadow:0 .2rem 0 var(--ink); font-size:1rem; white-space:nowrap; pointer-events:none; animation:bob 1s ease-in-out infinite}
+  border:.14rem solid var(--ink); box-shadow:0 .2rem 0 var(--ink); font-size:1rem; white-space:nowrap; pointer-events:none; animation:bob 1s ease-in-out infinite; z-index:4}
 .tap-hint::before{content:""; position:absolute; left:50%; top:-.55rem; margin-left:-.45rem; border:.45rem solid transparent; border-bottom-color:var(--ink); border-top:0}
 @keyframes bob{50%{transform:translate(-50%,-.3rem)}}
+@keyframes pop{40%{transform:scale(1.25)}}
 
-/* 맨 아래: 별 레벨 */
-/* 가진 능력 (별 막대 바로 위) */
-.abil{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(3.2rem + var(--safe-b)); width:min(40rem, calc(100% - 1.6rem)); display:flex; flex-wrap:wrap; justify-content:center; gap:.3rem; pointer-events:none; z-index:5}
-.abil span{padding:.12rem .55rem .18rem; border-radius:.55rem; background:rgba(16,6,40,.85); border:.12rem solid var(--ink); font-size:.78rem; color:var(--muted); white-space:nowrap}
-.xp{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(40rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
-  height:2.2rem; display:flex; align-items:center; gap:.55rem; padding:0 .6rem; background:rgba(16,6,40,.85); border-radius:.7rem; border:.14rem solid var(--ink); z-index:5}
+/* 위 가운데: 코인과 지금 붙은 보너스 */
+.top{position:absolute; top:calc(.5rem + var(--safe-t)); left:50%; transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.25rem; z-index:5; pointer-events:none}
+.coinbox{display:flex; align-items:center; gap:.55rem; min-width:10rem; height:2.8rem; padding:0 1.1rem 0 .55rem; background:var(--panel); border:.18rem solid var(--ink); border-radius:.85rem;
+  box-shadow:inset 0 -.3rem 0 var(--panel-lo), inset 0 .15rem 0 var(--panel-hi), 0 .22rem 0 var(--ink)}
+.coinbox .ico{width:1.95rem; height:1.95rem; flex:none; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
+.coinbox b{font-size:1.55rem; line-height:1; white-space:nowrap; color:#fff}
+.coinbox.bump b{animation:pop .25s}
+.bonus{display:flex; gap:.6rem; padding:.05rem .6rem; border-radius:.5rem; background:rgba(16,6,40,.75); font-size:.78rem; white-space:nowrap}
+.bonus .c{color:var(--coin)} .bonus .x{color:var(--xp)}
+
+/* 아래: 능력 카드 3칸 · 인벤토리 · XP 막대 */
+.dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(44rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
+  display:flex; flex-direction:column; align-items:center; gap:.5rem; z-index:5}
+.land .dock{flex-direction:row-reverse; align-items:center}
+.equip{display:flex; gap:.4rem; align-items:center}
+.slot{position:relative; width:3.1rem; height:3.1rem; border-radius:.75rem; display:grid; place-items:center; font-size:1.6rem; line-height:1;
+  background:var(--ink-2); border:.2rem solid var(--gc,#4a3d7a); box-shadow:0 .18rem 0 var(--ink), inset 0 0 0 .12rem rgba(255,255,255,.08)}
+.slot.empty{border-style:dashed; border-color:rgba(255,255,255,.28); color:rgba(255,255,255,.38); font-size:1.2rem; background:rgba(22,10,51,.55)}
+.slot.pop{animation:pop .35s}
+.bag{position:relative; height:3.1rem; padding:0 .8rem 0 .55rem; display:flex; align-items:center; gap:.35rem; border-radius:.75rem; background:#ffae35; color:var(--ink);
+  border:.16rem solid var(--ink); box-shadow:inset 0 -.28rem 0 #e07b00, 0 .18rem 0 var(--ink); font-size:.9rem}
+.bag i{font-style:normal; font-size:1.35rem}
+.bag em{position:absolute; top:-.45rem; right:-.45rem; min-width:1.3rem; height:1.3rem; padding:0 .3rem; border-radius:.65rem; background:var(--red); color:#fff;
+  font-style:normal; font-size:.72rem; display:grid; place-items:center; border:.13rem solid var(--ink)}
+.xp{position:relative; width:100%; height:2.2rem; display:flex; align-items:center; gap:.55rem; padding:0 .6rem; background:rgba(16,6,40,.85); border-radius:.7rem; border:.14rem solid var(--ink)}
+.land .xp{flex:1; min-width:0}
 .xp .ico{width:1.55rem; height:1.55rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
 .xp b{font-size:1.25rem; color:#d6e6ff; min-width:2ch}
 .xp .bar{position:relative; flex:1; height:.9rem; border-radius:.45rem; background:#100630; overflow:hidden; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
@@ -68,28 +92,32 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 .xp .bar i::after{content:""; position:absolute; right:-.1rem; top:50%; width:.8rem; height:.8rem; margin-top:-.4rem; background:#fff; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
 .xp .bar span{position:absolute; right:.45rem; top:50%; transform:translateY(-50%); font-size:.66rem; color:rgba(255,255,255,.8); white-space:nowrap}
 .xp.lvup b{animation:pop .5s}
-@keyframes pop{40%{transform:scale(1.35)}}
 
 /* 알림 */
-.toasts{position:fixed; left:50%; top:calc(1rem + var(--safe-t)); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.35rem; z-index:80; pointer-events:none; width:max-content; max-width:calc(100vw - 2rem)}
-.toast{padding:.4rem 1rem; border-radius:.7rem; background:rgba(34,19,74,.94); border:.14rem solid #5fb8ff; color:#fff; font-size:.95rem; box-shadow:0 .2rem 0 var(--ink); animation:tin .25s ease-out; text-align:center}
+.toasts{position:fixed; left:50%; top:calc(5.2rem + var(--safe-t)); transform:translateX(-50%); display:flex; flex-direction:column; align-items:center; gap:.35rem; z-index:80; pointer-events:none; width:max-content; max-width:calc(100vw - 2rem)}
+.toast{padding:.4rem 1rem; border-radius:.7rem; background:rgba(34,19,74,.95); border:.14rem solid var(--tc,#5fb8ff); color:#fff; font-size:.9rem; box-shadow:0 .2rem 0 var(--ink); animation:tin .25s ease-out; text-align:center}
 .toast.out{opacity:0; transform:translateY(-.4rem); transition:.3s}
 @keyframes tin{from{opacity:0; transform:translateY(-.5rem) scale(.95)}}
 
-/* 레벨 보상: 카드 3장을 뒤집어요 */
+/* 능력 카드 그림 (캔버스 틀 위에 이모지) */
+.art{position:relative; aspect-ratio:25/35; flex:none}
+.art canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
+.art .ae{position:absolute; left:0; right:0; top:15%; height:51%; display:grid; place-items:center; font-size:var(--ae,1.4rem); line-height:1; filter:drop-shadow(0 .12rem 0 rgba(0,0,0,.45))}
+
+/* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
   background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
   padding:calc(1rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}
-.lv-ov h3{margin:0; font-weight:400; font-size:1.45rem; text-align:center; text-wrap:balance; text-shadow:0 .13rem 0 var(--ink),.13rem 0 0 var(--ink),-.13rem 0 0 var(--ink),0 -.13rem 0 var(--ink)}
-.lv-ov p{margin:0; font-size:.85rem; color:var(--muted); text-align:center}
+.lv-ov h3{margin:0; font-weight:400; font-size:1.45rem; text-align:center; text-wrap:balance; text-shadow:var(--ol)}
+.lv-ov p{margin:0; font-size:.85rem; color:var(--muted); text-align:center; min-height:1.15rem}
 .reveal{display:flex; justify-content:center; gap:.9rem}
-.rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; animation:rvin .35s ease-out backwards}
+.rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
+  animation:rvin .35s ease-out backwards; transition:transform .2s, opacity .2s, background .2s}
 @keyframes rvin{from{opacity:0; transform:translateY(1.5rem) scale(.8)}}
-.rv .face{width:6rem; height:8.4rem; position:relative; perspective:30rem; transition:filter .3s}
+.rv .face{width:5.6rem; height:7.84rem; position:relative; perspective:30rem; transition:filter .3s}
 .rv .face > *{position:absolute; inset:0; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; transition:transform .45s}
 .rv .face canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
-.rv .face .ae{position:absolute; left:0; right:0; top:15%; height:51%; display:grid; place-items:center; font-size:2.4rem; line-height:1; filter:drop-shadow(0 .15rem 0 rgba(0,0,0,.45))}
-.rv .face .front{transform:rotateY(180deg)}
+.rv .face .front{transform:rotateY(180deg); --ae:2.3rem}
 .rv.open .face .backside{transform:rotateY(-180deg)}
 .rv.open .face .front{transform:rotateY(0)}
 .rv:not(.open) .face{animation:wiggle 1.6s ease-in-out infinite}
@@ -99,10 +127,47 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
 .rv.open .lbl{opacity:1}
 .rv .lbl b{display:block; font-weight:400; font-size:.92rem; color:var(--gc)}
 .rv.open.glow .face{filter:drop-shadow(0 0 .7rem var(--gc)) drop-shadow(0 0 .25rem var(--gc))}
+.reveal.has-sel .rv:not(.sel){opacity:.5}
+.rv.sel{transform:translateY(-.45rem); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold)}
 .lv-acts{display:flex; gap:.6rem}
-.lv-acts button{padding:.55rem 1.4rem .7rem; border-radius:.75rem; border:.15rem solid var(--ink); font-size:1.05rem; color:#fff; background:var(--c,#38d064);
+.btn{padding:.55rem 1.4rem .7rem; border-radius:.75rem; border:.15rem solid var(--ink); font-size:1.05rem; color:#fff; background:var(--c,var(--green));
   box-shadow:inset 0 -.3rem 0 rgba(0,0,0,.22), 0 .22rem 0 var(--ink); text-shadow:var(--ol-s)}
-.lv-acts button:active{transform:translateY(.15rem)}
+.btn:active:not([disabled]){transform:translateY(.15rem)}
+.btn[disabled]{--c:#6b6f86; opacity:.75}
+
+/* 인벤토리 창 */
+.sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(12,4,32,.62);
+  padding:calc(.8rem + var(--safe-t)) calc(.8rem + var(--safe-r)) calc(.8rem + var(--safe-b)) calc(.8rem + var(--safe-l))}
+.sheet{width:min(36rem,100%); max-height:100%; display:flex; flex-direction:column; background:var(--panel); border:.2rem solid var(--ink); border-radius:1.1rem;
+  box-shadow:inset 0 .18rem 0 var(--panel-hi), 0 .35rem 0 var(--ink); overflow:hidden; animation:sin .2s ease-out}
+@keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
+.port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
+.port .sheet{width:100%; border-radius:1.1rem 1.1rem 0 0; padding-bottom:var(--safe-b); max-height:86vh}
+.sheet header{flex:none; display:flex; align-items:center; gap:.7rem; padding:.65rem .8rem .55rem 1.1rem; background:var(--panel-lo)}
+.sheet header h2{flex:1; margin:0; font-weight:400; font-size:1.35rem; text-shadow:var(--ol-s)}
+.x{width:2.3rem; height:2.3rem; display:grid; place-items:center; font-size:1.1rem; flex:none; border-radius:.7rem; background:var(--red); border:.15rem solid var(--ink); box-shadow:inset 0 -.25rem 0 #b81b33, 0 .18rem 0 var(--ink)}
+.sbody{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:.8rem 1rem 1.1rem; display:flex; flex-direction:column; gap:.7rem}
+.sbody h3{margin:.2rem 0 0; font-weight:400; font-size:1rem; color:var(--muted)}
+.note{margin:0; font-size:.82rem; color:var(--muted); line-height:1.45}
+.eqrow{display:grid; grid-template-columns:repeat(3,1fr); gap:.5rem}
+.eq{display:flex; flex-direction:column; align-items:center; gap:.3rem; padding:.55rem .35rem .5rem; border-radius:.8rem; background:var(--panel-hi); border:.16rem solid var(--gc,var(--ink)); text-align:center; font-size:.78rem; min-height:8.4rem}
+.eq .art{width:3.2rem; --ae:1.45rem}
+.eq b{font-weight:400; font-size:.85rem; color:var(--gc)}
+.eq span{color:var(--muted); line-height:1.25}
+.eq.empty{border-style:dashed; border-color:rgba(255,255,255,.25); justify-content:center; color:var(--dim)}
+.sum{display:flex; flex-wrap:wrap; gap:.35rem}
+.sum span{padding:.2rem .6rem; border-radius:.55rem; background:var(--ink-2); font-size:.82rem; color:var(--muted)}
+.sum span b{font-weight:400; color:#fff}
+.inv{display:grid; grid-template-columns:repeat(auto-fill,minmax(10.5rem,1fr)); gap:.5rem}
+.tile{position:relative; border-radius:.8rem; background:var(--panel-hi); border:.16rem solid var(--ink); box-shadow:0 .16rem 0 var(--ink)}
+.tile .tmain{width:100%; display:flex; align-items:center; gap:.55rem; padding:.5rem 2.4rem .5rem .5rem; text-align:left; border-radius:.7rem}
+.tile .art{width:2.6rem; --ae:1.15rem}
+.tile .tt{min-width:0; display:flex; flex-direction:column; gap:.1rem; font-size:.76rem; color:var(--muted); line-height:1.3}
+.tile .tt b{font-weight:400; font-size:.88rem; color:var(--gc)}
+.tile.on{background:#4a3596; box-shadow:0 0 0 .18rem var(--gold), 0 .16rem 0 var(--ink)}
+.tile.on::after{content:"장착"; position:absolute; top:-.5rem; left:.5rem; font-size:.66rem; padding:0 .35rem; border-radius:.35rem; background:var(--gold); color:var(--ink); pointer-events:none}
+.tile .tdel{position:absolute; top:.35rem; right:.35rem; width:1.9rem; height:1.9rem; border-radius:.5rem; background:var(--ink-2); color:var(--dim); font-size:.9rem; display:grid; place-items:center}
+.tile .tdel.arm{width:auto; padding:0 .45rem; background:var(--red); color:#fff; font-size:.7rem}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01s !important; animation-iteration-count:1 !important; transition-duration:.01s !important}
@@ -117,8 +182,20 @@ button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.4rem}
   <div class="tap-hint" id="tapHint" hidden>눌러서 카드 뽑기!</div>
   <div class="cd" id="cd" role="timer" aria-label="다음 카드까지 남은 시간" hidden><b class="num" id="cdText">5</b></div>
   <canvas id="fx"></canvas>
-  <div class="abil" id="abil" aria-label="가진 능력" hidden></div>
-  <div class="xp" id="xp" aria-label="별 레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
+  <div class="top">
+    <div class="coinbox" id="coinbox" aria-label="코인"><i class="ico"></i><b class="num" id="coins">0</b></div>
+    <div class="bonus" id="bonus" hidden><span class="c" id="bonusCoin"></span><span class="x" id="bonusXp"></span></div>
+  </div>
+  <div class="dock">
+    <div class="equip" id="equip" aria-label="낀 능력 카드"></div>
+    <div class="xp" id="xp" aria-label="레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
+  </div>
+</div>
+<div class="sheet-wrap" id="sheetWrap" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <header><h2 id="sheetTitle">🎒 인벤토리</h2><button class="x" id="sheetClose" type="button" aria-label="닫기">✕</button></header>
+    <div class="sbody" id="sheetBody"></div>
+  </div>
 </div>
 <div class="lv-ov" id="lvOv" role="dialog" aria-modal="true" aria-label="레벨 보상" hidden></div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
@@ -133,14 +210,18 @@ const SUITS = [
   { name:'클로버',   sym:'♣', red:false },
 ];
 const RANKS = ['A','2','3','4','5','6','7','8','9','10','J','Q','K'];
-// 카드 한 장을 뽑을 때마다 별 1개. 레벨마다 필요한 별이 12%씩 늘어요
-const STARS_PER_CARD = 1;
+// 카드 숫자 값 = 기본 코인: 2~10은 그대로, J 11 · Q 12 · K 13, A가 가장 높은 14
+const rankValue = r => r === 0 ? 14 : r + 1;
+const isRoyal = r => r === 0 || r >= 10;   // J · Q · K · A
+// 카드 한 장마다 기본 XP 1. 레벨마다 필요한 XP가 12%씩 늘어요
+const BASE_XP = 1;
+const xpNeed = L => Math.floor(30 * 1.12 ** (L - 1));
 // 한 장 뽑으면 다음 장까지 기다리는 시간 (초)
 const DRAW_COOLDOWN = 5;
-const xpNeed = L => Math.floor(30 * 1.12 ** (L - 1));
-const fmt = n => Math.floor(n).toLocaleString('ko-KR');
-// 레벨이 오르면 카드 3장을 받아요. 장마다 등급이 따로 정해져요 (확률 %)
+const MIN_COOLDOWN = 0.5;
+// 레벨이 오르면 서로 다른 능력 카드 3장 중에 1장을 골라요. 낄 수 있는 칸은 3개예요
 const LEVEL_CARDS = 3;
+const EQUIP_SLOTS = 3;
 const GRADES = [
   { name:'일반', chance:55, color:'#dfe2f5' },
   { name:'희귀', chance:28, color:'#4fc3ff' },
@@ -153,35 +234,66 @@ function rollGrade(rnd) {
   for (let i = 0; i < GRADES.length; i++) { x -= GRADES[i].chance; if (x < 0) return i; }
   return 0;
 }
-// 능력 카드: 장마다 능력 하나와 등급 하나가 무작위로 붙어요. v는 등급별 세기(일반 → 신화). 같은 능력은 겹쳐 쌓여요
+// 능력: 모두 % 값이에요. v는 등급별 세기(일반 → 신화). 같은 능력을 여러 장 끼면 더해져요 (쿨타임만 곱해서 줄어요)
 const ABILITIES = [
-  { id:'quick', icon:'⏱️', name:'빠른 손',    v:[3, 6, 10, 18, 30],    text: v => `쿨타임 −${v}%` },
-  { id:'bag',   icon:'⭐', name:'별 주머니',  v:[1, 2, 3, 5, 8],       text: v => `뽑을 때마다 별 +${v}` },
-  { id:'shine', icon:'💫', name:'별빛',       v:[10, 20, 35, 60, 100], text: v => `모든 별 +${v}%` },
-  { id:'twin',  icon:'🃏', name:'두 장 뽑기', v:[5, 10, 15, 25, 40],   text: v => `${v}% 확률로 한 장 더` },
-  { id:'lucky', icon:'🍀', name:'행운 별',    v:[3, 6, 10, 15, 25],    text: v => `${v}% 확률로 그 카드 별 ×5` },
-  { id:'flash', icon:'⚡', name:'번개 손',    v:[4, 8, 12, 20, 30],    text: v => `${v}% 확률로 쿨타임 없이 바로 또` },
-  { id:'paw',   icon:'🐾', name:'고양이 손',  v:[30, 20, 12, 8, 5],    text: v => `${v}초마다 저절로 한 장` },
+  { id:'coin',    icon:'💰', name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
+  { id:'xp',      icon:'⭐', name:'별빛',       v:[10, 20, 35, 60, 100],  text: v => `모든 XP +${v}%` },
+  { id:'royal',   icon:'👑', name:'왕실 카드',  v:[30, 60, 100, 170, 300], text: v => `J·Q·K·A 코인 +${v}%` },
+  { id:'red',     icon:'❤️', name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
+  { id:'black',   icon:'🖤', name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
+  { id:'growth',  icon:'📈', name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}%` },
+  { id:'jackpot', icon:'🎰', name:'대박',       v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 코인 ×5` },
+  { id:'meteor',  icon:'🌠', name:'별똥별',     v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 XP ×5` },
+  { id:'twin',    icon:'🃏', name:'두 장 뽑기', v:[5, 10, 15, 25, 40],    text: v => `${v}% 확률로 카드 한 장 더` },
+  { id:'quick',   icon:'⏱️', name:'빠른 손',    v:[5, 10, 15, 25, 40],    text: v => `쿨타임 −${v}%` },
 ];
-const MIN_COOLDOWN = 0.5;
-// cards: { 능력 id: [등급별 장수] } → 지금 적용되는 값
-function abilityStats(cards) {
-  const st = { bag:0, shine:0, twin:0, lucky:0, flash:0, pawRate:0, count:0 };
+const ABILITY = Object.fromEntries(ABILITIES.map(A => [A.id, A]));
+const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g]);
+// 서로 다른 능력 3장, 등급은 장마다 따로
+function rollOffer(rnd) {
+  const pool = ABILITIES.map(A => A.id), out = [];
+  while (out.length < LEVEL_CARDS && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: rollGrade(rnd) });
+  return out;
+}
+// 낀 카드들 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %예요
+function equipStats(cards, level) {
+  const st = Object.fromEntries(ABILITIES.map(A => [A.id, 0]));
   let cdMul = 1;
-  for (const A of ABILITIES) (cards[A.id] || []).forEach((n, g) => {
-    if (!n) return;
-    st.count += n;
-    if (A.id === 'quick') cdMul *= (1 - A.v[g] / 100) ** n;
-    else if (A.id === 'paw') st.pawRate += n / A.v[g];
-    else st[A.id] += A.v[g] * n;
-  });
+  for (const c of cards) {
+    const A = ABILITY[c.a]; if (!A) continue;
+    if (c.a === 'quick') cdMul *= 1 - A.v[c.g] / 100; else st[c.a] += A.v[c.g];
+  }
+  st.jackpot = Math.min(100, st.jackpot);
+  st.meteor = Math.min(100, st.meteor);
   st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul);
-  st.lucky = Math.min(100, st.lucky);
-  st.flash = Math.min(80, st.flash);
-  st.stars = (STARS_PER_CARD + st.bag) * (1 + st.shine / 100);
+  st.coinPct = st.coin + st.growth * level;
+  st.xpPct = st.xp + st.growth * level;
   return st;
 }
-const fmtStar = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR');
+// 카드 한 장에서 받는 코인과 XP
+function cardGain(r, s, st, rnd) {
+  let coinPct = st.coinPct, xpPct = st.xpPct;
+  if (isRoyal(r)) coinPct += st.royal;
+  if (SUITS[s].red) coinPct += st.red; else xpPct += st.black;
+  const jackpot = st.jackpot > 0 && rnd() * 100 < st.jackpot;
+  const meteor = st.meteor > 0 && rnd() * 100 < st.meteor;
+  return {
+    coins: rankValue(r) * (1 + coinPct / 100) * (jackpot ? 5 : 1),
+    xp: BASE_XP * (1 + xpPct / 100) * (meteor ? 5 : 1),
+    jackpot, meteor,
+  };
+}
+// 두 장 뽑기: 100%마다 한 장은 꼭 더, 남은 %는 확률로
+const extraCards = (twin, rnd) => Math.floor(twin / 100) + (rnd() * 100 < twin % 100 ? 1 : 0);
+
+/* ----- 숫자 ----- */
+const KUNITS = [[1e16,'경'],[1e12,'조'],[1e8,'억'],[1e4,'만']];
+function fmt(n) {
+  if (!isFinite(n)) return '∞';
+  if (n < 1e4) return (n < 100 && n % 1 ? Math.round(n * 10) / 10 : Math.floor(n)).toLocaleString('ko-KR');
+  for (const [u, name] of KUNITS) if (n >= u) { const v = n / u; return (v >= 1000 ? Math.floor(v).toLocaleString('ko-KR') : v >= 100 ? v.toFixed(1) : v.toFixed(2)) + name; }
+}
+const fmtSec = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR');
 </script>
 
 <script>
@@ -192,27 +304,40 @@ const SAVE_KEY = 'han-jang-deo-v1';
 const $ = id => document.getElementById(id);
 const rnd = Math.random;
 const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:2, level:1, xp:0, draws:0, pending:0, cards:{}, lastSeen:Date.now() });
-// 예전 저장(코인·업그레이드가 있던 판)에서는 별 레벨과 뽑은 장수만 가져와요
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, lastSeen:Date.now() });
+const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
+// 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
+const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
 function revive(raw) {
   const S = fresh();
   if (!raw || typeof raw !== 'object') return S;
   if (raw.level >= 1) S.level = Math.floor(raw.level);
   if (raw.xp >= 0) S.xp = raw.xp;
+  if (raw.v === 3 && raw.coins >= 0) S.coins = raw.coins;   // 아주 예전 판(코인 게임)의 코인은 가져오지 않아요
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
   if (raw.pending >= 0) S.pending = Math.floor(raw.pending);
-  if (raw.cards && typeof raw.cards === 'object') for (const A of ABILITIES) {
-    const row = raw.cards[A.id];
-    if (Array.isArray(row)) S.cards[A.id] = GRADES.map((_, g) => row[g] >= 0 ? Math.floor(row[g]) : 0);
+  if (Array.isArray(raw.offer) && raw.offer.length === LEVEL_CARDS && raw.offer.every(okCard)) S.offer = raw.offer.map(c => ({ a: c.a, g: c.g }));
+  if (Array.isArray(raw.inv)) for (const c of raw.inv) if (okCard(c) && Number.isInteger(c.id) && !S.inv.some(x => x.id === c.id)) S.inv.push({ id: c.id, a: c.a, g: c.g });
+  if (raw.v === 2 && raw.cards && typeof raw.cards === 'object') {
+    for (const [old, row] of Object.entries(raw.cards)) if (OLD_ABILITY[old] && Array.isArray(row))
+      row.forEach((n, g) => { for (let i = 0; i < Math.min(50, n | 0); i++) S.inv.push({ id: 0, a: OLD_ABILITY[old], g }); });
   }
+  let next = Math.max(0, ...S.inv.map(c => c.id)) + 1;
+  for (const c of S.inv) if (!c.id) c.id = next++;
+  S.nextId = Math.max(next, raw.nextId | 0);
+  if (Array.isArray(raw.equip)) raw.equip.slice(0, EQUIP_SLOTS).forEach((id, i) => { if (S.inv.some(c => c.id === id) && !S.equip.includes(id)) S.equip[i] = id; });
+  else [...S.inv].sort((a, b) => b.g - a.g).slice(0, EQUIP_SLOTS).forEach((c, i) => { S.equip[i] = c.id; });
   return S;
 }
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; } }
 function save() { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가: 이번 세션만 유지 */ } }
 let S = fresh();
+const cardById = id => S.inv.find(c => c.id === id);
+const equipped = () => S.equip.map(cardById).filter(Boolean);
 
 /* ---------- 소리 ---------- */
 const Sound = (() => {
@@ -243,16 +368,20 @@ const Sound = (() => {
     g.gain.setValueAtTime(o.vol || 0.1, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     s.connect(f); f.connect(g); g.connect(master); s.start(t); s.stop(t + dur + 0.02);
   }
+  const arp = (notes, step, o) => notes.forEach((f, i) => tone(f, o.dur || 0.14, { ...o, at: i * step }));
   return {
     ready,
-    flip(t) { if (!ready()) return; hiss(0.06, { vol: 0.12, freq: 3000 }); if (t > 0) [784, 988, 1175, 1568, 2093].slice(0, 1 + t).forEach((f, i) => tone(f, 0.14, { type:'triangle', vol: 0.09, at: i * 0.06 })); },
+    flip(t) { if (!ready()) return; hiss(0.06, { vol: 0.12, freq: 3000 }); if (t > 0) arp([784, 988, 1175, 1568, 2093].slice(0, 1 + t), 0.06, { type:'triangle', vol: 0.09 }); },
     flick() {
       if (!ready()) return; const n = performance.now(); if (n - lastFlick < 40) return; lastFlick = n;
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
     },
+    coin() { if (!ready()) return; tone(988, 0.05, { vol: 0.04 }); tone(1480, 0.08, { vol: 0.035, at: 0.04 }); },
+    jackpot() { if (!ready()) return; arp([1047, 1319, 1568, 2093, 2637], 0.05, { vol: 0.06 }); },
     nope() { if (!ready()) return; tone(200, 0.12, { type:'triangle', vol: 0.07 }); },
     back() { if (!ready()) return; tone(1175, 0.06, { type:'triangle', vol: 0.06 }); tone(1568, 0.09, { type:'triangle', vol: 0.05, at: 0.05 }); },
-    level() { if (!ready()) return; [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.16, { vol: 0.07, at: i * 0.08 })); },
+    equip() { if (!ready()) return; tone(660, 0.07, { vol: 0.07 }); tone(990, 0.1, { vol: 0.06, at: 0.06 }); },
+    level() { if (!ready()) return; arp([523, 659, 784, 1047, 1319], 0.08, { vol: 0.07, dur: 0.16 }); },
   };
 })();
 
@@ -399,6 +528,23 @@ function starURL() {
   }
   return cv.toDataURL();
 }
+function coinURL() {
+  const cv = mk(13, 13), g = cv.getContext('2d');
+  for (let y = 0; y < 13; y++) for (let x = 0; x < 13; x++) {
+    const d = Math.hypot(x - 6, y - 6);
+    if (d > 6.4) continue;
+    px(g, x, y, d > 5.5 ? '#7a4300' : d > 4.5 ? '#f0a020' : (x + y < 10 && d > 2.5 ? '#ffe58f' : '#ffd34d'));
+  }
+  map(g, PIP5[0], 4, 4, '#b86b00');
+  return cv.toDataURL();
+}
+// 능력 카드 그림 한 장 (틀 캔버스 + 능력 이모지)
+function cardArt(c) {
+  const art = h('div', 'art'), cv = mk(25, 35);
+  cv.getContext('2d').drawImage(abilitySprite(c.g), 0, 0);
+  art.append(cv, h('span', 'ae', ABILITY[c.a].icon));
+  return art;
+}
 
 /* ---------- 화면 크기 ---------- */
 const deckBtn = $('deck'), deckCv = $('deckCv');
@@ -408,11 +554,14 @@ let W = 0, H = 0, DPR = 1, REM = 16, land = true, ps = 4, deckX = 0, deckY = 0, 
 function layout() {
   W = innerWidth; H = innerHeight; DPR = Math.min(2, devicePixelRatio || 1);
   land = W / H >= 1.15;
+  document.body.classList.toggle('land', land);
+  document.body.classList.toggle('port', !land);
   const s = land ? clamp(Math.min(W / 820, H / 400), 0.7, 1.6) : clamp(Math.min(W / 400, H / 760), 0.7, 1.4);
   document.documentElement.style.setProperty('--s', s.toFixed(3));
   REM = 16 * s;
-  const top = 1.5 * REM, bot = H - 6 * REM, avail = Math.max(120, bot - top);
-  ps = Math.max(2, Math.floor(Math.min(avail * 0.8 / 39, (land ? W * 0.22 : W * 0.4) / 25, H * (land ? 0.5 : 0.34) / 39)));
+  // 위는 코인 상자, 아래는 3칸과 XP 막대 자리를 비워 둬요
+  const top = 4.9 * REM, bot = H - (land ? 4.4 : 7.4) * REM, avail = Math.max(120, bot - top);
+  ps = Math.max(2, Math.floor(Math.min(avail * 0.82 / 39, (land ? W * 0.22 : W * 0.4) / 25, H * (land ? 0.5 : 0.34) / 39)));
   deckW = 25 * ps; deckH = 39 * ps; deckX = W / 2; deckY = top + avail / 2;
   Object.assign(deckBtn.style, { left: (deckX - deckW / 2) + 'px', top: (deckY - deckH / 2) + 'px', width: deckW + 'px', height: deckH + 'px' });
   const hint = $('tapHint'); hint.style.left = deckX + 'px'; hint.style.top = (deckY + deckH / 2 + 0.6 * REM) + 'px';
@@ -465,10 +614,10 @@ function bgDraw(t, dt) {
   g.globalAlpha = 1;
 }
 
-/* ---------- 날아가는 카드와 별 ---------- */
+/* ---------- 날아가는 카드와 숫자 ---------- */
 const flyers = [], pops = [], sparks = [], rings = [];
 const FONT = px => `700 ${px}px "Pixelify Sans", Jua, "Apple SD Gothic Neo", sans-serif`;
-function spawnCard(r, s, pop) {
+function spawnCard(r, s, lines) {
   const x0 = deckX, y0 = deckY - deckH * 0.1;
   let ang = rnd() * Math.PI * 2;
   if (land && Math.sin(ang) > 0.55) ang = -ang;
@@ -476,7 +625,7 @@ function spawnCard(r, s, pop) {
   const k = 0.6 + rnd() * 0.4;
   if (flyers.length > 40) flyers.shift();
   flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: 0, life: 1.4, r1: (rnd() - 0.5) * 1.3,
-    sc1: ps * (land ? 0.65 + rnd() * 0.35 : 0.48 + rnd() * 0.22), front: rnd() < 0.4, pop });
+    sc1: ps * (land ? 0.65 + rnd() * 0.35 : 0.48 + rnd() * 0.22), front: rnd() < 0.4, lines });
 }
 function drawFlyer(g, f) {
   const p = f.t / f.life, m = 1 - Math.pow(1 - Math.min(1, f.t / 0.45), 3);
@@ -490,16 +639,20 @@ function drawFlyer(g, f) {
   g.drawImage(flip >= 0.5 ? f.spr : backSprite(false), -12.5, -17.5);
   g.restore();
 }
+// 숫자: 여러 줄 [글자, 색, 크기(rem)]
 function drawPop(g, p) {
   const k = p.t / p.life;
   g.globalAlpha = Math.max(0, k < 0.7 ? 1 : 1 - (k - 0.7) / 0.3);
   g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
-  const fs = Math.round(REM * (land ? 1.1 : 0.95));
-  g.font = FONT(fs);
-  g.lineWidth = Math.max(3, fs * 0.28); g.strokeStyle = INK;
-  const y = p.y - p.t * 26;
-  g.strokeText(p.text, p.x, y);
-  g.fillStyle = p.color || '#62b9ff'; g.fillText(p.text, p.x, y);
+  let y = p.y - p.t * 26;
+  for (const [text, color, size] of p.lines) {
+    const fs = Math.round(REM * size * (land ? 1 : 0.88));
+    g.font = FONT(fs);
+    g.lineWidth = Math.max(3, fs * 0.28); g.strokeStyle = INK;
+    g.strokeText(text, p.x, y);
+    g.fillStyle = color; g.fillText(text, p.x, y);
+    y += fs * 1.05;
+  }
   g.globalAlpha = 1;
 }
 function burst(x, y, n, colors, speed) {
@@ -541,7 +694,7 @@ function renderFx() {
 function stepFx(dt) {
   for (let i = flyers.length - 1; i >= 0; i--) {
     const f = flyers[i]; f.t += dt;
-    if (f.pop && f.t >= 0.28) { if (pops.length < 16) pops.push({ x: f.x1, y: f.y1, t: 0, life: 1.2, ...f.pop }); f.pop = null; }
+    if (f.lines && f.t >= 0.28) { if (pops.length < 14) pops.push({ x: f.x1, y: f.y1, t: 0, life: 1.3, lines: f.lines }); f.lines = null; }
     if (f.t >= f.life) flyers.splice(i, 1);
   }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
@@ -549,13 +702,57 @@ function stepFx(dt) {
   for (let i = rings.length - 1; i >= 0; i--) { rings[i].t += dt; if (rings[i].t >= rings[i].life) rings.splice(i, 1); }
 }
 
-/* ---------- 뽑기와 레벨 ---------- */
-function toast(msg) {
+/* ---------- 알림 ---------- */
+function toast(msg, color) {
   const box = $('toasts');
   while (box.children.length >= 2) box.firstChild.remove();
-  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  const t = h('div', 'toast', msg);
+  if (color) t.style.setProperty('--tc', color);
   box.append(t);
   setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 320); }, 2400);
+}
+
+/* ---------- 능력 · 코인 · XP ---------- */
+let ST = equipStats([], 1);
+// 낀 카드나 레벨이 바뀌면 다시 계산하고 화면을 고쳐요
+function refresh() {
+  ST = equipStats(equipped(), S.level);
+  paintTop(); paintEquip(); paintXp();
+  if (Sheet.open) Sheet.render();
+}
+function paintTop() {
+  $('coins').textContent = fmt(S.coins);
+  const b = $('bonus');
+  b.hidden = !(ST.coinPct || ST.xpPct);
+  $('bonusCoin').hidden = !ST.coinPct; $('bonusCoin').textContent = `💰 코인 +${fmt(ST.coinPct)}%`;
+  $('bonusXp').hidden = !ST.xpPct; $('bonusXp').textContent = `⭐ XP +${fmt(ST.xpPct)}%`;
+}
+function paintXp() {
+  const n = xpNeed(S.level);
+  $('lvl').textContent = S.level;
+  $('xpFill').style.width = (100 * Math.min(1, S.xp / n)).toFixed(1) + '%';
+  $('xpText').textContent = `${Math.floor(S.xp).toLocaleString('ko-KR')} / ${n.toLocaleString('ko-KR')} XP`;
+}
+function paintEquip() {
+  const box = $('equip'); box.replaceChildren();
+  for (let i = 0; i < EQUIP_SLOTS; i++) {
+    const c = cardById(S.equip[i]), b = h('button', 'slot' + (c ? '' : ' empty'));
+    b.type = 'button';
+    if (c) {
+      const A = ABILITY[c.a];
+      b.textContent = A.icon; b.style.setProperty('--gc', GRADES[c.g].color);
+      b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}`);
+      b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}`;
+    } else { b.textContent = '+'; b.setAttribute('aria-label', `${i + 1}번 칸: 비어 있어요`); }
+    b.addEventListener('click', () => Sheet.show());
+    box.append(b);
+  }
+  const bag = h('button', 'bag'); bag.type = 'button';
+  bag.append(h('i', null, '🎒'), h('span', null, '인벤토리'));
+  if (S.inv.length) bag.append(h('em', 'num', String(S.inv.length)));
+  bag.setAttribute('aria-label', `인벤토리 열기, 카드 ${S.inv.length}장`);
+  bag.addEventListener('click', () => Sheet.show());
+  box.append(bag);
 }
 function addXp(x) {
   S.xp += x;
@@ -563,15 +760,17 @@ function addXp(x) {
   while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; up++; }
   if (!up) return;
   S.pending += up;
+  refresh();
   Sound.level();
-  setTimeout(() => LvOv.show(), 700);
   const xp = $('xp'), r = xp.getBoundingClientRect();
   xp.classList.remove('lvup'); void xp.offsetWidth; xp.classList.add('lvup');
   burst(r.left + 2 * REM, r.top, 26, ['#62b9ff', '#ffffff', '#ff79d9'], 220);
   save();
+  setTimeout(() => LvOv.show(), 700);
 }
-let cdEnd = 0, cdLen = DRAW_COOLDOWN, cdShown = false, toldCooldown = false, pawAcc = 0;
-let AB = abilityStats({});
+
+/* ---------- 뽑기와 쿨타임 ---------- */
+let cdEnd = 0, cdLen = DRAW_COOLDOWN, cdShown = false, toldCooldown = false;
 const cooldownLeft = () => Math.max(0, (cdEnd - performance.now()) / 1000);
 function deny() {
   Sound.nope();
@@ -595,131 +794,229 @@ function paintCooldown() {
   $('tapHint').hidden = S.draws >= 3;
   Sound.back();
 }
-// 덱에서 카드를 꺼내요. 두 장 뽑기 능력이 있으면 더 나오고, 행운 별이 터지면 그 카드 별이 ×5
-function drawCards(paw) {
-  let n = 1;
-  if (AB.twin) n += Math.floor(AB.twin / 100) + (rnd() * 100 < AB.twin % 100 ? 1 : 0);
+// 덱에서 카드를 꺼내요. 두 장 뽑기가 터지면 더 나와요
+function drawCards() {
+  const n = 1 + (ST.twin ? extraCards(ST.twin, rnd) : 0);
+  let big = false;
   for (let i = 0; i < n; i++) {
+    const r = Math.floor(rnd() * 13), s = Math.floor(rnd() * 4);
+    const got = cardGain(r, s, ST, rnd);
     S.draws++;
-    const lucky = AB.lucky > 0 && rnd() * 100 < AB.lucky;
-    const stars = AB.stars * (lucky ? 5 : 1);
-    const text = `${paw && i === 0 ? '🐾 ' : ''}+${fmtStar(stars)} ★${lucky ? ' 행운!' : ''}`;
-    spawnCard(Math.floor(rnd() * 13), Math.floor(rnd() * 4), { text, color: lucky ? '#7dff9a' : '#62b9ff' });
-    addXp(stars);
+    S.coins += got.coins;
+    const lines = [];
+    if (i > 0) lines.push(['🃏 한 장 더', '#ffffff', 0.72]);
+    lines.push([`+${fmt(got.coins)} 코인`, '#ffd34d', 1.05]);
+    if (got.jackpot) lines.push(['🎰 대박! 코인 ×5', '#ffd34d', 0.78]);
+    lines.push([`+${fmt(got.xp)} XP`, '#62b9ff', 0.88]);
+    if (got.meteor) lines.push(['🌠 별똥별! XP ×5', '#9fd6ff', 0.78]);
+    spawnCard(r, s, lines);
+    if (got.jackpot || got.meteor) big = true;
+    addXp(got.xp);
   }
   Sound.flick();
-  paintXp();
+  if (big) Sound.jackpot(); else Sound.coin();
+  const box = $('coinbox'); box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
+  paintTop(); paintXp();
 }
 function draw() {
+  if (LvOv.open || Sheet.open) return;
   if (cooldownLeft() > 0) { deny(); return; }
-  cdLen = AB.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
+  cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
   $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
   paintCooldown();
-  drawCards(false);
-  // 번개 손: 쿨타임을 바로 끝내요 (다음 장면에서 덱이 다시 밝아져요)
-  if (AB.flash > 0 && rnd() * 100 < AB.flash) {
-    cdEnd = performance.now();
-    pops.push({ x: deckX, y: deckY - deckH * 0.62, t: 0, life: 1.3, text: '⚡ 바로 또!', color: '#ffd84a' });
-  }
+  drawCards();
   deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
   clearTimeout(draw.tm); draw.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
   rings.push({ x: deckX, y: deckY, t: 0, life: 0.45, c: '#ffd84a', r: deckH * 0.55 });
   $('tapHint').hidden = true;
 }
-// 덱 위에 지금 가진 능력을 짧게 보여 줘요
-function paintAbilities() {
-  AB = abilityStats(S.cards);
-  const has = id => (S.cards[id] || []).some(n => n > 0);
-  const chips = [];
-  if (has('quick')) chips.push(['⏱️', `쿨타임 ${fmtStar(AB.cooldown)}초`]);
-  if (has('bag') || has('shine')) chips.push(['⭐', `한 장에 별 ${fmtStar(AB.stars)}`]);
-  if (has('twin')) chips.push(['🃏', `한 장 더 ${AB.twin}%`]);
-  if (has('lucky')) chips.push(['🍀', `별 ×5 ${AB.lucky}%`]);
-  if (has('flash')) chips.push(['⚡', `바로 또 ${AB.flash}%`]);
-  if (has('paw')) chips.push(['🐾', `${fmtStar(1 / AB.pawRate)}초마다 저절로`]);
-  const box = $('abil');
-  box.replaceChildren(...chips.map(([icon, text]) => { const c = document.createElement('span'); c.textContent = `${icon} ${text}`; return c; }));
-  box.hidden = !chips.length;
+
+/* ---------- 끼기 · 빼기 · 버리기 ---------- */
+function takeCard(c) {
+  const item = { id: S.nextId++, a: c.a, g: c.g };
+  S.inv.push(item);
+  const free = S.equip.indexOf(null);
+  if (free >= 0) S.equip[free] = item.id;
+  refresh(); save();
+  const name = `${GRADES[c.g].name} ${ABILITY[c.a].name}`;
+  toast(free >= 0 ? `${ABILITY[c.a].icon} ${name}을(를) ${free + 1}번 칸에 꼈어요` : `${ABILITY[c.a].icon} ${name}을(를) 인벤토리에 넣었어요. 🎒에서 바꿔 낄 수 있어요`, GRADES[c.g].color);
+  const slot = $('equip').children[free];
+  if (slot) { slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop'); }
 }
-function paintXp() {
-  const n = xpNeed(S.level);
-  $('lvl').textContent = S.level;
-  $('xpFill').style.width = (100 * S.xp / n).toFixed(1) + '%';
-  $('xpText').textContent = `${fmt(S.xp)} / ${fmt(n)} ★`;
+function toggleEquip(id) {
+  const at = S.equip.indexOf(id);
+  if (at >= 0) S.equip[at] = null;
+  else {
+    const free = S.equip.indexOf(null);
+    if (free < 0) { Sound.nope(); toast(`칸이 ${EQUIP_SLOTS}개 다 찼어요. 낀 카드를 먼저 빼세요`); return; }
+    S.equip[free] = id;
+  }
+  Sound.equip(); refresh(); save();
+}
+function discard(id) {
+  if (S.equip.includes(id)) return;
+  S.inv = S.inv.filter(c => c.id !== id);
+  refresh(); save();
 }
 
-/* ---------- 레벨 보상: 카드 3장 ---------- */
+/* ---------- 인벤토리 창 ---------- */
+const Sheet = (() => {
+  const wrap = $('sheetWrap'), body = $('sheetBody');
+  let open = false, armed = 0, armTm = 0;
+  function summary() {
+    const out = [];
+    const add = (label, v) => { const s = h('span'); s.append(label + ' ', h('b', null, v)); out.push(s); };
+    if (ST.coinPct) add('💰 모든 코인', `+${fmt(ST.coinPct)}%`);
+    if (ST.xpPct) add('⭐ 모든 XP', `+${fmt(ST.xpPct)}%`);
+    if (ST.royal) add('👑 J·Q·K·A 코인', `+${ST.royal}%`);
+    if (ST.red) add('❤️ ♥·♦ 코인', `+${ST.red}%`);
+    if (ST.black) add('🖤 ♠·♣ XP', `+${ST.black}%`);
+    if (ST.jackpot) add('🎰 코인 ×5', `${ST.jackpot}%`);
+    if (ST.meteor) add('🌠 XP ×5', `${ST.meteor}%`);
+    if (ST.twin) add('🃏 한 장 더', `${ST.twin}%`);
+    if (ST.cooldown < DRAW_COOLDOWN) add('⏱️ 쿨타임', `${fmtSec(ST.cooldown)}초`);
+    return out;
+  }
+  function render() {
+    body.replaceChildren();
+    $('sheetTitle').textContent = `🎒 인벤토리 (${S.inv.length}장)`;
+    body.append(h('h3', null, `낀 카드 · 최대 ${EQUIP_SLOTS}장`));
+    const row = h('div', 'eqrow');
+    for (let i = 0; i < EQUIP_SLOTS; i++) {
+      const c = cardById(S.equip[i]);
+      if (!c) { row.append(h('div', 'eq empty', '빈 칸')); continue; }
+      const b = h('button', 'eq'); b.type = 'button'; b.style.setProperty('--gc', GRADES[c.g].color);
+      b.append(cardArt(c), h('b', null, `${GRADES[c.g].name} ${ABILITY[c.a].name}`), h('span', null, cardText(c)));
+      b.setAttribute('aria-label', `${GRADES[c.g].name} ${ABILITY[c.a].name} 빼기`);
+      b.addEventListener('click', () => toggleEquip(c.id));
+      row.append(b);
+    }
+    body.append(row);
+    const sum = summary();
+    const box = h('div', 'sum');
+    if (sum.length) box.append(...sum); else box.append(h('span', null, '낀 카드가 없어요. 아래에서 카드를 눌러 끼세요'));
+    body.append(box);
+    body.append(h('h3', null, '가진 카드'));
+    if (!S.inv.length) { body.append(h('p', 'note', '레벨이 오르면 능력 카드 3장 중 하나를 골라 여기에 모아요.')); return; }
+    body.append(h('p', 'note', '카드를 누르면 끼거나 빼요. 같은 능력을 여러 장 끼면 더해져요.'));
+    const grid = h('div', 'inv');
+    const order = [...S.inv].sort((a, b) => (S.equip.includes(b.id) - S.equip.includes(a.id)) || (b.g - a.g) || ABILITIES.indexOf(ABILITY[a.a]) - ABILITIES.indexOf(ABILITY[b.a]) || a.id - b.id);
+    for (const c of order) {
+      const on = S.equip.includes(c.id), G = GRADES[c.g], A = ABILITY[c.a];
+      const tile = h('div', 'tile' + (on ? ' on' : '')); tile.style.setProperty('--gc', G.color);
+      const main = h('button', 'tmain'); main.type = 'button';
+      const tt = h('span', 'tt'); tt.append(h('b', null, `${G.name} ${A.name}`), cardText(c));
+      main.append(cardArt(c), tt);
+      main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}. ${on ? '빼기' : '끼기'}`);
+      main.addEventListener('click', () => toggleEquip(c.id));
+      tile.append(main);
+      if (!on) {
+        const del = h('button', 'tdel' + (armed === c.id ? ' arm' : ''), armed === c.id ? '버릴까요?' : '🗑');
+        del.type = 'button'; del.setAttribute('aria-label', armed === c.id ? '한 번 더 누르면 버려요' : `${G.name} ${A.name} 버리기`);
+        del.addEventListener('click', () => {
+          if (armed === c.id) { armed = 0; discard(c.id); return; }
+          armed = c.id; clearTimeout(armTm); armTm = setTimeout(() => { armed = 0; if (open) render(); }, 3000); render();
+        });
+        tile.append(del);
+      }
+      grid.append(tile);
+    }
+    body.append(grid);
+  }
+  function show() {
+    if (LvOv.open) return;
+    open = true; armed = 0; wrap.hidden = false; render();
+    $('sheetClose').focus({ preventScroll: true });
+  }
+  function close() { if (!open) return; open = false; wrap.hidden = true; save(); }
+  $('sheetClose').addEventListener('click', close);
+  wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
+  return { show, close, render, get open() { return open; } };
+})();
+
+/* ---------- 레벨 보상: 3장 중 1장 고르기 ---------- */
 const LvOv = (() => {
   const ov = $('lvOv');
   let open = false;
   function close() {
     ov.hidden = true; ov.replaceChildren(); open = false;
-    if (S.pending > 0) setTimeout(show, 300);
+    if (S.pending > 0) setTimeout(show, 350);
   }
   function show() {
-    if (open || S.pending <= 0) return;
+    if (open) return;
+    // 고를 카드 3장은 나오는 순간 저장해요. 고르기 전에 닫았다 열어도 같은 3장이 다시 나와요
+    if (!S.offer) {
+      if (S.pending <= 0) return;
+      S.pending--; S.offer = rollOffer(rnd); save();
+    }
+    Sheet.close();
     open = true;
-    // 뽑는 순간 바로 저장해요. 뒤집기 전에 창을 닫아도 받은 카드는 남아요
-    const cards = Array.from({ length: LEVEL_CARDS }, () => ({ a: ABILITIES[Math.floor(rnd() * ABILITIES.length)], g: rollGrade(rnd) }));
-    S.pending--;
-    for (const c of cards) { const row = S.cards[c.a.id] || (S.cards[c.a.id] = GRADES.map(() => 0)); row[c.g]++; }
-    paintAbilities();
-    save();
-    const lv = S.level - S.pending;
-    const row = document.createElement('div'); row.className = 'reveal';
-    let flipped = 0;
-    const done = document.createElement('div'); done.className = 'lv-acts';
-    const all = document.createElement('button'); all.type = 'button'; all.textContent = '모두 뒤집기'; all.style.setProperty('--c', '#b05cff');
-    const ok = document.createElement('button'); ok.type = 'button'; ok.textContent = '확인'; ok.hidden = true;
-    const sum = document.createElement('p'); sum.hidden = true;
-    const flip = (rv, c) => {
-      if (rv.classList.contains('open')) return;
-      rv.classList.add('open'); if (c.g >= 2) rv.classList.add('glow');
-      Sound.flip(c.g);
-      if (++flipped === cards.length) {
-        all.hidden = true; ok.hidden = false; ok.focus({ preventScroll: true });
-        sum.hidden = false;
-        sum.textContent = `능력은 바로 적용됐어요 · 지금까지 받은 능력 카드 ${fmt(AB.count)}장`;
-      }
-    };
-    cards.forEach((c, i) => {
-      const G = GRADES[c.g];
+    const offer = S.offer, lv = S.level - S.pending;
+    const row = h('div', 'reveal'), tip = h('p', null, '카드가 뒤집히고 있어요…');
+    const take = h('button', 'btn', '이 카드 받기'); take.type = 'button'; take.disabled = true;
+    let flipped = 0, sel = -1;
+    const items = offer.map((c, i) => {
+      const G = GRADES[c.g], A = ABILITY[c.a];
       const back = mk(25, 35); back.className = 'backside'; back.getContext('2d').drawImage(backSprite(false), 0, 0);
-      const art = mk(25, 35); art.getContext('2d').drawImage(abilitySprite(c.g), 0, 0);
-      const icon = document.createElement('span'); icon.className = 'ae'; icon.textContent = c.a.icon;
-      const front = document.createElement('div'); front.className = 'front'; front.append(art, icon);
-      const face = document.createElement('div'); face.className = 'face'; face.append(back, front);
-      const lbl = document.createElement('div'); lbl.className = 'lbl';
-      const b = document.createElement('b'); b.textContent = `${G.name} · ${c.a.name}`;
-      const small = document.createElement('small'); small.textContent = c.a.text(c.a.v[c.g]);
-      lbl.append(b, small);
-      const rv = document.createElement('button'); rv.type = 'button'; rv.className = 'rv';
+      const front = cardArt(c); front.classList.add('front');
+      const face = h('div', 'face'); face.append(back, front);
+      const lbl = h('div', 'lbl'); lbl.append(h('b', null, `${G.name} · ${A.name}`), h('small', null, cardText(c)));
+      const rv = h('button', 'rv'); rv.type = 'button';
       rv.style.setProperty('--gc', G.color); rv.style.animationDelay = (i * 0.1) + 's';
       rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
       rv.append(face, lbl);
-      rv.addEventListener('click', () => { flip(rv, c); rv.setAttribute('aria-label', `${G.name} ${c.a.name}: ${c.a.text(c.a.v[c.g])}`); });
+      const it = { rv, c, open: false };
+      rv.addEventListener('click', () => {
+        if (!it.open) { flip(it); return; }
+        if (sel === i) { choose(); return; }   // 고른 카드를 한 번 더 누르면 바로 받아요
+        select(i);
+      });
       row.append(rv);
+      return it;
     });
-    all.addEventListener('click', () => [...row.children].forEach((rv, i) => setTimeout(() => rv.click(), i * 160)));
-    ok.addEventListener('click', close);
-    done.append(all, ok);
-    const h3 = document.createElement('h3'); h3.textContent = `⭐ 별 레벨 ${lv}! 능력 카드 ${LEVEL_CARDS}장`;
-    const tip = document.createElement('p'); tip.textContent = '카드를 눌러 뒤집어 보세요. 능력과 등급은 장마다 따로 정해져요.';
-    ov.replaceChildren(h3, tip, row, sum, done);
+    function flip(it) {
+      if (it.open) return;
+      it.open = true; it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow');
+      it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}. 누르면 골라요`);
+      Sound.flip(it.c.g);
+      if (++flipped === items.length && sel < 0) tip.textContent = '마음에 드는 카드를 하나 골라요';
+    }
+    function select(i) {
+      sel = i;
+      items.forEach((it, j) => it.rv.classList.toggle('sel', j === i));
+      row.classList.add('has-sel');
+      take.disabled = false;
+      const c = items[i].c, full = S.equip.indexOf(null) < 0;
+      tip.textContent = full ? '칸이 다 찼어요. 받으면 인벤토리로 가요' : `받으면 ${S.equip.indexOf(null) + 1}번 칸에 바로 껴요`;
+      take.textContent = `${ABILITY[c.a].icon} 이 카드 받기`;
+    }
+    function choose() {
+      if (sel < 0) return;
+      const c = items[sel].c;
+      S.offer = null;
+      close();
+      takeCard(c);
+      Sound.equip();
+    }
+    take.addEventListener('click', choose);
+    const acts = h('div', 'lv-acts'); acts.append(take);
+    ov.replaceChildren(h('h3', null, `⭐ 레벨 ${lv}! 능력 카드 3장 중 하나를 골라요`), tip, row, acts);
     ov.hidden = false;
-    all.focus({ preventScroll: true });
+    items.forEach((it, i) => setTimeout(() => { if (open && ov.contains(it.rv)) flip(it); }, 550 + i * 320));
+    items[0].rv.focus({ preventScroll: true });
   }
   return { show, close, get open() { return open; } };
 })();
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && LvOv.open) { const all = $('lvOv').querySelector('.lv-acts button:not([hidden])'); if (all) all.click(); } });
 
 /* ---------- 조작 ---------- */
 deckBtn.addEventListener('pointerdown', e => { e.preventDefault(); Sound.ready(true); draw(); });
 deckBtn.addEventListener('click', e => { if (e.detail === 0) draw(); });
 deckBtn.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('keydown', e => {
-  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === document.body && !e.repeat && !LvOv.open) { e.preventDefault(); Sound.ready(true); draw(); }
+  if (e.key === 'Escape' && Sheet.open) { Sheet.close(); return; }
+  if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === document.body && !e.repeat) { e.preventDefault(); draw(); }
 });
+for (const ev of ['pointerdown', 'keydown']) document.addEventListener(ev, () => Sound.ready(true), { capture: true });
 addEventListener('resize', layout);
 document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
 addEventListener('pagehide', save);
@@ -730,10 +1027,6 @@ function frame(t) {
   const dt = Math.min((t - last) / 1000, 0.1); last = t;
   simT += dt;
   paintCooldown();
-  if (AB.pawRate > 0 && !LvOv.open) {
-    pawAcc += dt * AB.pawRate;
-    for (let k = 0; pawAcc >= 1 && k < 3; k++) { pawAcc--; drawCards(true); }
-  }
   stepFx(dt);
   bgDraw(simT, dt);
   renderFx();
@@ -747,13 +1040,13 @@ function start(data) {
   try { if (data && data.S) restored = revive(JSON.parse(data.S)); } catch (e) { restored = null; }
   S = restored || load() || fresh();
   document.documentElement.style.setProperty('--ico-star', `url(${starURL()})`);
+  document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
   $('tapHint').hidden = S.draws >= 3;
-  paintXp();
-  paintAbilities();
+  refresh();
   save();
-  if (S.pending > 0) setTimeout(() => LvOv.show(), 600);
+  if (S.pending > 0 || S.offer) setTimeout(() => LvOv.show(), 600);
   requestAnimationFrame(t => { last = t; requestAnimationFrame(frame); });
 }
 const hot = window.claude && window.claude.hot;
