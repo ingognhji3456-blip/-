@@ -78,25 +78,28 @@ button[disabled]{cursor:default}
 .bonus .b-coin{color:var(--coin)} .bonus .b-coin .ico{background-image:var(--ico-coin)}
 .bonus .b-xp{color:var(--xp)} .bonus .b-xp .ico{background-image:var(--ico-star)}
 
-/* 아래: 능력 카드 3칸 · 인벤토리 · XP 막대 */
-.dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(44rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
+/* 아래: 덱 바로 밑에 능력 카드 3칸, 맨 아래 XP 막대 */
+.dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(26rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
   display:flex; flex-direction:column; align-items:center; gap:.4rem; z-index:5}
-.land .dock{flex-direction:row-reverse; align-items:center; width:min(34rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)))}
-.port .dock{width:min(26rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)))}
+/* 왼쪽 가운데: 업그레이드 · 인벤토리 단추. 창은 이 단추들 바로 옆에서 열려요 */
+.menu{position:absolute; left:calc(.8rem + var(--safe-l)); top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:.75rem; z-index:6}
+.mtile{display:flex; flex-direction:column; align-items:center; gap:.2rem; width:3.6rem}
+.mtile > span{font-size:.62rem; line-height:1.1; text-shadow:var(--ol-s); white-space:nowrap}
+.mbtn{--c:var(--green); --lo:#1f9a42; position:relative; width:3rem; height:3rem; border-radius:.75rem; display:grid; place-items:center; background:var(--c);
+  border:.15rem solid var(--ink); box-shadow:inset 0 -.25rem 0 var(--lo), inset 0 .12rem 0 rgba(255,255,255,.28), 0 .18rem 0 var(--ink); transition:transform .06s}
+.mbtn:active{transform:translateY(.12rem)}
+.mbtn .pix{width:1.65rem; height:1.65rem}
+.mbtn.bagbtn{--c:#ffae35; --lo:#e07b00}
+.mbtn[aria-pressed="true"]{box-shadow:0 0 0 .18rem var(--gold), inset 0 -.25rem 0 var(--lo), 0 .18rem 0 var(--ink)}
+.mbtn .dot{position:absolute; top:-.3rem; right:-.3rem; width:.8rem; height:.8rem; border-radius:50%; background:var(--red); border:.12rem solid var(--ink); pointer-events:none}
+.mbtn em{position:absolute; top:-.4rem; right:-.45rem; min-width:1.05rem; height:1.05rem; padding:0 .25rem; border-radius:.55rem; background:var(--red); color:#fff;
+  font-style:normal; font-size:.72rem; display:grid; place-items:center; border:.12rem solid var(--ink); pointer-events:none}
 .equip{display:flex; gap:.3rem; align-items:center}
 .slot{position:relative; width:2.3rem; height:2.3rem; border-radius:.55rem; display:grid; place-items:center; font-size:1.15rem; line-height:1;
   background:var(--ink-2); border:.16rem solid var(--gc,#4a3d7a); box-shadow:0 .14rem 0 var(--ink), inset 0 0 0 .1rem rgba(255,255,255,.08)}
 .slot.empty{border-style:dashed; border-color:rgba(255,255,255,.28); color:rgba(255,255,255,.38); font-size:.9rem; background:rgba(22,10,51,.55)}
 .slot.pop{animation:pop .35s}
-.bag{position:relative; height:2.3rem; padding:0 .55rem 0 .4rem; display:flex; align-items:center; gap:.25rem; border-radius:.55rem; background:#ffae35; color:var(--ink);
-  border:.14rem solid var(--ink); box-shadow:inset 0 -.2rem 0 #e07b00, 0 .14rem 0 var(--ink); font-size:.7rem}
-.bag i{font-style:normal; font-size:1rem}
-.upbtn{background:var(--green); box-shadow:inset 0 -.2rem 0 #1f9a42, 0 .14rem 0 var(--ink); color:#fff; text-shadow:var(--ol-s)}
-.upbtn .dot{min-width:.8rem; width:.8rem; height:.8rem; padding:0; top:-.3rem; right:-.3rem}
-.bag em{position:absolute; top:-.4rem; right:-.4rem; min-width:1.05rem; height:1.05rem; padding:0 .25rem; border-radius:.55rem; background:var(--red); color:#fff;
-  font-style:normal; font-size:.72rem; display:grid; place-items:center; border:.12rem solid var(--ink)}
 .xp{position:relative; width:100%; height:1.6rem; display:flex; align-items:center; gap:.4rem; padding:0 .45rem; background:rgba(16,6,40,.85); border-radius:.55rem; border:.12rem solid var(--ink)}
-.land .xp{flex:1; min-width:0}
 .xp .ico{width:1.1rem; height:1.1rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
 .xp b{font-size:1.05rem; color:#d6e6ff; min-width:2ch}
 .xp .bar{position:relative; flex:1; height:.62rem; border-radius:.31rem; background:#100630; overflow:hidden; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
@@ -116,7 +119,6 @@ button[disabled]{cursor:default}
 .art canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
 .pix{display:block; flex:none; image-rendering:pixelated}
 .slot .pix{width:1.45rem; height:1.45rem}
-.bag .pix{width:1.15rem; height:1.15rem}
 .uprow .ui .pix{width:1.55rem; height:1.55rem}
 .sum .pix{display:inline-block; width:.95rem; height:.95rem; vertical-align:-.15rem; margin-right:.25rem}
 .sheet header h2{display:flex; align-items:center; gap:.4rem}
@@ -177,12 +179,16 @@ button[disabled]{cursor:default}
 @keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
 .port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
 .port .sheet{width:100%; border-radius:1rem 1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
-/* 업그레이드 창: 왼쪽 가운데에 떠 있고, 바깥은 그대로 눌러져요 */
+/* 옆 창(업그레이드, 가로 화면의 인벤토리): 왼쪽 메뉴 단추 바로 옆에 떠 있고, 바깥은 그대로 눌러져요 */
 .sheet-wrap.side,.port .sheet-wrap.side{place-items:center start; background:none; pointer-events:none;
-  padding:calc(4.5rem + var(--safe-t)) 0 calc(5rem + var(--safe-b)) calc(.8rem + var(--safe-l))}
+  padding:calc(3.3rem + var(--safe-t)) 0 calc(5.2rem + var(--safe-b)) calc(5rem + var(--safe-l))}
+@media (max-height:480px){ .side .note{display:none} }
+.sheet-wrap.side.wide .sheet{width:min(21rem, calc(100vw - 6rem))}
+.side .eqrow{gap:.3rem}
+.side .eq{min-height:5.6rem}
 .sheet-wrap.side .sheet,.port .sheet-wrap.side .sheet{pointer-events:auto; width:min(19rem, calc(100vw - 1.6rem)); max-height:100%; border-radius:1rem; padding-bottom:0;
   animation:slin .25s cubic-bezier(.2,.9,.3,1.1); box-shadow:inset 0 .18rem 0 var(--panel-hi), 0 .3rem 0 var(--ink), 0 .6rem 1.6rem rgba(0,0,0,.45)}
-.port .sheet-wrap.side .sheet{width:min(10.2rem, calc(100vw - 1.6rem))}
+.port .sheet-wrap.side .sheet{width:min(10.2rem, calc(100vw - 6rem))}
 @keyframes slin{from{opacity:0; transform:translateX(-1.5rem)}}
 .side .sbody{padding:.5rem .6rem .7rem; gap:.45rem}
 .side .uprow{gap:.45rem; padding:.4rem .45rem}
@@ -252,6 +258,10 @@ button[disabled]{cursor:default}
     <div class="coinbox" id="coinbox" aria-label="코인"><i class="ico"></i><b class="num" id="coins">0</b></div>
   </div>
   <div class="bonus" id="bonus" aria-label="지금 붙은 보너스" hidden><span class="b-coin" id="bonusCoin" hidden><i class="ico"></i><b class="num"></b></span><span class="b-xp" id="bonusXp" hidden><i class="ico"></i><b class="num"></b></span></div>
+  <nav class="menu" aria-label="메뉴">
+    <div class="mtile"><button class="mbtn" id="upBtn" type="button" aria-label="코인 업그레이드 열기" aria-pressed="false"><em class="dot" id="upDot" hidden></em></button><span>업그레이드</span></div>
+    <div class="mtile"><button class="mbtn bagbtn" id="invBtn" type="button" aria-label="인벤토리 열기" aria-pressed="false"><em class="num" id="invCount" hidden></em></button><span>인벤토리</span></div>
+  </nav>
   <div class="dock">
     <div class="equip" id="equip" aria-label="낀 능력 카드"></div>
     <div class="xp" id="xp" aria-label="레벨"><i class="ico"></i><b class="num" id="lvl">1</b><div class="bar"><i id="xpFill"></i><span class="num" id="xpText"></span></div></div>
@@ -741,7 +751,7 @@ function layout() {
   document.documentElement.style.setProperty('--s', s.toFixed(3));
   REM = 16 * s;
   // 위는 코인 상자, 아래는 3칸과 XP 막대 자리를 비워 둬요
-  const top = 4.9 * REM, bot = H - (land ? 3.8 : 6.4) * REM, avail = Math.max(120, bot - top);
+  const top = 4.9 * REM, bot = H - 6 * REM, avail = Math.max(120, bot - top);
   // 덱은 화면 높이의 30%쯤(세로 화면은 25%). 픽셀 크기는 기기 픽셀 단위로 맞춰 또렷하게 그려요
   const want = Math.min(avail * 0.7 / 39, (land ? W * 0.16 : W * 0.34) / 25, H * (land ? 0.3 : 0.25) / 39);
   ps = Math.max(1.5, Math.floor(want * DPR) / DPR);
@@ -764,7 +774,7 @@ function placeDeck() {
 }
 function aimDeck() {
   deckShiftTo = 0;
-  if (!land && Sheet.open && Sheet.mode === 'up') {
+  if (!land && Sheet.side) {
     // 미끄러져 들어오는 움직임과 상관없이 창의 실제 오른쪽 끝을 재요
     const sh = $('sheetWrap').querySelector('.sheet'), right = sh.offsetLeft + sh.offsetWidth;
     deckShiftTo = clamp(right + 0.5 * REM - (W / 2 - deckW / 2), 0, W / 2 - deckW / 2 - 0.5 * REM);
@@ -968,9 +978,9 @@ function refresh() {
 // 지금 코인으로 살 수 있는 업그레이드가 있는지
 const canUpgrade = () => UPGRADES.some(U => S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
 function paintTop() {
-  $('coins').textContent = fmt(S.coins);
+  $('coins').textContent = fmt(Math.floor(S.coins));
   if (Sheet.open && Sheet.mode === 'up') Sheet.render();
-  const dot = $('upDot'); if (dot) dot.hidden = !canUpgrade();
+  $('upDot').hidden = !canUpgrade();
   const b = $('bonus');
   b.hidden = !(ST.coinPct || ST.xpPct);
   // 값이 바뀌면 살짝 튀어요
@@ -997,20 +1007,11 @@ function paintEquip() {
       b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}`);
       b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}`;
     } else { b.textContent = '+'; b.setAttribute('aria-label', `${i + 1}번 칸: 비어 있어요`); }
-    b.addEventListener('click', () => Sheet.show());
+    b.addEventListener('click', () => Sheet.show('inv', true));
     box.append(b);
   }
-  const bag = h('button', 'bag'); bag.type = 'button';
-  bag.append(pix('bag'), h('span', null, '인벤토리'));
-  if (S.inv.length) bag.append(h('em', 'num', String(S.inv.length)));
-  bag.setAttribute('aria-label', `인벤토리 열기, 카드 ${S.inv.length}장`);
-  bag.addEventListener('click', () => Sheet.show());
-  const upb = h('button', 'bag upbtn'); upb.type = 'button';
-  upb.append(pix('up'), h('span', null, '업그레이드'));
-  const dot = h('em', 'dot'); dot.id = 'upDot'; dot.hidden = !canUpgrade(); upb.append(dot);
-  upb.setAttribute('aria-label', '코인 업그레이드 열기');
-  upb.addEventListener('click', () => Sheet.show('up'));
-  box.append(bag, upb);
+  const n = $('invCount'); n.hidden = !S.inv.length; n.textContent = String(S.inv.length);
+  $('invBtn').setAttribute('aria-label', `인벤토리 열기, 카드 ${S.inv.length}장`);
 }
 function addXp(x) {
   S.xp += x;
@@ -1077,7 +1078,7 @@ function drawCards() {
   paintTop(); paintXp();
 }
 function draw() {
-  if (LvOv.open || (Sheet.open && Sheet.mode !== 'up')) return;
+  if (LvOv.open || (Sheet.open && !Sheet.side)) return;
   if (cooldownLeft() > 0) { deny(); return; }
   cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
   $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
@@ -1150,7 +1151,7 @@ const Sheet = (() => {
   // 업그레이드: 단계 · 지금 → 다음 · 값. 살 때마다 값이 올라요
   function renderUp() {
     $('sheetTitle').replaceChildren(pix('up'), '업그레이드');
-    const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(S.coins)), ' 코인');
+    const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(Math.floor(S.coins))), ' 코인');
     body.append(wallet, h('p', 'note', '코인으로 사요. 살 때마다 다음 단계 값이 올라가요. 능력 카드와 더해져요.'));
     for (const U of UPGRADES) {
       const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv);
@@ -1222,20 +1223,28 @@ const Sheet = (() => {
     }
     body.append(grid);
   }
-  function show(m = 'inv') {
+  // 업그레이드 창은 늘, 인벤토리 창은 가로 화면에서 옆 창이에요. 옆 창은 화면을 가리지 않아서 연 채로 덱을 눌러요
+  const isSide = m => m === 'up' || land;
+  function pressed() {
+    $('upBtn').setAttribute('aria-pressed', String(open && mode === 'up'));
+    $('invBtn').setAttribute('aria-pressed', String(open && mode === 'inv'));
+  }
+  function show(m = 'inv', keep) {
     if (LvOv.open) return;
-    if (open && mode === m && m === 'up') { close(); return; }   // 업그레이드 단추를 한 번 더 누르면 닫혀요
+    if (open && mode === m && !keep) { close(); return; }   // 같은 단추를 한 번 더 누르면 닫혀요
     mode = m; open = true; armed = 0;
-    // 업그레이드 창은 화면을 가리지 않아서, 연 채로 덱을 눌러 코인을 모을 수 있어요
-    wrap.classList.toggle('side', m === 'up');
-    wrap.querySelector('.sheet').setAttribute('aria-modal', String(m !== 'up'));
-    wrap.hidden = false; render(); aimDeck();
+    wrap.classList.toggle('side', isSide(m));
+    wrap.classList.toggle('wide', m === 'inv');
+    wrap.querySelector('.sheet').setAttribute('aria-modal', String(!isSide(m)));
+    wrap.hidden = false; render(); aimDeck(); pressed();
     $('sheetClose').focus({ preventScroll: true, focusVisible: false });
   }
-  function close() { if (!open) return; open = false; wrap.hidden = true; aimDeck(); save(); }
+  function close() { if (!open) return; open = false; wrap.hidden = true; aimDeck(); pressed(); save(); }
   $('sheetClose').addEventListener('click', close);
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
-  return { show, close, render, get open() { return open; }, get mode() { return mode; } };
+  $('upBtn').addEventListener('click', () => show('up'));
+  $('invBtn').addEventListener('click', () => show('inv'));
+  return { show, close, render, get open() { return open; }, get mode() { return mode; }, get side() { return open && isSide(mode); } };
 })();
 
 /* ---------- 레벨 보상: 3장 중 1장 고르기 ---------- */
@@ -1323,7 +1332,7 @@ const LvOv = (() => {
       if (sel < 0 || busy) return;
       busy = true;
       const it = items[sel], c = it.c, free = S.equip.indexOf(null);
-      const target = free >= 0 ? $('equip').children[free] : $('equip').querySelector('.bag');
+      const target = free >= 0 ? $('equip').children[free] : $('invBtn');
       ov.classList.add('out');
       if (target && !reduced()) {
         const from = getComputedStyle(it.rv).transform;
@@ -1408,6 +1417,7 @@ function start(data) {
   document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
+  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag'));
   $('tapHint').hidden = S.draws >= 3;
   refresh();
   if (S.xp >= xpNeed(S.level)) addXp(0);
