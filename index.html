@@ -123,10 +123,6 @@ button[disabled]{cursor:default}
 .art canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
 .pix{display:block; flex:none; image-rendering:pixelated}
 .slot .pix{width:1.45rem; height:1.45rem}
-.uprow .ui .pix{width:1.55rem; height:1.55rem}
-.sum .pix{display:inline-block; width:.95rem; height:.95rem; vertical-align:-.15rem; margin-right:.25rem}
-.sheet header h2{display:flex; align-items:center; gap:.4rem}
-.sheet header h2 .pix{width:1.2rem; height:1.2rem}
 .lv-ov h3{display:flex; align-items:center; justify-content:center; gap:.45rem}
 .lv-ov h3 .pix{width:1.3rem; height:1.3rem}
 
@@ -197,78 +193,151 @@ button[disabled]{cursor:default}
 .btn:active:not([disabled]){transform:translateY(.15rem)}
 .btn[disabled]{--c:#6b6f86; opacity:.75}
 
-/* 인벤토리 창 */
+/* 인벤토리 · 업그레이드 창: 머리띠는 여는 단추와 같은 색(업그레이드 초록, 인벤토리 주황).
+   안쪽은 "낀 카드 소켓 → 효과 표 → 가진 카드" / "지갑 → 상점 줄" 순서로 묶어요 */
 .sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:center; background:rgba(12,4,32,.62);
   padding:calc(.8rem + var(--safe-t)) calc(.8rem + var(--safe-r)) calc(.8rem + var(--safe-b)) calc(.8rem + var(--safe-l))}
-.sheet{width:min(30rem,100%); max-height:100%; display:flex; flex-direction:column; background:var(--panel); border:.2rem solid var(--ink); border-radius:1.1rem;
-  box-shadow:inset 0 .18rem 0 var(--panel-hi), 0 .35rem 0 var(--ink); overflow:hidden; animation:sin .2s ease-out}
+.sheet{--acc:#ffae35; --acc-lo:#e07b00; width:min(30rem,100%); max-height:100%; display:flex; flex-direction:column; overflow:hidden;
+  background:linear-gradient(180deg,#34216e,#251754 55%,#1f1249); border:.2rem solid var(--ink); border-radius:1.1rem;
+  box-shadow:inset 0 0 0 .12rem rgba(255,255,255,.06), 0 .35rem 0 var(--ink), 0 .8rem 2rem rgba(0,0,0,.45); animation:sin .2s ease-out}
+.sheet.up{--acc:#38d064; --acc-lo:#1f9a42}
 @keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
 .port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
-.port .sheet{width:100%; border-radius:1rem 1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
+.port .sheet{width:100%; border-radius:1.1rem 1.1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
 /* 옆 창(업그레이드, 가로 화면의 인벤토리): 왼쪽 메뉴 단추 바로 옆에 떠 있고, 바깥은 그대로 눌러져요 */
 .sheet-wrap.side,.port .sheet-wrap.side{place-items:center start; background:none; pointer-events:none;
   padding:calc(3.3rem + var(--safe-t)) 0 calc(5.2rem + var(--safe-b)) calc(5rem + var(--safe-l))}
 @media (max-height:480px){ .side .note{display:none} }
 .sheet-wrap.side.wide .sheet{width:min(21rem, calc(100vw - 6rem))}
-.side .eqrow{gap:.3rem}
-.side .eq{min-height:5.6rem}
 .sheet-wrap.side .sheet,.port .sheet-wrap.side .sheet{pointer-events:auto; width:min(19rem, calc(100vw - 1.6rem)); max-height:100%; border-radius:1rem; padding-bottom:0;
-  animation:slin .25s cubic-bezier(.2,.9,.3,1.1); box-shadow:inset 0 .18rem 0 var(--panel-hi), 0 .3rem 0 var(--ink), 0 .6rem 1.6rem rgba(0,0,0,.45)}
+  animation:slin .25s cubic-bezier(.2,.9,.3,1.1)}
 .port .sheet-wrap.side .sheet{width:min(10.2rem, calc(100vw - 6rem))}
 @keyframes slin{from{opacity:0; transform:translateX(-1.5rem)}}
-.side .sbody{padding:.5rem .6rem .7rem; gap:.45rem}
-.side .uprow{gap:.45rem; padding:.4rem .45rem}
-.side .uprow .ui{width:1.9rem; height:1.9rem}
-.side .uprow .ui .pix{width:1.3rem; height:1.3rem}
-.side .ubuy{min-width:3.8rem; height:1.9rem; padding:0 .45rem}
-.port .side .note{display:none}
-.port .side .uprow{display:grid; grid-template-columns:auto 1fr; gap:.3rem .4rem}
-.port .side .uprow .ubuy{grid-column:1 / -1; width:100%; min-width:0}
-.port .side .uprow .ut{font-size:.6rem}
-.port .side .uprow .ut b{font-size:.74rem}
-.port .side .sheet header h2{font-size:.86rem}
-.sheet header{flex:none; display:flex; align-items:center; gap:.6rem; padding:.45rem .6rem .4rem .9rem; background:var(--panel-lo)}
-.sheet header h2{flex:1; margin:0; font-weight:400; font-size:1rem; text-shadow:var(--ol-s)}
-.x{width:1.8rem; height:1.8rem; display:grid; place-items:center; font-size:.85rem; flex:none; border-radius:.7rem; background:var(--red); border:.15rem solid var(--ink); box-shadow:inset 0 -.25rem 0 #b81b33, 0 .18rem 0 var(--ink)}
-.sbody{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:.6rem .8rem .9rem; display:flex; flex-direction:column; gap:.5rem}
-.sbody h3{margin:.1rem 0 0; font-weight:400; font-size:.82rem; color:var(--muted)}
-.note{margin:0; font-size:.7rem; color:var(--muted); line-height:1.45}
-.eqrow{display:grid; grid-template-columns:repeat(3,1fr); gap:.4rem}
-.eq{display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.4rem .3rem .35rem; border-radius:.6rem; background:var(--panel-hi); border:.14rem solid var(--gc,var(--ink)); text-align:center; font-size:.66rem; min-height:6.4rem}
-.eq .art{width:2.4rem; --ae:1.1rem}
-.eq b{font-weight:400; font-size:.72rem; color:var(--gc)}
-.eq span{color:var(--muted); line-height:1.25}
-.eq .now,.tile .now{font-style:normal; color:var(--gold); line-height:1.25}
-.eq.empty{border-style:dashed; border-color:rgba(255,255,255,.25); justify-content:center; color:var(--dim)}
-.sum{display:flex; flex-wrap:wrap; gap:.35rem}
-.wallet{margin:0; display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:var(--coin)}
-.wallet .ico{width:1.1rem; height:1.1rem; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
-.uprow{display:flex; align-items:center; gap:.6rem; padding:.5rem .55rem; border-radius:.65rem; background:var(--panel-hi); border:.14rem solid var(--ink); box-shadow:0 .14rem 0 var(--ink)}
+
+/* 머리띠 */
+.sheet header{flex:none; position:relative; overflow:hidden; display:flex; align-items:center; gap:.5rem; padding:.42rem .45rem .48rem .5rem;
+  background:linear-gradient(180deg, color-mix(in srgb,var(--acc) 82%, #fff), var(--acc) 40%, var(--acc-lo));
+  border-bottom:.18rem solid var(--ink); box-shadow:inset 0 .14rem 0 rgba(255,255,255,.35)}
+.sheet header::after{content:""; position:absolute; inset:0; pointer-events:none;
+  background:linear-gradient(110deg, transparent 52%, rgba(255,255,255,.2) 52% 57%, transparent 57% 61%, rgba(255,255,255,.12) 61% 63%, transparent 63%)}
+.sheet header h2{flex:1; min-width:0; margin:0; display:flex; align-items:center; gap:.45rem; font-weight:400; font-size:1.02rem; color:#fff; text-shadow:var(--ol); white-space:nowrap}
+.hico{width:1.75rem; height:1.75rem; flex:none; display:grid; place-items:center; border-radius:.5rem; background:var(--ink); box-shadow:inset 0 0 0 .12rem rgba(255,255,255,.12)}
+.hico .pix{width:1.2rem; height:1.2rem}
+.cnt{padding:0 .38rem; border-radius:.45rem; background:rgba(22,10,51,.5); font-style:normal; font-size:.92rem; line-height:1.3; text-shadow:none}
+.x{position:relative; z-index:1; width:1.75rem; height:1.75rem; display:grid; place-items:center; flex:none; border-radius:.55rem;
+  background:rgba(22,10,51,.45); border:.15rem solid var(--ink); box-shadow:inset 0 .12rem 0 rgba(255,255,255,.14), 0 .15rem 0 var(--ink)}
+.x .pix{width:.78rem; height:.78rem}
+.x:active{transform:translateY(.1rem); box-shadow:inset 0 .12rem 0 rgba(255,255,255,.14)}
+
+/* 몸통 */
+.sbody{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:.65rem .75rem .85rem; display:flex; flex-direction:column; gap:.55rem;
+  scrollbar-width:thin; scrollbar-color:#5b44aa transparent}
+.sec{display:flex; align-items:center; gap:.45rem; margin:.1rem 0 -.1rem; font-size:.76rem; color:var(--muted); white-space:nowrap}
+.sec::after{content:""; order:1; flex:1; min-width:.5rem; height:.12rem; border-radius:.1rem; background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,0))}
+.sec small{order:2; font-size:.6rem; color:var(--dim)}
+.sec small.num{font-size:.86rem}
+.note{margin:0; font-size:.62rem; color:var(--dim); line-height:1.4; text-align:center}
+.gtag{display:inline-block; padding:0 .28rem; border-radius:.3rem; background:var(--gc); color:var(--ink); font-style:normal; font-size:.56rem; line-height:1.5; vertical-align:.1rem; text-shadow:none}
+
+/* 낀 카드 소켓 3칸 */
+.eqrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.45rem}
+.eq{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2rem; min-height:5.9rem; padding:.55rem .25rem .45rem; border-radius:.75rem; text-align:center;
+  background:radial-gradient(120% 75% at 50% 22%, color-mix(in srgb,var(--gc) 36%, transparent), transparent 70%), linear-gradient(180deg,#3a2780,#2a1a60);
+  border:.15rem solid var(--ink); box-shadow:inset 0 0 0 .13rem color-mix(in srgb,var(--gc) 85%, transparent), inset 0 .25rem 0 rgba(255,255,255,.08), 0 .16rem 0 var(--ink); transition:transform .08s}
+.eq:active{transform:translateY(.1rem)}
+.eq .art{width:2.55rem; filter:drop-shadow(0 .14rem 0 rgba(10,4,30,.55))}
+.eq b{font-weight:400; font-size:.74rem; line-height:1.3; color:#fff; text-shadow:var(--ol-s)}
+.eq .sn{position:absolute; top:.28rem; left:.42rem; font-style:normal; font-size:.8rem; line-height:1; color:rgba(255,255,255,.3)}
+.eq.empty{background:rgba(14,6,36,.45); border:.15rem dashed rgba(255,255,255,.16); box-shadow:inset 0 .2rem .5rem rgba(0,0,0,.35); color:var(--dim); font-size:.64rem}
+.eq.empty i{font-style:normal; font-size:1.5rem; line-height:1; color:rgba(255,255,255,.22)}
+.eq.empty .sn{color:rgba(255,255,255,.18)}
+
+/* 지금 붙는 효과: 아이콘 · 이름 · 값을 두 줄로 */
+.stats{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.3rem .8rem; padding:.5rem .65rem; border-radius:.7rem;
+  background:rgba(14,6,36,.5); box-shadow:inset 0 .15rem .4rem rgba(0,0,0,.3), inset 0 0 0 .1rem rgba(255,255,255,.04)}
+.st{display:flex; align-items:center; gap:.35rem; min-width:0; font-size:.64rem; color:var(--muted); white-space:nowrap}
+.st .pix{width:1.05rem; height:1.05rem}
+.st b{margin-left:auto; font-weight:400; font-size:.98rem; line-height:1; color:var(--vc,#fff)}
+.st b small{margin-left:.08rem; font-family:var(--f-ui); font-size:.6rem; color:var(--muted)}
+.stats .none{grid-column:1 / -1; text-align:center; font-size:.64rem; color:var(--dim)}
+
+/* 가진 카드 */
+.inv{display:grid; grid-template-columns:repeat(auto-fill,minmax(9rem,1fr)); gap:.5rem .45rem}
+.tile{position:relative; border-radius:.7rem; background:linear-gradient(180deg,#3a2780,#2f1f6a); border:.15rem solid var(--ink);
+  box-shadow:inset .3rem 0 0 var(--gc), inset 0 .2rem 0 rgba(255,255,255,.06), 0 .15rem 0 var(--ink)}
+.tile .tmain{width:100%; display:flex; align-items:center; gap:.5rem; padding:.45rem 2.35rem .45rem .7rem; text-align:left; border-radius:.6rem}
+.tile .tmain:active{transform:translateY(.08rem)}
+.tile.on .tmain{padding-right:.55rem}
+.tile .art{width:2.05rem; filter:drop-shadow(0 .12rem 0 rgba(10,4,30,.5))}
+.tile .tt{min-width:0; display:flex; flex-direction:column; gap:.1rem; font-size:.62rem; color:var(--muted); line-height:1.3}
+.tile .tt b{font-weight:400; font-size:.78rem; color:#fff}
+.eq .now,.tile .now{font-style:normal; color:var(--gold); line-height:1.35}
+.now .done{display:inline-block; padding:0 .28rem; border-radius:.3rem; border:.08rem solid var(--gold); font-style:normal; font-size:.54rem; line-height:1.35; white-space:nowrap; vertical-align:.05rem}
+.tile.on{background:linear-gradient(180deg,#5537ad,#432b91); box-shadow:inset .3rem 0 0 var(--gc), 0 0 0 .15rem var(--gold), 0 .15rem 0 var(--ink)}
+.tile.on::after{content:"장착"; position:absolute; top:-.55rem; right:.5rem; font-size:.58rem; line-height:1.45; padding:0 .38rem; border-radius:.4rem;
+  background:var(--gold); color:var(--ink); border:.1rem solid var(--ink); pointer-events:none}
+.tile .tdel{position:absolute; top:50%; right:.35rem; margin-top:-.9rem; width:1.8rem; height:1.8rem; border-radius:.5rem; background:rgba(14,6,36,.45); display:grid; place-items:center}
+.tile .tdel .pix{width:1.05rem; height:1.05rem; opacity:.55}
+.tile .tdel:hover .pix,.tile .tdel:focus-visible .pix{opacity:1}
+.tile.arming{padding-bottom:1.95rem}
+.tile .tdel.arm{top:auto; margin:0; bottom:.3rem; left:.6rem; right:.3rem; width:auto; height:1.55rem; background:var(--red); color:#fff; font-size:.64rem;
+  border:.12rem solid var(--ink); box-shadow:inset 0 -.15rem 0 #b81b33}
+.blank{display:flex; flex-direction:column; align-items:center; gap:.4rem; padding:.9rem .6rem; border-radius:.7rem; border:.15rem dashed rgba(255,255,255,.14);
+  background:rgba(14,6,36,.35); text-align:center; font-size:.66rem; color:var(--dim)}
+.blank .pix{width:1.8rem; height:1.8rem; opacity:.55}
+.foot{margin:.1rem 0 0; font-size:.58rem; color:var(--dim); text-align:center}
+
+/* 업그레이드: 지갑 + 상점 줄 */
+.wallet{margin:0; display:flex; align-items:center; gap:.4rem; padding:.38rem .6rem; border-radius:.7rem; background:rgba(14,6,36,.55); box-shadow:inset 0 .15rem .4rem rgba(0,0,0,.35)}
+.wallet .ico{width:1.25rem; height:1.25rem; flex:none; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
+.wallet b{font-weight:400; font-size:1.3rem; line-height:1; color:var(--coin)}
+.wallet span{font-size:.66rem; color:var(--muted)}
+.wallet small{margin-left:auto; font-size:.58rem; color:var(--dim); white-space:nowrap}
+.port .side .wallet small{display:none}
+.uprow{--uc:var(--xp); display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.55rem; padding:.5rem; border-radius:.8rem;
+  background:linear-gradient(180deg,#3a2780,#2d1d66); border:.15rem solid var(--ink); box-shadow:inset 0 .2rem 0 rgba(255,255,255,.07), 0 .16rem 0 var(--ink)}
+.uprow.u-cd{--uc:#cdbfff}
+.uprow.u-coin{--uc:var(--coin)}
+.uprow.can{box-shadow:inset 0 .2rem 0 rgba(255,255,255,.07), 0 0 0 .14rem rgba(56,208,100,.7), 0 .16rem 0 var(--ink)}
 .uprow.bump{animation:pop .35s}
-.uprow .ui{width:2.2rem; height:2.2rem; flex:none; display:grid; place-items:center; font-size:1.2rem; border-radius:.5rem; background:var(--ink-2)}
-.uprow .ut{flex:1; min-width:0; display:flex; flex-direction:column; gap:.08rem; font-size:.7rem; color:#a5ffbf; line-height:1.3}
-.uprow .ut b{font-weight:400; font-size:.85rem; color:#fff}
-.uprow .ut b em{font-style:normal; font-size:.66rem; color:var(--gold)}
-.ubuy{flex:none; min-width:4.6rem; height:2.1rem; padding:0 .6rem; display:flex; align-items:center; justify-content:center; gap:.3rem; border-radius:.55rem; background:var(--green); color:#fff;
-  border:.13rem solid var(--ink); box-shadow:inset 0 -.2rem 0 #1f9a42, 0 .14rem 0 var(--ink); font-size:.8rem; text-shadow:var(--ol-s)}
-.ubuy .ico{width:.95rem; height:.95rem; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
-.ubuy:active:not([disabled]){transform:translateY(.12rem)}
-.ubuy[disabled]{background:#6b6f86; box-shadow:inset 0 -.2rem 0 #545a73, 0 .14rem 0 var(--ink); opacity:.8}
-.sum span{padding:.15rem .5rem; border-radius:.45rem; background:var(--ink-2); font-size:.7rem; color:var(--muted)}
-.sum span b{font-weight:400; color:#fff}
-.inv{display:grid; grid-template-columns:repeat(auto-fill,minmax(9rem,1fr)); gap:.4rem}
-.tile{position:relative; border-radius:.6rem; background:var(--panel-hi); border:.16rem solid var(--ink); box-shadow:0 .16rem 0 var(--ink)}
-.tile .tmain{width:100%; display:flex; align-items:center; gap:.45rem; padding:.4rem 2.3rem .4rem .4rem; text-align:left; border-radius:.55rem}
-.tile.on .tmain{padding-right:.4rem}
-.tile .art{width:2rem; --ae:.9rem}
-.tile .tt{min-width:0; display:flex; flex-direction:column; gap:.05rem; font-size:.64rem; color:var(--muted); line-height:1.3}
-.tile .tt b{font-weight:400; font-size:.74rem; color:var(--gc)}
-.tile.on{background:#4a3596; box-shadow:0 0 0 .18rem var(--gold), 0 .16rem 0 var(--ink)}
-.tile.on::after{content:"장착"; position:absolute; top:-.5rem; left:.5rem; font-size:.66rem; padding:0 .35rem; border-radius:.35rem; background:var(--gold); color:var(--ink); pointer-events:none}
-.tile .tdel{position:absolute; top:.25rem; right:.25rem; width:1.9rem; height:1.9rem; border-radius:.45rem; background:var(--ink-2); display:grid; place-items:center}
-.tile .tdel .pix{width:1.1rem; height:1.1rem; opacity:.75}
-.tile.arming{padding-bottom:1.9rem}
-.tile .tdel.arm{top:auto; bottom:.25rem; left:.25rem; width:auto; height:1.6rem; background:var(--red); color:#fff; font-size:.66rem}
+.uprow .ui{width:2.4rem; height:2.4rem; flex:none; display:grid; place-items:center; border-radius:.65rem;
+  background:radial-gradient(circle at 50% 40%, color-mix(in srgb,var(--uc) 38%, #22134a), #190d3b 78%); box-shadow:inset 0 0 0 .12rem color-mix(in srgb,var(--uc) 55%, transparent)}
+.uprow .ui .pix{width:1.5rem; height:1.5rem}
+.uprow .ut{min-width:0; display:flex; flex-direction:column; gap:.14rem; font-size:.66rem; color:var(--muted); line-height:1.3}
+.uprow .ut b{display:flex; align-items:center; flex-wrap:wrap; gap:.1rem .35rem; font-weight:400; font-size:.84rem; color:#fff}
+.lvb{font-style:normal; font-size:.82rem; line-height:1.2; padding:0 .3rem; border-radius:.35rem; background:rgba(255,200,61,.16); color:var(--gold)}
+.ut .nx{color:#7dffa6; white-space:nowrap}
+.upbar{height:.3rem; margin-top:.08rem; border-radius:.2rem; background:rgba(14,6,36,.75); overflow:hidden}
+.upbar i{display:block; height:100%; border-radius:.2rem; background:linear-gradient(90deg,color-mix(in srgb,var(--uc) 60%, #8f6bff),var(--uc))}
+.ubuy{flex:none; min-width:4.4rem; height:2.25rem; padding:0 .55rem; display:flex; align-items:center; justify-content:center; gap:.28rem; border-radius:.6rem;
+  color:#fff; font-size:.98rem; text-shadow:var(--ol-s); background:linear-gradient(180deg,#63f28e,#33c562 55%,#27a952);
+  border:.15rem solid var(--ink); box-shadow:inset 0 -.22rem 0 #1b8a3e, inset 0 .12rem 0 rgba(255,255,255,.42), 0 .16rem 0 var(--ink)}
+.ubuy .ico{width:1rem; height:1rem; flex:none; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
+.ubuy:active:not([disabled]){transform:translateY(.12rem); box-shadow:inset 0 -.1rem 0 #1b8a3e, 0 .04rem 0 var(--ink)}
+.ubuy[disabled]{background:#26174f; color:#a99ad9; text-shadow:none; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.07)}
+.ubuy[disabled] .ico{opacity:.5}
+.ubuy.max[disabled]{background:linear-gradient(180deg,#ffe27e,#ffc23d 55%,#f0a21f); color:var(--ink); font-size:.78rem; box-shadow:inset 0 -.2rem 0 #c7800f, 0 .16rem 0 var(--ink)}
+
+/* 옆 창은 조금 더 촘촘하게, 세로 화면의 좁은 업그레이드 창은 사기 단추를 아래 줄로 */
+.side .sbody{padding:.55rem .6rem .7rem; gap:.45rem}
+.side .eqrow{gap:.35rem}
+.side .eq{min-height:5.4rem}
+.side .inv{grid-template-columns:1fr; gap:.45rem}
+.side .uprow{gap:.45rem; padding:.42rem .45rem}
+.side .uprow .ui{width:2rem; height:2rem}
+.side .uprow .ui .pix{width:1.3rem; height:1.3rem}
+.side .ubuy{min-width:3.9rem; height:2rem; padding:0 .45rem}
+.port .side .note{display:none}
+.port .side .wallet{padding:.32rem .45rem}
+.port .side .wallet b{font-size:1.1rem}
+.port .side .uprow{grid-template-columns:auto minmax(0,1fr); gap:.35rem .4rem}
+.port .side .uprow .ubuy{grid-column:1 / -1; width:100%; min-width:0}
+.port .side .uprow .ut{font-size:.58rem}
+.port .side .uprow .ut b{font-size:.72rem}
+.port .side .lvb{font-size:.72rem}
+.port .side .sheet header h2{font-size:.86rem; gap:.35rem}
+.port .side .hico{width:1.5rem; height:1.5rem}
+.port .side .hico .pix{width:1rem; height:1rem}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01s !important; animation-iteration-count:1 !important; transition-duration:.01s !important}
@@ -460,6 +529,12 @@ const cardById = id => S.inv.find(c => c.id === id);
 // 가진 성장 카드가 지금 얼마나 컸는지 ("지금 +12%", 20레벨이 되면 "다 컸어요")
 const growNote = c => c.a !== 'growth' ? ''
   : `지금 +${growthNow(ABILITY.growth.v[c.g], S.level)}%${S.level >= GROWTH_MAX_LEVEL ? ' · 다 컸어요' : ''}`;
+// 화면에 붙이는 모양: "지금 +160%" 뒤에 "다 컸어요" 딱지 (줄이 바뀌어도 딱지는 안 갈라져요)
+function growLine(c) {
+  const el = h('em', 'now', `지금 +${growthNow(ABILITY.growth.v[c.g], S.level)}%`);
+  if (S.level >= GROWTH_MAX_LEVEL) el.append(' ', h('i', 'done', '다 컸어요'));
+  return el;
+}
 const equipped = () => S.equip.map(cardById).filter(Boolean);
 
 /* ---------- 소리 ---------- */
@@ -751,6 +826,20 @@ const ICON_DRAW = {
     '....KWWWK....',
     '....KWWWK....',
     '....KKKKK....'], 0, 1),
+  close: g => pmap(g, [
+    'KKK.......KKK',
+    'KWWK.....KWWK',
+    'KWWWK...KWWWK',
+    '.KWWWK.KWWWK.',
+    '..KWWWKWWWK..',
+    '...KWWWWWK...',
+    '....KWWWK....',
+    '...KWWWWWK...',
+    '..KWWWKWWWK..',
+    '.KWWWK.KWWWK.',
+    'KWWWK...KWWWK',
+    'KWWK.....KWWK',
+    'KKK.......KKK'], 0, 0),
   trash: g => pmap(g, [
     '....KKKKK....',
     '.KKKKKKKKKKK.',
@@ -847,7 +936,7 @@ function layout() {
   bgLayout();
   if (typeof Sheet !== 'undefined') aimDeck();
 }
-// 세로 화면에서 왼쪽 업그레이드 창이 열리면 덱이 오른쪽으로 살짝 비켜나요
+// 왼쪽 옆 창이 덱을 가리면 덱이 오른쪽으로 살짝 비켜나요 (가로 · 세로 모두)
 let deckShift = 0, deckShiftTo = 0;
 function placeDeck() {
   deckX = W / 2 + deckShift;
@@ -860,7 +949,7 @@ function placeDeck() {
 }
 function aimDeck() {
   deckShiftTo = 0;
-  if (!land && Sheet.side) {
+  if (Sheet.side) {
     // 미끄러져 들어오는 움직임과 상관없이 창의 실제 오른쪽 끝을 재요
     const sh = $('sheetWrap').querySelector('.sheet'), right = sh.offsetLeft + sh.offsetWidth;
     deckShiftTo = clamp(right + 0.5 * REM - (W / 2 - deckW / 2), 0, W / 2 - deckW / 2 - 0.5 * REM);
@@ -1220,41 +1309,68 @@ function buyUpgrade(id) {
 const Sheet = (() => {
   const wrap = $('sheetWrap'), body = $('sheetBody');
   let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '';
+  // 머리띠 제목: 그림 상자 + 이름 (+ 장수)
+  function title(icon, text, count) {
+    const ic = h('span', 'hico'); ic.append(pix(icon));
+    $('sheetTitle').replaceChildren(ic, text);
+    if (count != null) $('sheetTitle').append(h('em', 'cnt num', String(count)));
+  }
+  // 묶음 제목: "낀 카드 ───── 2 / 3"
+  function sec(text, side, num) {
+    const el = h('div', 'sec'); el.append(h('span', null, text));
+    if (side) el.append(h('small', num ? 'num' : null, side));
+    return el;
+  }
+  // 등급 딱지 + 능력 이름
+  function cardName(c) {
+    const b = h('b'); b.append(h('i', 'gtag', GRADES[c.g].name), ' ' + ABILITY[c.a].name);
+    return b;
+  }
+  // 지금 붙는 효과: 그림 · 이름 · 값 (코인은 금색, XP는 파란색)
   function summary() {
     const out = [];
-    const add = (icon, label, v) => { const s = h('span'); s.append(pix(icon), label + ' ', h('b', 'num', v)); out.push(s); };
-    if (ST.coinPct) add('coin', '모든 코인', `+${fmt(ST.coinPct)}%`);
-    if (ST.xpPct) add('xp', '모든 XP', `+${fmt(ST.xpPct)}%`);
-    if (ST.royal) add('royal', 'J·Q·K·A 코인', `+${ST.royal}%`);
-    if (ST.red) add('red', '♥·♦ 코인', `+${ST.red}%`);
-    if (ST.black) add('black', '♠·♣ XP', `+${ST.black}%`);
-    if (ST.jackpot) add('jackpot', '코인 ×5', `${ST.jackpot}%`);
-    if (ST.meteor) add('meteor', 'XP ×5', `${ST.meteor}%`);
-    if (ST.twin) add('twin', '한 장 더', `${ST.twin}%`);
-    if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', `${fmtSec(ST.cooldown)}초`);
-    if (out.length && UPGRADES.some(U => S.up[U.id])) out.push(h('span', null, '코인 업그레이드 포함'));
+    const add = (icon, label, v, color, unit) => {
+      const s = h('span', 'st'), b = h('b', 'num', v);
+      if (unit) b.append(h('small', null, unit));
+      if (color) b.style.setProperty('--vc', color);
+      s.append(pix(icon), label, b); out.push(s);
+    };
+    if (ST.coinPct) add('coin', '모든 코인', `+${fmt(ST.coinPct)}%`, 'var(--coin)');
+    if (ST.xpPct) add('xp', '모든 XP', `+${fmt(ST.xpPct)}%`, 'var(--xp)');
+    if (ST.royal) add('royal', 'J·Q·K·A 코인', `+${ST.royal}%`, 'var(--coin)');
+    if (ST.red) add('red', '♥·♦ 코인', `+${ST.red}%`, 'var(--coin)');
+    if (ST.black) add('black', '♠·♣ XP', `+${ST.black}%`, 'var(--xp)');
+    if (ST.jackpot) add('jackpot', '코인 ×5 확률', `${ST.jackpot}%`, 'var(--coin)');
+    if (ST.meteor) add('meteor', 'XP ×5 확률', `${ST.meteor}%`, 'var(--xp)');
+    if (ST.twin) add('twin', '한 장 더 확률', `${ST.twin}%`);
+    if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', fmtSec(ST.cooldown), null, '초');
     return out;
   }
-  // 업그레이드: 단계 · 지금 → 다음 · 값. 살 때마다 값이 올라요
+  // 업그레이드: 지갑 + 상점 줄(그림 · 이름 · 단계 · 지금 → 다음 · 값). 살 수 있는 줄은 초록 테가 둘러요
   function renderUp() {
-    $('sheetTitle').replaceChildren(pix('up'), '업그레이드');
-    const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(Math.floor(S.coins))), ' 코인');
-    body.append(wallet, h('p', 'note', '코인으로 사요. 살 때마다 다음 단계 값이 올라가요. 능력 카드와 더해져요.'));
+    title('up', '업그레이드');
+    const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(Math.floor(S.coins))), h('span', null, '코인'), h('small', null, '살 때마다 값이 올라요'));
+    body.append(wallet);
     for (const U of UPGRADES) {
-      const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv);
-      const row = h('div', 'uprow' + (bumped === U.id ? ' bump' : ''));
+      const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv), can = !max && S.coins >= cost;
+      const row = h('div', `uprow u-${U.id}` + (can ? ' can' : '') + (bumped === U.id ? ' bump' : ''));
       const tt = h('span', 'ut');
-      const name = h('b', null, U.name); name.append(h('em', 'num', ` Lv ${lv}${isFinite(U.max) ? ' / ' + U.max : ''}`));
-      const next = U.id === 'cd'
-        ? `쿨타임 ${fmtSec(ST.cooldown)}초 → ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`
-        : `${U.text(lv)} → +${U.per * (lv + 1)}%`;
-      tt.append(name, h('span', null, max ? `${U.text(lv)} · 최대` : next));
+      const name = h('b', null, U.name); name.append(h('em', 'lvb num', `Lv ${lv}${isFinite(U.max) ? '/' + U.max : ''}`));
+      const eff = h('span');
+      if (max) eff.append(`${U.text(lv)} · 최대`);
+      else if (U.id === 'cd') eff.append(`쿨타임 ${fmtSec(ST.cooldown)}초 `, h('span', 'nx', `→ ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`));
+      else eff.append(`${U.text(lv)} `, h('span', 'nx', `→ +${U.per * (lv + 1)}%`));
+      tt.append(name, eff);
+      if (isFinite(U.max)) {   // 끝이 있는 업그레이드는 얼마나 왔는지 막대로
+        const bar = h('span', 'upbar'), fill = h('i'); fill.style.width = (100 * lv / U.max).toFixed(1) + '%';
+        bar.append(fill); tt.append(bar);
+      }
       const buy = h('button', 'ubuy'); buy.type = 'button'; buy.dataset.k = 'u' + U.id;
-      if (max) { buy.textContent = '최대'; buy.disabled = true; }
+      if (max) { buy.classList.add('max'); buy.textContent = '최대'; buy.disabled = true; }
       else {
         buy.append(h('i', 'ico'), h('span', 'num', fmt(cost)));
-        buy.disabled = S.coins < cost;
-        buy.setAttribute('aria-label', `${U.name} ${lv + 1}단계 사기, ${fmt(cost)} 코인`);
+        buy.disabled = !can;
+        buy.setAttribute('aria-label', `${U.name} ${lv + 1}단계 사기, ${fmt(cost)} 코인${can ? '' : ', 코인이 모자라요'}`);
         buy.addEventListener('click', () => { bumped = U.id; buyUpgrade(U.id); });
       }
       const ui = h('span', 'ui'); ui.append(pix(UP_ICON[U.id]));
@@ -1274,35 +1390,41 @@ const Sheet = (() => {
   function build() {
     body.replaceChildren();
     if (mode === 'up') { renderUp(); return; }
-    $('sheetTitle').replaceChildren(pix('bag'), `인벤토리 (${S.inv.length}장)`);
-    body.append(h('h3', null, `낀 카드 · 최대 ${EQUIP_SLOTS}장`));
+    title('bag', '인벤토리', S.inv.length);
+    // 낀 카드 소켓 3칸
+    body.append(sec('낀 카드', `${S.equip.filter(Boolean).length} / ${EQUIP_SLOTS}`, true));
     const row = h('div', 'eqrow');
     for (let i = 0; i < EQUIP_SLOTS; i++) {
       const c = cardById(S.equip[i]);
-      if (!c) { row.append(h('div', 'eq empty', '빈 칸')); continue; }
+      if (!c) { const e = h('div', 'eq empty'); e.append(h('em', 'sn num', String(i + 1)), h('i', null, '+'), '빈 칸'); row.append(e); continue; }
       const b = h('button', 'eq'); b.type = 'button'; b.dataset.k = 'e' + c.id; b.style.setProperty('--gc', GRADES[c.g].color);
-      b.append(cardArt(c), h('b', null, `${GRADES[c.g].name} ${ABILITY[c.a].name}`), h('span', null, cardText(c)));
-      if (growNote(c)) b.append(h('em', 'now', growNote(c)));
-      b.setAttribute('aria-label', `${GRADES[c.g].name} ${ABILITY[c.a].name} 빼기`);
+      b.append(h('em', 'sn num', String(i + 1)), cardArt(c), cardName(c));
+      b.title = cardText(c) + (growNote(c) ? ` · ${growNote(c)}` : '');
+      b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${ABILITY[c.a].name}, ${b.title}. 누르면 빼요`);
       b.addEventListener('click', () => toggleEquip(c.id));
       row.append(b);
     }
     body.append(row);
+    // 지금 붙는 효과
     const sum = summary();
-    const box = h('div', 'sum');
-    if (sum.length) box.append(...sum); else box.append(h('span', null, '낀 카드가 없어요. 아래에서 카드를 눌러 끼세요'));
+    body.append(sec('지금 붙는 효과', sum.length && UPGRADES.some(U => S.up[U.id]) ? '업그레이드 포함' : ''));
+    const box = h('div', 'stats');
+    if (sum.length) box.append(...sum); else box.append(h('span', 'none', S.inv.length ? '아래에서 카드를 눌러 끼면 효과가 붙어요' : '카드를 끼면 여기에 효과가 보여요'));
     body.append(box);
-    body.append(h('h3', null, '가진 카드'));
-    if (!S.inv.length) { body.append(h('p', 'note', '레벨이 오르면 능력 카드 3장 중 하나를 골라 여기에 모아요.')); return; }
-    body.append(h('p', 'note', '카드를 누르면 끼거나 빼요. 같은 능력을 여러 장 끼면 더해져요 (빠른 손은 곱해서 줄어요).'));
+    // 가진 카드 (낀 카드 먼저, 그다음 등급 높은 순)
+    body.append(sec('가진 카드', S.inv.length ? '누르면 끼거나 빼요' : ''));
+    if (!S.inv.length) {
+      const blank = h('div', 'blank'); blank.append(pix('bag'), '레벨이 오르면 카드 팩을 뜯어 능력 카드를 모아요');
+      body.append(blank); return;
+    }
     const grid = h('div', 'inv');
     const order = [...S.inv].sort((a, b) => (S.equip.includes(b.id) - S.equip.includes(a.id)) || (b.g - a.g) || ABILITIES.indexOf(ABILITY[a.a]) - ABILITIES.indexOf(ABILITY[b.a]) || a.id - b.id);
     for (const c of order) {
       const on = S.equip.includes(c.id), G = GRADES[c.g], A = ABILITY[c.a];
       const tile = h('div', 'tile' + (on ? ' on' : '') + (armed === c.id ? ' arming' : '')); tile.style.setProperty('--gc', G.color);
       const main = h('button', 'tmain'); main.type = 'button'; main.dataset.k = 'm' + c.id;
-      const tt = h('span', 'tt'); tt.append(h('b', null, `${G.name} ${A.name}`), cardText(c));
-      if (growNote(c)) tt.append(h('em', 'now', growNote(c)));
+      const tt = h('span', 'tt'); tt.append(cardName(c), cardText(c));
+      if (growNote(c)) tt.append(growLine(c));
       main.append(cardArt(c), tt);
       main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}${growNote(c) ? ', ' + growNote(c) : ''}. ${on ? '빼기' : '끼기'}`);
       main.addEventListener('click', () => toggleEquip(c.id));
@@ -1319,7 +1441,7 @@ const Sheet = (() => {
       }
       grid.append(tile);
     }
-    body.append(grid);
+    body.append(grid, h('p', 'foot', '같은 능력은 더해져요 · 빠른 손은 곱해서 줄어요'));
   }
   // 업그레이드 창은 늘, 인벤토리 창은 가로 화면에서 옆 창이에요. 옆 창은 화면을 가리지 않아서 연 채로 덱을 눌러요
   const isSide = m => m === 'up' || land;
@@ -1333,6 +1455,7 @@ const Sheet = (() => {
     mode = m; open = true; armed = 0;
     wrap.classList.toggle('side', isSide(m));
     wrap.classList.toggle('wide', m === 'inv');
+    wrap.querySelector('.sheet').classList.toggle('up', m === 'up');
     wrap.querySelector('.sheet').setAttribute('aria-modal', String(!isSide(m)));
     wrap.hidden = false; render(); aimDeck(); pressed();
     $('sheetClose').focus({ preventScroll: true, focusVisible: false });
@@ -1604,7 +1727,7 @@ function start(data) {
   document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
-  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag'));
+  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('sheetClose').replaceChildren(pix('close'));
   $('tapHint').hidden = S.draws >= 3;
   refresh();
   if (S.xp >= xpNeed(S.level)) addXp(0);
