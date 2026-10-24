@@ -172,6 +172,11 @@ button[disabled]{cursor:default}
 .reveal.n4,.reveal.n5{--cw:5.4rem; gap:.7rem}
 .port .reveal.n4{--cw:4.9rem; gap:.45rem}
 .port .reveal.n5{--cw:5.2rem; gap:.6rem .5rem; max-width:calc(3 * 5.2rem + 2 * .5rem)}
+.reveal.n6,.reveal.n7{--cw:5rem; gap:.55rem}
+.port .reveal.n6{--cw:5rem; gap:.6rem .5rem; max-width:calc(3 * 5rem + 2 * .5rem)}
+.port .reveal.n7{--cw:4.6rem; gap:.55rem .4rem; max-width:calc(4 * 4.6rem + 3 * .4rem)}
+/* 새 등급 카드는 뒤집히면 더 크게 빛나요 */
+.rv.open.mega .face{filter:drop-shadow(0 0 1.1rem var(--gc)) drop-shadow(0 0 .35rem #fff)}
 .rv{width:var(--cw); display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
   transition:transform .28s cubic-bezier(.3,1.4,.5,1), opacity .25s, background .2s, box-shadow .2s}
 .rv .face{width:calc(var(--cw) - .4rem); height:calc((var(--cw) - .4rem) * 1.4); position:relative; perspective:30rem; transition:filter .5s}
@@ -305,6 +310,11 @@ button[disabled]{cursor:default}
 .sec small.num{font-size:.86rem}
 .note{margin:0; font-size:.62rem; color:var(--dim); line-height:1.4; text-align:center}
 .gtag{display:inline-block; padding:0 .28rem; border-radius:.3rem; background:var(--gc); color:var(--ink); font-style:normal; font-size:.56rem; line-height:1.5; vertical-align:.1rem; text-shadow:none}
+.gtag.new{box-shadow:0 0 0 .1rem #fff, 0 0 .4rem var(--gc)}
+.gtag.rainbow{background:linear-gradient(90deg,#ff6a6a,#ffd34d,#6aff9a,#6ac8ff,#c77dff); background-size:200% 100%; animation:rainbow 2.4s linear infinite}
+@keyframes rainbow{to{background-position:200% 0}}
+.tile .perk,.rv .lbl .perk{font-style:normal; color:#ffe27e; line-height:1.3}
+.rv .lbl .perk{font-size:.62rem}
 
 /* 낀 카드 소켓 3칸 */
 .eqrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.45rem}
@@ -449,6 +459,14 @@ button[disabled]{cursor:default}
 .hc b{font-weight:400; font-size:.6rem; line-height:1.35; color:#fff}
 .hc .gtag{font-size:.5rem}
 @keyframes hcin{from{opacity:0; transform:scale(.5) translateY(.5rem)}}
+/* 잠긴 새 등급 팩 */
+.pklock{display:grid; grid-template-columns:repeat(auto-fill,minmax(4.6rem,1fr)); gap:.4rem}
+.pkl{position:relative; display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.45rem .25rem .35rem; border-radius:.6rem; text-align:center;
+  background:rgba(14,6,36,.45); box-shadow:inset 0 0 0 .12rem color-mix(in srgb,var(--gc) 45%, transparent)}
+.pkl .pkart{width:1.8rem; height:2.76rem; image-rendering:pixelated; filter:grayscale(.75) brightness(.55)}
+.pkl .lk{position:absolute; top:1.1rem; left:50%; width:1.1rem; height:1.1rem; margin-left:-.55rem}
+.pkl small{font-size:.54rem; line-height:1.3; color:var(--dim)}
+.rbnew{color:#ffb0b0}
 /* 카드 팩 보관함 줄 */
 .pkrow{display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.6rem; padding:.45rem .5rem .45rem .6rem; border-radius:.8rem;
   background:radial-gradient(80% 120% at 0% 50%, color-mix(in srgb,var(--gc) 26%, transparent), transparent 70%), linear-gradient(180deg,#3a2780,#2d1d66);
@@ -555,10 +573,22 @@ const GRADES = [
   { name:'영웅', chance:12, color:'#c77dff' },
   { name:'전설', chance:4,  color:'#ffc23c' },
   { name:'신화', chance:1,  color:'#ff6bd5' },
+  // 새 등급 5개: 아주 드물고(주로 같은 등급 카드 팩에서 나와요), 카드마다 덤 능력(perk)이 하나 더 붙어요
+  { name:'고대', chance:0.25,  color:'#2fe0a6', perk:{ k:'all',  v:50 } },
+  { name:'천상', chance:0.08,  color:'#8ff3ff', perk:{ k:'cd',   v:15 } },
+  { name:'우주', chance:0.03,  color:'#8c8fff', perk:{ k:'twin', v:30 } },
+  { name:'초월', chance:0.01,  color:'#ff8a3d', perk:{ k:'gold', v:8 } },
+  { name:'무한', chance:0.003, color:'#ff4a4a', perk:{ k:'mul',  v:50 } },
 ];
-// luck(0~1)만큼 희귀 이상 등급의 확률이 커지고, 그만큼 일반이 줄어요 (좋은 카드 업그레이드)
-function rollGrade(rnd, luck = 0) {
-  const ch = GRADES.map((G, i) => i ? G.chance * (1 + luck) : 0);
+// 덤 능력 글
+const PERK_TEXT = { all: v => `모든 코인 · XP +${v}%`, cd: v => `쿨타임 −${v}%`, twin: v => `카드 한 장 더 +${v}%`, gold: v => `황금 카드 +${v}%`, mul: v => `코인 · XP ×${1 + v / 100}` };
+const perkText = c => { const P = GRADES[c.g] && GRADES[c.g].perk; return P ? `덤: ${PERK_TEXT[P.k](P.v)}` : ''; };
+// 새 등급(고대 ~ 무한)은 환생을 NEW_GRADE_RB번 해야 카드로도 팩으로도 나와요. 그 전에는 신화가 끝이에요
+const NEW_GRADE_RB = 10;
+const topGrade = rebirths => rebirths >= NEW_GRADE_RB ? GRADES.length - 1 : 4;
+// luck(0~1)만큼 희귀 이상 등급의 확률이 커지고, 그만큼 일반이 줄어요 (좋은 카드 업그레이드). top보다 높은 등급은 안 나와요
+function rollGrade(rnd, luck = 0, top = GRADES.length - 1) {
+  const ch = GRADES.map((G, i) => i && i <= top ? G.chance * (1 + luck) : 0);
   ch[0] = 100 - ch.reduce((a, b) => a + b, 0);
   let x = rnd() * 100;
   for (let i = 0; i < GRADES.length; i++) { x -= ch[i]; if (x < 0) return i; }
@@ -569,16 +599,16 @@ const GROWTH_MAX_LEVEL = 20;
 const growthNow = (v, level) => v * Math.min(level, GROWTH_MAX_LEVEL);
 // 능력: 모두 % 값이에요. v는 등급별 세기(일반 → 신화). 같은 능력을 여러 장 끼면 더해져요 (쿨타임만 곱해서 줄어요)
 const ABILITIES = [
-  { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
-  { id:'xp',      name:'별빛',       v:[10, 20, 35, 60, 100],  text: v => `모든 XP +${v}%` },
-  { id:'royal',   name:'왕실 카드',  v:[20, 40, 70, 125, 210], text: v => `J·Q·K·A 코인 +${v}%` },
-  { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
-  { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
-  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}% (${GROWTH_MAX_LEVEL}레벨까지)` },
-  { id:'jackpot', name:'대박',       v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 코인 ×5` },
-  { id:'meteor',  name:'별똥별',     v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 XP ×5` },
-  { id:'twin',    name:'두 장 뽑기', v:[5, 10, 15, 25, 40],    text: v => `${v}% 확률로 카드 한 장 더` },
-  { id:'quick',   name:'빠른 손',    v:[5, 10, 15, 25, 40],    text: v => `쿨타임 −${v}%` },
+  { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100, 160, 250, 400, 650, 1000],  text: v => `모든 코인 +${v}%` },
+  { id:'xp',      name:'별빛',       v:[10, 20, 35, 60, 100, 160, 250, 400, 650, 1000],  text: v => `모든 XP +${v}%` },
+  { id:'royal',   name:'왕실 카드',  v:[20, 40, 70, 125, 210, 330, 520, 830, 1350, 2080], text: v => `J·Q·K·A 코인 +${v}%` },
+  { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200, 320, 500, 800, 1300, 2000], text: v => `♥·♦ 카드 코인 +${v}%` },
+  { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200, 320, 500, 800, 1300, 2000], text: v => `♠·♣ 카드 XP +${v}%` },
+  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8, 13, 20, 32, 52, 80],        text: v => `레벨마다 코인·XP +${v}% (${GROWTH_MAX_LEVEL}레벨까지)` },
+  { id:'jackpot', name:'대박',       v:[3, 5, 8, 12, 20, 30, 40, 52, 66, 80],      text: v => `${v}% 확률로 코인 ×5` },
+  { id:'meteor',  name:'별똥별',     v:[3, 5, 8, 12, 20, 30, 40, 52, 66, 80],      text: v => `${v}% 확률로 XP ×5` },
+  { id:'twin',    name:'두 장 뽑기', v:[5, 10, 15, 25, 40, 60, 90, 130, 180, 250],    text: v => `${v}% 확률로 카드 한 장 더` },
+  { id:'quick',   name:'빠른 손',    v:[5, 10, 15, 25, 40, 50, 60, 68, 75, 80],    text: v => `쿨타임 −${v}%` },
 ];
 const ABILITY = Object.fromEntries(ABILITIES.map(A => [A.id, A]));
 const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g]);
@@ -589,21 +619,29 @@ const PACKS = [
   { g:2, chance:20,  cards:4, min:0, sure:0 },
   { g:3, chance:6.5, cards:4, min:1, sure:2 },
   { g:4, chance:1.5, cards:5, min:2, sure:3 },
+  { g:5, chance:0.8,  cards:5, min:2, sure:5 },
+  { g:6, chance:0.3,  cards:5, min:3, sure:6 },
+  { g:7, chance:0.12, cards:6, min:3, sure:7 },
+  { g:8, chance:0.05, cards:6, min:4, sure:8 },
+  { g:9, chance:0.02, cards:7, min:4, sure:9 },
 ];
 const PACK = Object.fromEntries(PACKS.map(P => [P.g, P]));
-const PACK_MILESTONE = 5;   // 5레벨마다 영웅 팩 이상
-// luck(0~1)만큼 영웅 이상 팩의 확률이 커지고, 그만큼 희귀 팩이 줄어요 (좋은 팩 업그레이드)
-function rollPack(rnd, level, luck = 0) {
-  const ch = PACKS.map(P => P.g > 1 ? P.chance * (1 + luck) : 0);
+const PACK_MILESTONE = 5;   // 5레벨마다 영웅 팩 이상, 25레벨마다 고대 팩 이상
+// luck(0~1)만큼 영웅 이상 팩의 확률이 커지고, 그만큼 희귀 팩이 줄어요 (좋은 팩 업그레이드).
+// 새 등급 팩과 25레벨 고대 팩은 환생 NEW_GRADE_RB번부터예요
+function rollPack(rnd, level, luck = 0, rebirths = 0) {
+  const top = topGrade(rebirths);
+  const ch = PACKS.map(P => P.g > 1 && P.g <= top ? P.chance * (1 + luck) : 0);
   ch[0] = 100 - ch.reduce((a, b) => a + b, 0);
   let x = rnd() * 100, g = PACKS[0].g;
   for (let i = 0; i < PACKS.length; i++) { x -= ch[i]; if (x < 0) { g = PACKS[i].g; break; } }
+  if (level % 25 === 0 && top >= 5) return Math.max(g, 5);
   return level % PACK_MILESTONE === 0 ? Math.max(g, 2) : g;
 }
 // 서로 다른 능력으로 팩 크기만큼, 등급은 장마다 따로 (팩의 최소 등급 · 꼭 들어가는 등급을 지켜요)
-function rollOffer(rnd, packG = 1, luck = 0) {
-  const P = PACK[packG] || PACKS[0], pool = ABILITIES.map(A => A.id), out = [];
-  while (out.length < P.cards && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: Math.max(P.min, rollGrade(rnd, luck)) });
+function rollOffer(rnd, packG = 1, luck = 0, rebirths = 0) {
+  const P = PACK[packG] || PACKS[0], pool = ABILITIES.map(A => A.id), out = [], top = topGrade(rebirths);
+  while (out.length < P.cards && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: Math.max(P.min, rollGrade(rnd, luck, top)) });
   if (P.sure && !out.some(c => c.g >= P.sure)) out[Math.floor(rnd() * out.length)].g = P.sure;
   return out;
 }
@@ -636,19 +674,27 @@ const rebirthMul = n => 1 + REBIRTH_BONUS * n;
 // 낀 카드들 + 업그레이드 + 환생 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %, mul은 환생 보너스(곱하기)예요
 function equipStats(cards, level, up = {}, rebirths = 0) {
   const st = Object.fromEntries(ABILITIES.map(A => [A.id, 0]));
-  let cdMul = 1;
+  let cdMul = 1, perkAll = 0, perkGold = 0;
+  st.pmul = 1;
   for (const c of cards) {
     const A = ABILITY[c.a]; if (!A) continue;
     if (c.a === 'quick') cdMul *= 1 - A.v[c.g] / 100; else st[c.a] += A.v[c.g];
+    const P = GRADES[c.g] && GRADES[c.g].perk;   // 새 등급의 덤 능력
+    if (!P) continue;
+    if (P.k === 'all') perkAll += P.v;
+    else if (P.k === 'cd') cdMul *= 1 - P.v / 100;
+    else if (P.k === 'twin') st.twin += P.v;
+    else if (P.k === 'gold') perkGold += P.v;
+    else if (P.k === 'mul') st.pmul *= 1 + P.v / 100;
   }
   st.jackpot = Math.min(100, st.jackpot);
   st.meteor = Math.min(100, st.meteor);
   st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul * (1 - UPGRADE.cd.per / 100) ** (up.cd || 0));
   const grow = growthNow(st.growth, level);
-  st.coinPct = st.coin + grow + UPGRADE.coin.per * (up.coin || 0);
-  st.xpPct = st.xp + grow + UPGRADE.xp.per * (up.xp || 0);
+  st.coinPct = st.coin + grow + perkAll + UPGRADE.coin.per * (up.coin || 0);
+  st.xpPct = st.xp + grow + perkAll + UPGRADE.xp.per * (up.xp || 0);
   st.mul = rebirthMul(rebirths) * (1 + UPGRADE.rbpow.per * (up.rbpow || 0) / 100);
-  st.gold = UPGRADE.gold.per * (up.gold || 0);
+  st.gold = UPGRADE.gold.per * (up.gold || 0) + perkGold;
   return st;
 }
 // 카드 한 장에서 받는 코인과 XP
@@ -659,7 +705,7 @@ function cardGain(r, s, st, rnd) {
   const jackpot = st.jackpot > 0 && rnd() * 100 < st.jackpot;
   const meteor = st.meteor > 0 && rnd() * 100 < st.meteor;
   const golden = st.gold > 0 && rnd() * 100 < st.gold;
-  const mul = (st.mul || 1) * (golden ? GOLD_MUL : 1);
+  const mul = (st.mul || 1) * (st.pmul || 1) * (golden ? GOLD_MUL : 1);
   return {
     coins: rankValue(r) * (1 + coinPct / 100) * (jackpot ? 5 : 1) * mul,
     xp: BASE_XP * (1 + xpPct / 100) * (meteor ? 5 : 1) * mul,
@@ -674,7 +720,7 @@ function loadoutRate(cards, level, up = {}, rebirths = 0) {
     coin += rankValue(r) * (1 + (st.coinPct + (isRoyal(r) ? st.royal : 0) + (SUITS[s].red ? st.red : 0)) / 100);
     xp += BASE_XP * (1 + (st.xpPct + (SUITS[s].red ? 0 : st.black)) / 100);
   }
-  const n = RANKS.length * SUITS.length, luck = (1 + 2 * st.gold / 100) * st.mul;
+  const n = RANKS.length * SUITS.length, luck = (1 + 2 * st.gold / 100) * st.mul * st.pmul;
   const fingers = autoFingers(up.auto || 0), tapRate = 1 / (st.cooldown + 0.3) + (fingers ? fingers / autoEvery(up.auto) : 0);
   const per = tapRate * (1 + st.twin / 100) * luck;
   return { coin: coin / n * (1 + 4 * st.jackpot / 100) * per, xp: xp / n * (1 + 4 * st.meteor / 100) * per };
@@ -773,6 +819,8 @@ function growLine(c) {
   return el;
 }
 const equipped = () => S.equip.map(cardById).filter(Boolean);
+// 등급 딱지: 새 등급은 반짝이는 테, 무한은 무지개
+const gradeTag = g => h('i', 'gtag' + (g >= 5 ? ' new' : '') + (g === 9 ? ' rainbow' : ''), GRADES[g].name);
 
 /* ---------- 소리 ---------- */
 const Sound = (() => {
@@ -897,6 +945,11 @@ function paper(grade) {
     case 2: return (x, y) => `hsl(${((x + y) * 14) % 360},85%,86%)`;
     case 3: return (x, y) => (x + y) % 7 < 2 ? '#fff0a8' : '#ffd24a';
     case 4: return (x, y) => (x * 7 + y * 13) % 17 === 0 ? `hsl(${(x * 30 + y * 10) % 360},100%,72%)` : '#1c1442';
+    case 5: return (x, y) => (x * 3 + y * 5) % 11 < 2 ? '#b8ffe6' : (x + 2 * y) % 9 === 0 ? '#14845f' : '#1fb383';   // 고대: 비취 무늬
+    case 6: return (x, y) => (x + y) % 6 === 0 || (y - x + 60) % 6 === 0 ? '#ffffff' : '#bff6ff';                        // 천상: 얼음 결정
+    case 7: return (x, y) => (x * 13 + y * 7) % 19 === 0 ? '#ffffff' : (x * 5 + y * 3) % 23 === 0 ? '#a8aaff' : '#0d0a2e'; // 우주: 별밤
+    case 8: return (x, y) => (x + y * 2) % 5 === 0 ? '#fff0b0' : y < 12 ? '#ffd27a' : y < 24 ? '#ff8a3d' : '#e0452a';    // 초월: 불꽃
+    case 9: return (x, y) => `hsl(${(((x - y) * 20) % 360 + 360) % 360},95%,64%)`;                                     // 무한: 무지개
     default: return '#f6f4ff';
   }
 }
@@ -930,8 +983,17 @@ function abilitySprite(grade, id) {
   g.fillStyle = INK; g.fillRect(3, 4, 19, 20);
   g.fillStyle = col; g.fillRect(4, 5, 17, 18);
   g.fillStyle = '#22134a'; g.fillRect(5, 6, 15, 16);
-  const n = grade + 1, x0 = 12 - Math.floor((4 * n + 1) / 2);
-  for (let i = 0; i < n; i++) { g.fillStyle = INK; g.fillRect(x0 + i * 4, 26, 5, 5); g.fillStyle = col; g.fillRect(x0 + i * 4 + 1, 27, 3, 3); }
+  if (grade < 5) {   // 등급 점 1~5개
+    const n = grade + 1, x0 = 12 - Math.floor((4 * n + 1) / 2);
+    for (let i = 0; i < n; i++) { g.fillStyle = INK; g.fillRect(x0 + i * 4, 26, 5, 5); g.fillStyle = col; g.fillRect(x0 + i * 4 + 1, 27, 3, 3); }
+  } else {           // 새 등급은 하얀 테 다이아 1~5개
+    const n = grade - 4, x0 = 12 - Math.floor((4 * n + 1) / 2);
+    for (let i = 0; i < n; i++) {
+      const cx = x0 + i * 4 + 2;
+      for (const [dx, dy] of [[0, -2], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]]) px(g, cx + dx, 28 + dy, Math.abs(dx) + Math.abs(dy) === 2 ? INK : '#ffffff');
+      px(g, cx, 28, col); px(g, cx, 27, col);
+    }
+  }
   if (id) g.drawImage(iconSprite(id), 6, 7);
   sprites.set(key, cv);
   return cv;
@@ -1168,6 +1230,11 @@ const PACK_PAL = {
   2: { a:'#a456ff', b:'#8a46f0', s:'#d9c2ff', seal:'#ffd34d' },
   3: { a:'#ffc23d', b:'#f0a21f', s:'#fff2b8', seal:'#ffffff' },
   4: { a:'#ff79d9', b:'#e64fc0', s:'#ffd6f3', seal:'#ffd34d' },
+  5: { a:'#2fe0a6', b:'#1fb383', s:'#c8ffe9', seal:'#ffd34d' },
+  6: { a:'#8ff3ff', b:'#4fc9e6', s:'#ffffff', seal:'#ffd34d' },
+  7: { a:'#6f72f0', b:'#4a4bc8', s:'#e0e2ff', seal:'#ffd34d' },
+  8: { a:'#ff9a4d', b:'#ff6a2a', s:'#ffe0b8', seal:'#ffffff' },
+  9: { rainbow:true, s:'#ffffff', seal:'#ffffff' },   // 무한 팩은 무지개 띠
 };
 function packPixel(x, y, pal = PACK_PAL[2]) {
   if (y === 0 || y === PACK_H - 1) return x % 2 ? null : '#c9cde6';                     // 톱니
@@ -1179,6 +1246,7 @@ function packPixel(x, y, pal = PACK_PAL[2]) {
     return null;
   }
   const band = Math.floor((y - 3) / 6) % 2, shine = (x + y) % 13 < 2;
+  if (pal.rainbow) return shine ? pal.s : `hsl(${(Math.floor((y - 3) / 4) * 45 + x * 3) % 360},${band ? 80 : 92}%,${band ? 55 : 64}%)`;
   return shine ? pal.s : band ? pal.b : pal.a;
 }
 const PACK_STAR = starShape(14.5, 22.6, 6, 2.6);
@@ -1507,7 +1575,7 @@ function paintEquip() {
     if (c) {
       const A = ABILITY[c.a];
       b.append(pix(c.a)); b.style.setProperty('--gc', GRADES[c.g].color);
-      const now = growNote(c) ? ` · ${growNote(c)}` : '';
+      const now = (growNote(c) ? ` · ${growNote(c)}` : '') + (perkText(c) ? ` · ${perkText(c)}` : '');
       b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}${now}`);
       b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}${now}`;
     } else { b.textContent = '+'; b.setAttribute('aria-label', `${i + 1}번 칸: 비어 있어요`); }
@@ -1525,7 +1593,7 @@ function addXp(x) {
   // 오른 레벨마다 카드 팩 하나를 보관함에 넣어요 (등급은 지금 정해요). 뜯는 건 아무 때나
   let best = 1;
   for (let L = S.level - up + 1; L <= S.level; L++) {
-    const g = rollPack(rnd, L, UPGRADE.pack.per * S.up.pack / 100);
+    const g = rollPack(rnd, L, UPGRADE.pack.per * S.up.pack / 100, S.rb);
     S.packs.push({ g, lv: L }); best = Math.max(best, g);
   }
   // 자동으로 뜯기를 켰으면 받은 팩을 바로 뜯어요
@@ -1680,6 +1748,7 @@ function rebirth() {
   refresh(); save();
   Sound.rebirth();
   RbFx.play(ST.mul);
+  if (S.rb === NEW_GRADE_RB) setTimeout(() => toast('새 등급 5개가 열렸어요! 고대 · 천상 · 우주 · 초월 · 무한 카드와 팩이 나와요', GRADES[9].color), 1600);
   return true;
 }
 const RbFx = (() => {
@@ -1728,7 +1797,7 @@ function buyAll() {
 function quickOpen(list) {
   const got = [];
   for (const p of list) {
-    const c = pickBest(rollOffer(rnd, p.g, UPGRADE.luck.per * S.up.luck / 100), S.level, S.up, S.rb);
+    const c = pickBest(rollOffer(rnd, p.g, UPGRADE.luck.per * S.up.luck / 100, S.rb), S.level, S.up, S.rb);
     const id = S.nextId++;
     S.inv.push({ id, a: c.a, g: c.g });
     const free = S.equip.indexOf(null);
@@ -1804,7 +1873,7 @@ const Sheet = (() => {
   }
   // 등급 딱지 + 능력 이름
   function cardName(c) {
-    const b = h('b'); b.append(h('i', 'gtag', GRADES[c.g].name), ' ' + ABILITY[c.a].name);
+    const b = h('b'); b.append(gradeTag(c.g), ' ' + ABILITY[c.a].name);
     return b;
   }
   // 지금 붙는 효과: 그림 · 이름 · 값 (코인은 금색, XP는 파란색)
@@ -1825,6 +1894,7 @@ const Sheet = (() => {
     if (ST.meteor) add('meteor', 'XP ×5 확률', `${ST.meteor}%`, 'var(--xp)');
     if (ST.twin) add('twin', '한 장 더 확률', `${ST.twin}%`);
     if (ST.gold) add('jackpot', `황금 카드 ×${GOLD_MUL}`, `${ST.gold}%`, '#ffe27e');
+    if (ST.pmul > 1) add('twin', '무한 덤 코인 · XP', `×${fmt(ST.pmul)}`, '#ff8a8a');
     if (Auto.count) add('finger', `자동 손가락 ${Auto.count}개`, fmtSec(autoEvery(S.up.auto)), null, '초');
     if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', fmtSec(ST.cooldown), null, '초');
     return out;
@@ -1872,6 +1942,20 @@ const Sheet = (() => {
     }
     bumped = '';
   }
+  // 환생 10번 전에는 새 등급 팩 5개를 자물쇠와 함께 미리 보여 줘요
+  function lockedPacks() {
+    if (S.rb >= NEW_GRADE_RB) return;
+    body.append(sec('새 등급 팩', `환생 ${NEW_GRADE_RB}번 하면 열려요 (${S.rb}/${NEW_GRADE_RB})`));
+    const grid = h('div', 'pklock');
+    for (const P of PACKS.filter(P => P.g >= 5)) {
+      const G = GRADES[P.g], it = h('div', 'pkl'); it.style.setProperty('--gc', G.color);
+      const art = mk(PACK_W, PACK_H + PACK_TOP); art.className = 'pkart';
+      drawPack(art.getContext('2d'), Array(PACK_W).fill(false), false, null, PACK_PAL[P.g]);
+      it.append(art, pix('lock', 'lk'), gradeTag(P.g), h('small', null, `${P.cards}장 · ${PERK_TEXT[G.perk.k](G.perk.v)}`));
+      grid.append(it);
+    }
+    body.append(grid);
+  }
   // 카드 팩 보관함: 등급마다 몇 개 있는지와 뜯기 단추 (좋은 팩부터)
   function renderPk() {
     title('pack', '카드 팩', S.packs.length);
@@ -1897,7 +1981,7 @@ const Sheet = (() => {
     }
     if (!S.packs.length) {
       const blank = h('div', 'blank'); blank.append(pix('pack'), '레벨이 오르면 카드 팩을 받아요. 모아 뒀다가 아무 때나 뜯을 수 있어요');
-      body.append(blank); return;
+      body.append(blank); lockedPacks(); return;
     }
     body.append(sec('모아 둔 팩', '하나씩 직접 뜯기'));
     for (const P of [...PACKS].reverse()) {
@@ -1915,6 +1999,7 @@ const Sheet = (() => {
       row.append(art, tt, go);
       body.append(row);
     }
+    lockedPacks();
   }
   // 환생: 지금 보너스 → 다음 보너스, 필요 레벨 막대, 처음으로 돌아가는 것 · 남는 것, 환생 단추(두 번 눌러요)
   function renderRb() {
@@ -1946,6 +2031,7 @@ const Sheet = (() => {
       if (rebirth()) render();
     });
     body.append(go, h('p', 'note', `그다음 환생은 레벨 ${rebirthNeed(n + 1)}부터예요`));
+    if (n < NEW_GRADE_RB) body.append(h('p', 'note rbnew', `환생 ${NEW_GRADE_RB}번 하면 새 등급(고대 · 천상 · 우주 · 초월 · 무한) 카드와 팩이 열려요 · 지금 ${n}/${NEW_GRADE_RB}`));
   }
   // 창을 다시 그려도 키보드 초점은 같은 단추에 남아요 (그 단추가 없어지면 닫기 단추로)
   function render() {
@@ -1969,7 +2055,7 @@ const Sheet = (() => {
       if (!c) { const e = h('div', 'eq empty'); e.append(h('em', 'sn num', String(i + 1)), h('i', null, '+'), '빈 칸'); row.append(e); continue; }
       const b = h('button', 'eq'); b.type = 'button'; b.dataset.k = 'e' + c.id; b.style.setProperty('--gc', GRADES[c.g].color);
       b.append(h('em', 'sn num', String(i + 1)), cardArt(c), cardName(c));
-      b.title = cardText(c) + (growNote(c) ? ` · ${growNote(c)}` : '');
+      b.title = cardText(c) + (growNote(c) ? ` · ${growNote(c)}` : '') + (perkText(c) ? ` · ${perkText(c)}` : '');
       b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${ABILITY[c.a].name}, ${b.title}. 누르면 빼요`);
       b.addEventListener('click', () => toggleEquip(c.id));
       row.append(b);
@@ -2004,8 +2090,9 @@ const Sheet = (() => {
       const main = h('button', 'tmain'); main.type = 'button'; main.dataset.k = 'm' + c.id;
       const tt = h('span', 'tt'); tt.append(cardName(c), cardText(c));
       if (growNote(c)) tt.append(growLine(c));
+      if (perkText(c)) tt.append(h('em', 'perk', perkText(c)));
       main.append(cardArt(c), tt);
-      main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}${growNote(c) ? ', ' + growNote(c) : ''}. ${on ? '빼기' : '끼기'}`);
+      main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}${growNote(c) ? ', ' + growNote(c) : ''}${perkText(c) ? ', ' + perkText(c) : ''}. ${on ? '빼기' : '끼기'}`);
       main.addEventListener('click', () => toggleEquip(c.id));
       tile.append(main);
       if (!on) {
@@ -2090,7 +2177,7 @@ const LvOv = (() => {
     const i = S.packs.findIndex(p => p.g === g);
     if (i < 0) return;
     const [p] = S.packs.splice(i, 1);
-    S.pack = p.g; S.offerLv = p.lv; S.offer = rollOffer(rnd, p.g, UPGRADE.luck.per * S.up.luck / 100);
+    S.pack = p.g; S.offerLv = p.lv; S.offer = rollOffer(rnd, p.g, UPGRADE.luck.per * S.up.luck / 100, S.rb);
     paintPacks(); save();
     show();
   }
@@ -2110,8 +2197,9 @@ const LvOv = (() => {
       const back = mk(25, 35); back.className = 'backside'; back.getContext('2d').drawImage(backSprite(false), 0, 0);
       const front = cardArt(c); front.classList.add('front');
       const face = h('div', 'face'); face.append(back, front);
-      const nm = h('b'); nm.append(h('i', 'gtag', G.name), ' ' + A.name);
+      const nm = h('b'); nm.append(gradeTag(c.g), ' ' + A.name);
       const lbl = h('div', 'lbl'); lbl.append(nm, h('small', null, cardText(c)));
+      if (perkText(c)) lbl.append(h('small', 'perk', perkText(c)));
       const rv = h('button', 'rv'); rv.type = 'button';
       rv.style.setProperty('--gc', G.color); rv.style.visibility = 'hidden';
       rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
@@ -2132,8 +2220,8 @@ const LvOv = (() => {
     });
     function flip(it) {
       if (it.open) return;
-      it.open = true; it.at = performance.now(); it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow');
-      it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}. 누르면 골라요`);
+      it.open = true; it.at = performance.now(); it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow'); if (it.c.g >= 5) it.rv.classList.add('mega');
+      it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}${perkText(it.c) ? ', ' + perkText(it.c) : ''}. 누르면 골라요`);
       Sound.flip(it.c.g);
       if (it.c.g >= 2 && !reduced()) setTimeout(() => sparkle(it.rv.querySelector('.face'), GRADES[it.c.g].color, 6 + it.c.g * 3), 260);
       if (++flipped === items.length && sel < 0) tip.textContent = `${items.length}장 중 마음에 드는 카드를 하나 골라요`;
