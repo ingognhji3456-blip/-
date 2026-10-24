@@ -440,6 +440,15 @@ button[disabled]{cursor:default}
 .sw[aria-pressed="true"]{color:#fff}
 .sw[aria-pressed="true"] i{background:var(--green)}
 .sw[aria-pressed="true"] i::after{transform:translateX(.85rem); background:#fff}
+/* 모두 뜯기 단추와, 방금 받은 카드 */
+.autoeq.pkall{color:#fff; text-shadow:var(--ol-s); background:linear-gradient(180deg,#ff9be4,#ff79d9 55%,#e05cc2); box-shadow:inset 0 -.18rem 0 #b33b97, inset 0 .12rem 0 rgba(255,255,255,.45), 0 .14rem 0 var(--ink)}
+.haul{display:grid; grid-template-columns:repeat(auto-fill,minmax(4.3rem,1fr)); gap:.4rem}
+.hc{display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.4rem .2rem .3rem; border-radius:.6rem; text-align:center; background:rgba(14,6,36,.45);
+  box-shadow:inset 0 0 0 .12rem color-mix(in srgb,var(--gc) 65%, transparent); animation:hcin .4s cubic-bezier(.2,.9,.3,1.3) both}
+.hc .art{width:2.1rem; filter:drop-shadow(0 .12rem 0 rgba(10,4,30,.5))}
+.hc b{font-weight:400; font-size:.6rem; line-height:1.35; color:#fff}
+.hc .gtag{font-size:.5rem}
+@keyframes hcin{from{opacity:0; transform:scale(.5) translateY(.5rem)}}
 /* 카드 팩 보관함 줄 */
 .pkrow{display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:.6rem; padding:.45rem .5rem .45rem .6rem; border-radius:.8rem;
   background:radial-gradient(80% 120% at 0% 50%, color-mix(in srgb,var(--gc) 26%, transparent), transparent 70%), linear-gradient(180deg,#3a2780,#2d1d66);
@@ -683,6 +692,11 @@ function bestLoadout(inv, level, up = {}, rebirths = 0, slots = EQUIP_SLOTS) {
   })(0);
   return best;
 }
+// 팩을 대신 뜯을 때(모두 뜯기 · 자동으로 뜯기) 고르는 카드: 등급이 가장 높은 것, 같으면 혼자 꼈을 때 코인 · XP를 더 많이 주는 것
+function pickBest(offer, level, up = {}, rebirths = 0) {
+  const val = c => { const q = loadoutRate([c], level, up, rebirths); return Math.log(q.coin) + Math.log(q.xp); };
+  return offer.reduce((b, c) => c.g > b.g || (c.g === b.g && val(c) > val(b)) ? c : b);
+}
 // 두 장 뽑기: 100%마다 한 장은 꼭 더, 남은 %는 확률로
 const extraCards = (twin, rnd) => Math.floor(twin / 100) + (rnd() * 100 < twin % 100 ? 1 : 0);
 
@@ -707,7 +721,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, autoOpen:false, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -726,6 +740,7 @@ function revive(raw) {
   if (raw.pending >= 1) for (let i = 0; i < Math.min(99, Math.floor(raw.pending)); i++) { const L = Math.max(1, S.level - Math.floor(raw.pending) + 1 + i); S.packs.push({ g: rollPack(rnd, L), lv: L }); }
   S.packs.length = Math.min(S.packs.length, 999);
   if (raw.autoEq === true) S.autoEq = true;
+  if (raw.autoOpen === true) S.autoOpen = true;
   // 아직 안 뜯은 팩: 예전 판의 3장짜리는 희귀 팩이에요
   if (Array.isArray(raw.offer) && raw.offer.length >= 3 && raw.offer.length <= 5 && raw.offer.every(okCard)) {
     S.offer = raw.offer.map(c => ({ a: c.a, g: c.g }));
@@ -1513,6 +1528,8 @@ function addXp(x) {
     const g = rollPack(rnd, L, UPGRADE.pack.per * S.up.pack / 100);
     S.packs.push({ g, lv: L }); best = Math.max(best, g);
   }
+  // 자동으로 뜯기를 켰으면 받은 팩을 바로 뜯어요
+  const got = S.autoOpen ? quickOpen(S.packs.splice(0)) : [];
   if (S.autoEq) autoEquip(true);
   refresh();
   Sound.level();
@@ -1520,7 +1537,11 @@ function addXp(x) {
   xp.classList.remove('lvup'); void xp.offsetWidth; xp.classList.add('lvup');
   burst(r.left + 2 * REM, r.top, 26, ['#62b9ff', '#ffffff', '#ff79d9'], 220);
   const pb = $('pkBtn'); pb.classList.remove('pop'); void pb.offsetWidth; pb.classList.add('pop');
-  toast(up > 1 ? `레벨 ${S.level}! 카드 팩 ${up}개를 받았어요` : `레벨 ${S.level}! ${GRADES[best].name} 팩을 받았어요`, GRADES[best].color);
+  if (got.length) {
+    const top = got.reduce((b, c) => c.g > b.g ? c : b);
+    toast(got.length > 1 ? `레벨 ${S.level}! 팩 ${got.length}개를 뜯어 카드 ${got.length}장을 받았어요`
+      : `레벨 ${S.level}! ${GRADES[top.pack].name} 팩에서 ${GRADES[top.g].name} ${ABILITY[top.a].name}을(를) 받았어요`, GRADES[top.g].color);
+  } else toast(up > 1 ? `레벨 ${S.level}! 카드 팩 ${up}개를 받았어요` : `레벨 ${S.level}! ${GRADES[best].name} 팩을 받았어요`, GRADES[best].color);
   save();
 }
 // 카드 팩 단추: 모아 둔 팩 수
@@ -1703,6 +1724,29 @@ function buyAll() {
   toast(`업그레이드를 ${n}번 했어요`, '#38d064');
   return n;
 }
+// 팩을 화면 없이 바로 뜯어요 (모두 뜯기 · 자동으로 뜯기). 카드는 pickBest로 골라 인벤토리에 넣고, 빈 칸이 있으면 껴요
+function quickOpen(list) {
+  const got = [];
+  for (const p of list) {
+    const c = pickBest(rollOffer(rnd, p.g, UPGRADE.luck.per * S.up.luck / 100), S.level, S.up, S.rb);
+    const id = S.nextId++;
+    S.inv.push({ id, a: c.a, g: c.g });
+    const free = S.equip.indexOf(null);
+    if (!S.autoEq && free >= 0) S.equip[free] = id;
+    got.push({ id, a: c.a, g: c.g, pack: p.g });
+  }
+  if (S.autoEq && got.length) autoEquip(true);
+  return got;
+}
+// 모아 둔 팩을 한 번에 다 뜯어요
+function openAllPacks() {
+  if (!S.packs.length || LvOv.open) return [];
+  const got = quickOpen(S.packs.splice(0)), top = Math.max(...got.map(c => c.g));
+  Sound.tear(); if (top >= 3) setTimeout(() => Sound.jackpot(), 220);
+  refresh(); save();
+  toast(`카드 팩 ${got.length}개를 뜯어 카드 ${got.length}장을 받았어요`, GRADES[top].color);
+  return got;
+}
 function takeCard(c) {
   const item = { id: S.nextId++, a: c.a, g: c.g };
   S.inv.push(item);
@@ -1745,7 +1789,7 @@ function buyUpgrade(id) {
 /* ---------- 인벤토리 · 업그레이드 창 ---------- */
 const Sheet = (() => {
   const wrap = $('sheetWrap'), body = $('sheetBody');
-  let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '', rbArm = false, rbTm = 0;
+  let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '', rbArm = false, rbTm = 0, haul = [];   // haul: 방금 한 번에 뜯어서 받은 카드
   // 머리띠 제목: 그림 상자 + 이름 (+ 장수)
   function title(icon, text, count) {
     const ic = h('span', 'hico'); ic.append(pix(icon));
@@ -1831,11 +1875,31 @@ const Sheet = (() => {
   // 카드 팩 보관함: 등급마다 몇 개 있는지와 뜯기 단추 (좋은 팩부터)
   function renderPk() {
     title('pack', '카드 팩', S.packs.length);
+    // 모두 뜯기 · 자동으로 뜯기 (둘 다 팩마다 등급이 가장 높은 카드를 골라요)
+    const tools = h('div', 'eqtools'), all = h('button', 'autoeq pkall'), sw = h('button', 'sw');
+    all.type = 'button'; all.dataset.k = 'pkall'; all.append(pix('pack'), S.packs.length ? `모두 뜯기 (${S.packs.length}개)` : '모두 뜯기');
+    all.disabled = !S.packs.length;
+    all.addEventListener('click', () => { haul = openAllPacks(); render(); });
+    sw.type = 'button'; sw.dataset.k = 'autoopen'; sw.setAttribute('aria-pressed', String(S.autoOpen));
+    sw.append(h('i'), '레벨업하면 자동으로 뜯기');
+    sw.addEventListener('click', () => { S.autoOpen = !S.autoOpen; Sound.back(); if (S.autoOpen && S.packs.length) haul = openAllPacks(); save(); render(); });
+    tools.append(all, sw);
+    body.append(tools, h('p', 'note', '한 번에 뜯으면 팩마다 등급이 가장 높은 카드를 골라 가져요'));
+    if (haul.length) {
+      body.append(sec('방금 받은 카드', `${haul.length}장`, true));
+      const grid = h('div', 'haul'), shown = [...haul].sort((a, b) => b.g - a.g).slice(0, 40);
+      shown.forEach((c, i) => {
+        const it = h('div', 'hc'); it.style.setProperty('--gc', GRADES[c.g].color); it.style.animationDelay = Math.min(i * 40, 800) + 'ms';
+        it.append(cardArt(c), cardName(c)); grid.append(it);
+      });
+      body.append(grid);
+      if (haul.length > shown.length) body.append(h('p', 'foot', `그리고 ${haul.length - shown.length}장 더 (인벤토리에서 볼 수 있어요)`));
+    }
     if (!S.packs.length) {
       const blank = h('div', 'blank'); blank.append(pix('pack'), '레벨이 오르면 카드 팩을 받아요. 모아 뒀다가 아무 때나 뜯을 수 있어요');
       body.append(blank); return;
     }
-    body.append(h('p', 'note', '팩은 모아 뒀다가 아무 때나 뜯어요. 환생해도 남아요'));
+    body.append(sec('모아 둔 팩', '하나씩 직접 뜯기'));
     for (const P of [...PACKS].reverse()) {
       const n = S.packs.filter(p => p.g === P.g).length;
       if (!n) continue;
@@ -1969,6 +2033,7 @@ const Sheet = (() => {
   function show(m = 'inv', keep) {
     if (LvOv.open) return;
     if (open && mode === m && !keep) { close(); return; }   // 같은 단추를 한 번 더 누르면 닫혀요
+    if (mode !== m) haul = [];
     mode = m; open = true; armed = 0; rbArm = false;
     wrap.classList.toggle('side', isSide(m));
     wrap.classList.toggle('wide', m === 'inv');
@@ -1979,7 +2044,7 @@ const Sheet = (() => {
     wrap.hidden = false; render(); aimDeck(); pressed();
     $('sheetClose').focus({ preventScroll: true, focusVisible: false });
   }
-  function close() { if (!open) return; open = false; wrap.hidden = true; aimDeck(); pressed(); save(); }
+  function close() { if (!open) return; open = false; haul = []; wrap.hidden = true; aimDeck(); pressed(); save(); }
   $('sheetClose').addEventListener('click', close);
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
   $('upBtn').addEventListener('click', () => show('up'));
