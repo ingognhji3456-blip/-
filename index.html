@@ -44,6 +44,13 @@ button[disabled]{cursor:default}
 .deck canvas{display:block; width:100%; height:100%; image-rendering:pixelated; transition:transform .12s cubic-bezier(.3,1.6,.5,1), filter .2s}
 .deck.hit canvas{transform:scale(.93) rotate(-1.5deg); transition-duration:.04s}
 .deck.cooling canvas{filter:brightness(.62) saturate(.7)}
+.deck.empty{cursor:default}
+.deck.refilled canvas{animation:refilled .45s cubic-bezier(.2,.9,.3,1.4)}
+@keyframes refilled{0%{transform:translateY(-.6rem) scale(.9)} 60%{transform:translateY(.1rem) scale(1.04)}}
+/* 덱 남은 장수 (덱 아래 가장자리) */
+.deck-count{position:absolute; left:0; top:0; transform:translate(-50%,-50%); z-index:4; pointer-events:none; white-space:nowrap; padding:.04rem .45rem .08rem; border-radius:.5rem;
+  font-size:.78rem; line-height:1.3; color:#fff; background:rgba(16,6,40,.88); border:.12rem solid var(--ink); box-shadow:0 .12rem 0 var(--ink)}
+.deck-count.refill{color:#8fe0ff; font-family:var(--f-ui); font-size:.66rem; border-color:#2b6f8a}
 .deck.nope{animation:nope .3s}
 @keyframes nope{20%{translate:-.35rem 0} 40%{translate:.35rem 0} 60%{translate:-.2rem 0} 80%{translate:.15rem 0}}
 .deck.ready canvas{animation:ready .4s}
@@ -477,6 +484,7 @@ button[disabled]{cursor:default}
 .pkrow .ut b .lvb{color:#fff; background:rgba(255,255,255,.12); text-shadow:none}
 .pkgo{background:linear-gradient(180deg,#ff9be4,#ff79d9 55%,#e05cc2); box-shadow:inset 0 -.22rem 0 #b33b97, inset 0 .12rem 0 rgba(255,255,255,.45), 0 .16rem 0 var(--ink)}
 .port .side .pkrow{grid-template-columns:auto minmax(0,1fr)} .port .side .pkrow .pkgo{grid-column:1 / -1; width:100%}
+.uprow.u-refill{--uc:#ffd34d} .uprow.u-deck{--uc:#8fb8ff}
 .uprow.u-auto{--uc:#ffffff} .uprow.u-gold{--uc:#ffe27e} .uprow.u-pack{--uc:#c77dff}
 .uprow.locked{opacity:.62; background:linear-gradient(180deg,#2e2066,#251854)}
 .uprow.locked .ui .pix{filter:grayscale(.6) brightness(.8)}
@@ -518,6 +526,7 @@ button[disabled]{cursor:default}
   <canvas id="back"></canvas>
   <button class="deck" id="deck" type="button" aria-label="덱 눌러서 카드 뽑기"><canvas id="deckCv" width="25" height="39"></canvas></button>
   <div class="tap-hint" id="tapHint" hidden>눌러서 카드 뽑기!</div>
+  <div class="deck-count num" id="deckCount" aria-live="off"></div>
   <div class="cd" id="cd" role="timer" aria-label="다음 카드까지 남은 시간" hidden><b class="num" id="cdText">5</b></div>
   <canvas id="fx"></canvas>
   <div class="top">
@@ -645,6 +654,20 @@ function rollOffer(rnd, packG = 1, luck = 0, rebirths = 0) {
   if (P.sure && !out.some(c => c.g >= P.sure)) out[Math.floor(rnd() * out.length)].g = P.sure;
   return out;
 }
+// 덱: 52장 한 벌을 섞어 놓고 위에서부터 꺼내요(다 쓸 때까지 같은 카드가 안 나와요). 덱 늘리기 단계마다 10장씩 더(여러 벌을 섞어 채워요).
+// 다 쓰면 refillTime초 동안 채우고, 그동안은 못 뽑아요. 카드 번호 code → 숫자 code % 13, 무늬 code / 13
+const DECK_BASE = 52, DECK_STEP = 10, REFILL_BASE = 20;
+const deckSize = lv => DECK_BASE + DECK_STEP * (lv || 0);
+const refillTime = lv => Math.max(2, REFILL_BASE * 0.94 ** (lv || 0));
+function newDeck(rnd, size) {
+  const out = [];
+  while (out.length < size) {
+    const one = Array.from({ length: 52 }, (_, i) => i);
+    for (let i = 51; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [one[i], one[j]] = [one[j], one[i]]; }
+    out.push(...one);
+  }
+  return out.slice(0, size);
+}
 // 자동 손가락: 처음엔 손가락 1개가 10초마다 눌러요. 단계마다 조금씩 빨라지고(최소 1.5초), 10단계마다 손가락이 1개 늘어요(최대 5개)
 const AUTO_MAX_FINGERS = 5;
 const autoFingers = lv => lv > 0 ? Math.min(AUTO_MAX_FINGERS, 1 + Math.floor(lv / 10)) : 0;
@@ -656,6 +679,8 @@ const UPGRADES = [
   { id:'xp',   name:'XP 늘리기',    per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 XP +${10 * lv}%`, next: lv => `+${10 * lv}%` },
   { id:'cd',   name:'쿨타임 줄이기', per:4,  max:40,       base:20, grow:1.55, text: lv => `쿨타임 −${Math.round((1 - 0.96 ** lv) * 100)}%` },
   { id:'coin', name:'코인 더 받기',  per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 코인 +${10 * lv}%`, next: lv => `+${10 * lv}%` },
+  { id:'refill', name:'빨리 채우기', per:6,  max:30, base:30, grow:1.45, text: lv => `다 쓰면 ${fmtSec(refillTime(lv))}초 만에 채워요`, next: lv => `${fmtSec(refillTime(lv))}초` },
+  { id:'deck',   name:'덱 늘리기',   per:10, max:20, base:40, grow:1.5,  text: lv => `덱 ${deckSize(lv)}장`, next: lv => `${deckSize(lv)}장` },
   { id:'auto', name:'자동 손가락',  rb:1, max:40, base:40,  grow:1.3,  text: lv => lv ? `손가락 ${autoFingers(lv)}개 · ${fmtSec(autoEvery(lv))}초마다` : '아직 손가락이 없어요', next: lv => `${autoFingers(lv)}개 · ${fmtSec(autoEvery(lv))}초` },
   { id:'gold', name:'황금 카드',    rb:1, per:1,  max:20, base:60,  grow:1.42, text: lv => `황금 카드 ${lv}% (코인 · XP ×${GOLD_MUL})`, next: lv => `${lv}%` },
   { id:'pack', name:'좋은 팩',      rb:1, per:10, max:10, base:120, grow:1.75, text: lv => `좋은 팩 확률 +${10 * lv}%`, next: lv => `+${10 * lv}%` },
@@ -767,7 +792,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, autoOpen:false, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, autoOpen:false, deck:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -787,6 +812,8 @@ function revive(raw) {
   S.packs.length = Math.min(S.packs.length, 999);
   if (raw.autoEq === true) S.autoEq = true;
   if (raw.autoOpen === true) S.autoOpen = true;
+  // 덱에 남은 카드 (없으면 시작할 때 새로 섞어요)
+  if (Array.isArray(raw.deck) && raw.deck.length <= deckSize(S.up.deck) && raw.deck.every(c => Number.isInteger(c) && c >= 0 && c < 52)) S.deck = raw.deck.slice();
   // 아직 안 뜯은 팩: 예전 판의 3장짜리는 희귀 팩이에요
   if (Array.isArray(raw.offer) && raw.offer.length >= 3 && raw.offer.length <= 5 && raw.offer.every(okCard)) {
     S.offer = raw.offer.map(c => ({ a: c.a, g: c.g }));
@@ -860,6 +887,11 @@ const Sound = (() => {
       hiss(0.08, { vol: 0.2, freq: 1800, to: 5200, q: 0.7 }); tone(1300, 0.04, { type:'triangle', vol: 0.05 });
     },
     coin() { if (!ready()) return; tone(988, 0.05, { vol: 0.04 }); tone(1480, 0.08, { vol: 0.035, at: 0.04 }); },
+    shuffle() {   // 덱을 다시 채울 때: 촤르륵 섞는 소리
+      if (!ready()) return;
+      for (let i = 0; i < 7; i++) setTimeout(() => hiss(0.035, { vol: 0.12, freq: 2400 + i * 300, q: 0.8 }), i * 45);
+      setTimeout(() => arp([784, 988, 1319], 0.06, { type:'triangle', vol: 0.06 }), 330);
+    },
     tap() { if (!ready()) return; const n = performance.now(); if (n - lastFlick < 60) return; lastFlick = n; hiss(0.05, { vol: 0.08, freq: 2200, to: 4200, q: 0.8 }); tone(1600, 0.03, { type:'triangle', vol: 0.025 }); },
     gold() { if (!ready()) return; arp([1319, 1760, 2349], 0.05, { type:'triangle', vol: 0.06, dur: 0.18 }); },
     jackpot() { if (!ready()) return; arp([1047, 1319, 1568, 2093, 2637], 0.05, { vol: 0.06 }); },
@@ -995,6 +1027,20 @@ function abilitySprite(grade, id) {
     }
   }
   if (id) g.drawImage(iconSprite(id), 6, 7);
+  sprites.set(key, cv);
+  return cv;
+}
+// 덱: 남은 카드가 많을수록 밑에 깔린 카드 줄이 많아요(0~4줄). layers -1은 다 쓴 빈 자리(점선)
+function deckSprite(layers) {
+  const key = 'deck' + layers;
+  if (sprites.has(key)) return sprites.get(key);
+  const cv = mk(25, 39), g = cv.getContext('2d');
+  if (layers < 0) {
+    for (let y = 4; y < 39; y++) for (let x = 0; x < 25; x++) if ((x === 0 || x === 24 || y === 4 || y === 38) && (x + y) % 3) px(g, x, y, 'rgba(255,255,255,.4)');
+  } else {
+    for (let k = layers; k >= 1; k--) cardShape(g, k, INK, k % 2 ? '#cbc3ee' : '#a99fd6');
+    g.drawImage(backSprite(false), 0, 0);
+  }
   sprites.set(key, cv);
   return cv;
 }
@@ -1147,6 +1193,34 @@ const ICON_DRAW = {
     '.KKwwwwwwKK..',
     '..KKKKKKKK...',
     '.............'], 0, 1),
+  deck: g => pmap(g, [   // 카드 뒷면이 쌓인 덱
+    '..KKKKKKKKK..',
+    '..KBBBBBBBK..',
+    '..KBWBWBWBK..',
+    '..KBBWBWBBK..',
+    '..KBWBWBWBK..',
+    '..KBBWBWBBK..',
+    '..KBWBWBWBK..',
+    '..KBBBBBBBK..',
+    '..KKKKKKKKK..',
+    '..KLLLLLLLK..',
+    '..KKKKKKKKK..',
+    '..KLLLLLLLK..',
+    '..KKKKKKKKK..'], 0, 0),
+  hourglass: g => pmap(g, [   // 모래시계 (빨리 채우기)
+    '.KKKKKKKKKKK.',
+    '..KYYYYYYYK..',
+    '..KwYYYYYwK..',
+    '...KwYYYwK...',
+    '....KwYwK....',
+    '.....KYK.....',
+    '.....KwK.....',
+    '....KwYwK....',
+    '...KwwYwwK...',
+    '..KwwYYYwwK..',
+    '..KwYYYYYwK..',
+    '..KYYYYYYYK..',
+    '.KKKKKKKKKKK.'], 0, 0),
   pack: g => pmap(g, [   // 별 딱지가 붙은 카드 팩
     '.KKKKKKKKKKK.',
     '.KwwwwwwwwwK.',
@@ -1279,7 +1353,7 @@ function pix(id, cls) {
   cv.setAttribute('aria-hidden', 'true');
   return cv;
 }
-const UP_ICON = { xp:'xp', cd:'quick', coin:'coin', auto:'finger', gold:'jackpot', pack:'pack', luck:'meteor', rbpow:'rebirth', twinf:'twin' };
+const UP_ICON = { xp:'xp', cd:'quick', coin:'coin', refill:'hourglass', deck:'deck', auto:'finger', gold:'jackpot', pack:'pack', luck:'meteor', rbpow:'rebirth', twinf:'twin' };
 // 잠긴 환생 업그레이드에 보여 줄 한 줄 설명
 const UP_ABOUT = { auto:'손가락이 덱을 대신 눌러 줘요', gold:'가끔 황금 카드가 나와 코인 · XP ×3', pack:'영웅 · 전설 · 신화 팩이 더 잘 나와요',
   luck:'팩에서 희귀 이상 카드가 더 잘 나와요', rbpow:'환생 보너스가 더 커져요', twinf:'손가락이 누를 때 카드가 한 장 더' };
@@ -1321,7 +1395,8 @@ function placeDeck() {
   deckX = W / 2 + deckShift;
   const snap = v => Math.round(v * DPR) / DPR;
   Object.assign(deckBtn.style, { left: snap(deckX - deckW / 2) + 'px', top: snap(deckY - deckH / 2) + 'px', width: deckW + 'px', height: deckH + 'px' });
-  const hint = $('tapHint'); hint.style.left = deckX + 'px'; hint.style.top = (deckY + deckH / 2 + 0.6 * REM) + 'px';
+  const hint = $('tapHint'); hint.style.left = deckX + 'px'; hint.style.top = (deckY + deckH / 2 + 1.1 * REM) + 'px';
+  const pill = $('deckCount'); pill.style.left = deckX + 'px'; pill.style.top = (deckY + deckH / 2) + 'px';
   // 쿨타임 동그라미는 덱 크기에 맞춰요 (너비의 40%쯤)
   const cs = clamp(deckW * 0.4, 24, 2.4 * REM);
   const cd = $('cd'); cd.style.setProperty('--cs', cs + 'px'); cd.style.left = (deckX + deckW / 2 - cs * 0.1) + 'px'; cd.style.top = (deckY - deckH / 2 + cs * 0.2) + 'px';
@@ -1493,6 +1568,12 @@ function renderFx() {
         g.fillRect(deckX + Math.cos(a1) * ringR - d / 2, deckY + Math.sin(a1) * ringR - d / 2, d, d);
       }
     }
+    if (!front && Deck.refilling) {   // 덱을 채우는 중: 파란 고리가 차올라요
+      const R = deckH * 0.68 + 2.5 * ps, a0 = -Math.PI / 2, a1 = a0 + Math.PI * 2 * Deck.progress;
+      g.globalAlpha = 0.25; g.strokeStyle = '#8fe0ff'; g.lineWidth = Math.max(2, ps * 0.6);
+      g.beginPath(); g.arc(deckX, deckY, R, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
+      g.beginPath(); g.arc(deckX, deckY, R, a0, a1); g.stroke();
+    }
     if (!front) Auto.draw(g);
     if (front) for (const f of flyers) drawFlyer(g, f);
   }
@@ -1537,6 +1618,7 @@ let ST = equipStats([], 1);
 function refresh() {
   ST = equipStats(equipped(), S.level, S.up, S.rb);
   paintTop(); paintEquip(); paintXp(); paintPacks();
+  if (Array.isArray(S.deck)) Deck.sync();
   if (Sheet.open && (Sheet.mode === 'inv' || Sheet.mode === 'pk')) Sheet.render();
 }
 // 환생할 수 있는지 (레벨이 됐고, 아직 안 뜯은 카드 팩이 없을 때)
@@ -1620,8 +1702,60 @@ function paintPacks() {
   $('pkBtn').setAttribute('aria-label', n ? `카드 팩 열기, ${n}개 모아 뒀어요` : '카드 팩 열기, 아직 없어요');
 }
 
+/* ---------- 덱: 남은 카드 · 다 쓰면 다시 채우기 ---------- */
+const Deck = (() => {
+  const pill = $('deckCount');
+  let refillEnd = 0, refillLen = 0, shown = '', cap = 0;
+  const layersOf = (n, c) => !n ? -1 : n === 1 ? 0 : Math.max(1, Math.min(4, Math.ceil(4 * (n - 1) / Math.max(1, c - 1))));
+  function paint() {
+    const n = S.deck.length, c = Math.max(cap, n), layers = refillEnd ? -1 : layersOf(n, c);
+    const key = layers + '|' + (refillEnd ? Math.ceil((refillEnd - performance.now()) / 100) : n);
+    if (key === shown) return;
+    shown = key;
+    const g = deckCv.getContext('2d'); g.clearRect(0, 0, 25, 39); g.drawImage(deckSprite(layers), 0, 0);
+    deckBtn.classList.toggle('empty', !n);
+    pill.classList.toggle('refill', !!refillEnd);
+    if (refillEnd) pill.textContent = `채우는 중 ${fmtSec(Math.max(0, (refillEnd - performance.now()) / 1000))}초`;
+    else pill.textContent = `${n}장`;
+  }
+  // 처음 열 때: 남은 카드가 없으면 새로 섞고, 0장이면 바로 채우기 시작
+  function init() {
+    cap = deckSize(S.up.deck);
+    if (!Array.isArray(S.deck)) S.deck = newDeck(rnd, cap);
+    if (!S.deck.length) start(); else paint();
+  }
+  function start() {
+    if (refillEnd) return;
+    refillLen = refillTime(S.up.refill); refillEnd = performance.now() + refillLen * 1000;
+    paint();
+  }
+  function finish() {
+    refillEnd = 0; cap = deckSize(S.up.deck); S.deck = newDeck(rnd, cap); shown = '';
+    paint(); save();
+    Sound.shuffle();
+    deckBtn.classList.remove('refilled'); void deckBtn.offsetWidth; deckBtn.classList.add('refilled');
+    rings.push({ x: deckX, y: deckY, t: 0, life: 0.6, c: '#8fe0ff', r: deckH * 0.7 });
+    burst(deckX, deckY - deckH * 0.3, 18, ['#8fe0ff', '#ffffff', '#c8ecff'], 200);
+  }
+  function step() { if (refillEnd && performance.now() >= refillEnd) finish(); else paint(); }
+  // 덱 늘리기를 사면 지금 덱에도 늘어난 만큼 카드를 섞어 넣어요 (채우는 중이면 다 채울 때 늘어요)
+  function sync() {
+    const want = deckSize(S.up.deck);
+    if (want > cap && !refillEnd) {
+      for (const c of newDeck(rnd, want - cap)) S.deck.splice(Math.floor(rnd() * (S.deck.length + 1)), 0, c);
+      shown = '';
+    }
+    if (!refillEnd) cap = want;
+    paint();
+  }
+  // 환생: 업그레이드가 처음으로 돌아가니 덱도 새로
+  function reset() { refillEnd = 0; cap = deckSize(S.up.deck); S.deck = newDeck(rnd, cap); shown = ''; paint(); }
+  return { init, start, step, sync, reset, paint, get refilling() { return refillEnd > 0; },
+    get progress() { return refillEnd ? clamp(1 - (refillEnd - performance.now()) / (refillLen * 1000), 0, 1) : 0; } };
+})();
+
 /* ---------- 뽑기와 쿨타임 ---------- */
-let cdEnd = 0, cdLen = DRAW_COOLDOWN, cdShown = false, toldCooldown = false;
+let cdEnd = 0, cdLen = DRAW_COOLDOWN, cdShown = false, toldCooldown = false, toldRefill = false;
 const cooldownLeft = () => Math.max(0, (cdEnd - performance.now()) / 1000);
 function deny() {
   Sound.nope();
@@ -1648,10 +1782,11 @@ function paintCooldown() {
 // 덱에서 카드를 꺼내요. 두 장 뽑기가 터지면 더 나와요
 // auto: 자동 손가락이 누른 것 (소리를 작게)
 function drawCards(auto) {
-  const n = 1 + (ST.twin ? extraCards(ST.twin, rnd) : 0) + (auto && S.up.twinf ? extraCards(UPGRADE.twinf.per * S.up.twinf, rnd) : 0);
+  const want = 1 + (ST.twin ? extraCards(ST.twin, rnd) : 0) + (auto && S.up.twinf ? extraCards(UPGRADE.twinf.per * S.up.twinf, rnd) : 0);
+  const n = Math.min(want, S.deck.length);   // 덱에 남은 만큼만
   let big = false, gold = false;
   for (let i = 0; i < n; i++) {
-    const r = Math.floor(rnd() * 13), s = Math.floor(rnd() * 4);
+    const code = S.deck.pop(), r = code % 13, s = Math.floor(code / 13);
     const got = cardGain(r, s, ST, rnd);
     S.draws++;
     S.coins += got.coins;
@@ -1667,6 +1802,8 @@ function drawCards(auto) {
     if (got.golden) gold = true;
     addXp(got.xp);
   }
+  if (!S.deck.length) Deck.start();   // 다 썼으면 채우기 시작
+  Deck.paint();
   if (auto) Sound.tap(); else Sound.flick();
   if (big) Sound.jackpot(); else if (gold) Sound.gold(); else if (!auto) Sound.coin();
   const box = $('coinbox'); box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
@@ -1674,6 +1811,11 @@ function drawCards(auto) {
 }
 function draw() {
   if (LvOv.open || (Sheet.open && !Sheet.side)) return;
+  if (!S.deck.length) {   // 덱을 다 썼어요: 파란 고리가 다 찰 때까지 기다려요
+    Sound.nope(); deckBtn.classList.remove('nope'); void deckBtn.offsetWidth; deckBtn.classList.add('nope');
+    if (!toldRefill) { toldRefill = true; toast('덱을 다 썼어요. 파란 고리가 다 차면 다시 꽉 채워져요', '#8fe0ff'); }
+    return;
+  }
   if (cooldownLeft() > 0) { deny(); return; }
   cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
   $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
@@ -1707,6 +1849,7 @@ const Auto = (() => {
     for (const f of list) {
       if (f.tap > 0) { f.tap += dt; if (f.tap >= TAP) f.tap = 0; }
       if (LvOv.open) continue;
+      if (!S.deck.length) { f.t = Math.min(f.t + dt, every); continue; }   // 덱이 비면 채워질 때까지 기다려요
       f.t += dt;
       if (f.t >= every) { f.t -= every; f.tap = 1e-4; tap(); }
     }
@@ -1744,6 +1887,7 @@ const Auto = (() => {
 function rebirth() {
   if (!canRebirth() || LvOv.open) return false;
   S.rb++; S.level = 1; S.xp = 0; S.coins = 0; S.up = upFresh();
+  Deck.reset();
   if (S.autoEq) autoEquip(true);
   refresh(); save();
   Sound.rebirth();
@@ -2406,6 +2550,7 @@ function frame(t) {
   paintCooldown();
   stepDeck(dt);
   stepFx(dt);
+  Deck.step();
   Auto.step(dt);
   bgDraw(simT, dt);
   renderFx();
@@ -2421,7 +2566,7 @@ function start(data) {
   document.documentElement.style.setProperty('--ico-star', `url(${starURL()})`);
   document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
-  deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
+  Deck.init();
   $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('rbBtn').prepend(pix('rebirth')); $('pkBtn').prepend(pix('pack')); $('sheetClose').replaceChildren(pix('close'));
   document.documentElement.style.setProperty('--ico-rb', `url(${iconSprite('rebirth').toDataURL()})`);
   $('tapHint').hidden = S.draws >= 3;
