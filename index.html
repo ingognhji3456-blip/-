@@ -612,9 +612,13 @@ function rollGrade(rnd, luck = 0, top = GRADES.length - 1) {
   for (let i = 0; i < GRADES.length; i++) { x -= ch[i]; if (x < 0) return i; }
   return 0;
 }
-// 성장은 20레벨까지만 쌓여요. 그 뒤로는 그 값 그대로예요 (끝없이 세지지 않게)
-const GROWTH_MAX_LEVEL = 20;
-const growthNow = (v, level) => v * Math.min(level, GROWTH_MAX_LEVEL);
+// 성장: 레벨마다 v%씩 자라지만, 다 자라도 다음 등급 카드보다 세지 않아요.
+// 코인 · XP에 같이 붙으니 (1 + 최대)² ≤ 1 + 다음 등급 황금 손. 무한은 다음 등급이 없어서 황금 손 ×1.6을 다음 칸으로 쳐요
+const growthCap = g => {
+  const next = g < GRADES.length - 1 ? ABILITY.coin.v[g + 1] : ABILITY.coin.v[g] * 1.6;
+  return Math.floor(100 * (Math.sqrt(1 + next / 100) - 1));
+};
+const growthNow = (g, level) => Math.min(ABILITY.growth.v[g] * level, growthCap(g));
 // 능력: 모두 % 값이에요. v는 등급별 세기(일반 → 신화). 같은 능력을 여러 장 끼면 더해져요 (쿨타임만 곱해서 줄어요)
 const ABILITIES = [
   { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100, 160, 250, 400, 650, 1000],  text: v => `모든 코인 +${v}%` },
@@ -622,14 +626,14 @@ const ABILITIES = [
   { id:'royal',   name:'왕실 카드',  v:[20, 40, 70, 125, 210, 330, 520, 830, 1350, 2080], text: v => `J·Q·K·A 코인 +${v}%` },
   { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200, 320, 500, 800, 1300, 2000], text: v => `♥·♦ 카드 코인 +${v}%` },
   { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200, 320, 500, 800, 1300, 2000], text: v => `♠·♣ 카드 XP +${v}%` },
-  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8, 13, 20, 32, 52, 80],        text: v => `레벨마다 코인·XP +${v}% (${GROWTH_MAX_LEVEL}레벨까지)` },
+  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8, 13, 20, 32, 52, 80],        text: (v, g) => `레벨마다 코인·XP +${v}% (최대\u00a0+${growthCap(g)}%)` },
   { id:'jackpot', name:'대박',       v:[3, 5, 8, 12, 20, 30, 40, 52, 66, 80],      text: v => `${v}% 확률로 코인 ×5` },
   { id:'meteor',  name:'별똥별',     v:[3, 5, 8, 12, 20, 30, 40, 52, 66, 80],      text: v => `${v}% 확률로 XP ×5` },
   { id:'twin',    name:'두 장 뽑기', v:[5, 10, 15, 25, 40, 60, 90, 130, 180, 250],    text: v => `${v}% 확률로 카드 한 장 더` },
   { id:'quick',   name:'빠른 손',    v:[5, 10, 15, 25, 40, 50, 60, 68, 75, 80],    text: v => `쿨타임 −${v}%` },
 ];
 const ABILITY = Object.fromEntries(ABILITIES.map(A => [A.id, A]));
-const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g]);
+const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g], c.g);
 // 카드 팩 등급: 레벨이 오를 때마다 팩 하나. g는 GRADES 번호예요(희귀 1 · 영웅 2 · 전설 3 · 신화 4).
 // 등급이 높을수록 카드가 많고(3 → 4 → 4 → 5장 중 1장), min은 모든 카드의 최소 등급, sure는 이 등급 이상 카드가 한 장은 꼭 들어 있다는 뜻
 const PACKS = [
@@ -708,11 +712,12 @@ const rebirthMul = n => 1 + REBIRTH_BONUS * n;
 // 낀 카드들 + 업그레이드 + 환생 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %, mul은 환생 보너스(곱하기)예요
 function equipStats(cards, level, up = {}, rebirths = 0) {
   const st = Object.fromEntries(ABILITIES.map(A => [A.id, 0]));
-  let cdMul = 1, perkAll = 0, perkGold = 0;
+  let cdMul = 1, perkAll = 0, perkGold = 0, grow = 0;
   st.pmul = 1;
   for (const c of cards) {
     const A = ABILITY[c.a]; if (!A) continue;
     if (c.a === 'quick') cdMul *= 1 - A.v[c.g] / 100; else st[c.a] += A.v[c.g];
+    if (c.a === 'growth') grow += growthNow(c.g, level);   // 성장은 카드마다 자기 최대까지만
     const P = GRADES[c.g] && GRADES[c.g].perk;   // 새 등급의 덤 능력
     if (!P) continue;
     if (P.k === 'all') perkAll += P.v;
@@ -725,7 +730,6 @@ function equipStats(cards, level, up = {}, rebirths = 0) {
   st.meteor = Math.min(100, st.meteor);
   st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul * (1 - UPGRADE.cd.per / 100) ** (up.cd || 0));
   if ((up.cd || 0) >= UPGRADE.cd.max) st.cooldown = 0;   // 쿨타임 줄이기 풀업그레이드: 쿨타임이 아예 없어요
-  const grow = growthNow(st.growth, level);
   st.coinPct = st.coin + grow + perkAll + UPGRADE.coin.per * (up.coin || 0);
   st.xpPct = st.xp + grow + perkAll + UPGRADE.xp.per * (up.xp || 0);
   st.mul = rebirthMul(rebirths) * (1 + UPGRADE.rbpow.per * (up.rbpow || 0) / 100);
@@ -850,11 +854,11 @@ let S = fresh();
 const cardById = id => S.inv.find(c => c.id === id);
 // 가진 성장 카드가 지금 얼마나 컸는지 ("지금 +12%", 20레벨이 되면 "다 컸어요")
 const growNote = c => c.a !== 'growth' ? ''
-  : `지금 +${growthNow(ABILITY.growth.v[c.g], S.level)}%${S.level >= GROWTH_MAX_LEVEL ? ' · 다 컸어요' : ''}`;
+  : `지금 +${growthNow(c.g, S.level)}%${growthNow(c.g, S.level) >= growthCap(c.g) ? ' · 다 컸어요' : ''}`;
 // 화면에 붙이는 모양: "지금 +160%" 뒤에 "다 컸어요" 딱지 (줄이 바뀌어도 딱지는 안 갈라져요)
 function growLine(c) {
-  const el = h('em', 'now', `지금 +${growthNow(ABILITY.growth.v[c.g], S.level)}%`);
-  if (S.level >= GROWTH_MAX_LEVEL) el.append(' ', h('i', 'done', '다 컸어요'));
+  const el = h('em', 'now', `지금 +${growthNow(c.g, S.level)}%`);
+  if (growthNow(c.g, S.level) >= growthCap(c.g)) el.append(' ', h('i', 'done', '다 컸어요'));
   return el;
 }
 const equipped = () => S.equip.map(cardById).filter(Boolean);
