@@ -492,6 +492,8 @@ button[disabled]{cursor:default}
 .uprow.locked .ui .pix{filter:grayscale(.6) brightness(.8)}
 .ubuy.lock[disabled]{background:#1c1042; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
 .ubuy.lock .pix{width:1.1rem; height:1.1rem}
+.ubuy.full[disabled]{font-size:.66rem; animation:fullglow 1.6s ease-in-out infinite}
+@keyframes fullglow{50%{box-shadow:inset 0 -.2rem 0 #c7800f, 0 .16rem 0 var(--ink), 0 0 .9rem rgba(255,210,80,.75)}}
 .ubuy.max[disabled]{background:linear-gradient(180deg,#ffe27e,#ffc23d 55%,#f0a21f); color:var(--ink); font-size:.78rem; box-shadow:inset 0 -.2rem 0 #c7800f, 0 .16rem 0 var(--ink)}
 
 /* 옆 창은 조금 더 촘촘하게, 세로 화면의 좁은 업그레이드 창은 사기 단추를 아래 줄로 */
@@ -679,7 +681,7 @@ const GOLD_MUL = 3;   // 황금 카드는 코인 · XP ×3
 // text(lv)는 지금 효과, next(lv)는 다음 단계 값(짧게)
 const UPGRADES = [
   { id:'xp',   name:'XP 늘리기',    per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 XP +${10 * lv}%`, next: lv => `+${10 * lv}%` },
-  { id:'cd',   name:'쿨타임 줄이기', per:4,  max:40,       base:20, grow:1.55, text: lv => `쿨타임 −${Math.round((1 - 0.96 ** lv) * 100)}%` },
+  { id:'cd',   name:'쿨타임 줄이기', per:4,  max:40,       base:20, grow:1.55, text: lv => lv >= 40 ? '쿨타임 없음' : `쿨타임 −${Math.round((1 - 0.96 ** lv) * 100)}%` },   // 40단계(끝)까지 사면 쿨타임 0초
   { id:'coin', name:'코인 더 받기',  per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 코인 +${10 * lv}%`, next: lv => `+${10 * lv}%` },
   { id:'refill', name:'빨리 채우기', per:6,  max:30, base:30, grow:1.45, text: lv => `다 쓰면 ${fmtSec(refillTime(lv))}초 만에 채워요`, next: lv => `${fmtSec(refillTime(lv))}초` },
   { id:'deck',   name:'덱 늘리기',   per:10, max:20, base:40, grow:1.5,  text: lv => `덱 ${deckSize(lv)}장`, next: lv => `${deckSize(lv)}장` },
@@ -717,6 +719,7 @@ function equipStats(cards, level, up = {}, rebirths = 0) {
   st.jackpot = Math.min(100, st.jackpot);
   st.meteor = Math.min(100, st.meteor);
   st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul * (1 - UPGRADE.cd.per / 100) ** (up.cd || 0));
+  if ((up.cd || 0) >= UPGRADE.cd.max) st.cooldown = 0;   // 쿨타임 줄이기 풀업그레이드: 쿨타임이 아예 없어요
   const grow = growthNow(st.growth, level);
   st.coinPct = st.coin + grow + perkAll + UPGRADE.coin.per * (up.coin || 0);
   st.xpPct = st.xp + grow + perkAll + UPGRADE.xp.per * (up.xp || 0);
@@ -780,7 +783,8 @@ function fmt(n) {
   if (n < 1e4) return (n < 100 && n % 1 ? Math.round(n * 10) / 10 : Math.floor(n)).toLocaleString('ko-KR');
   for (const [u, name] of KUNITS) if (n >= u) { const v = n / u; return (v >= 1000 ? Math.floor(v).toLocaleString('ko-KR') : v >= 100 ? v.toFixed(1) : v.toFixed(2)) + name; }
 }
-const fmtSec = x => (Math.round(x * 10) / 10).toLocaleString('ko-KR');
+// 초: 1초보다 짧으면 소수 둘째 자리까지 (0.9초 → 0.86초처럼 줄어드는 게 보이게)
+const fmtSec = x => (x < 1 ? Math.round(x * 100) / 100 : Math.round(x * 10) / 10).toLocaleString('ko-KR');
 </script>
 
 <script>
@@ -1858,9 +1862,11 @@ function draw() {
     return;
   }
   if (cooldownLeft() > 0) { deny(); return; }
-  cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
-  $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
-  paintCooldown();
+  if (ST.cooldown > 0) {   // 풀업그레이드면 쿨타임 없이 누르는 대로 뽑아요
+    cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
+    $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
+    paintCooldown();
+  }
   drawCards();
   deckBtn.classList.remove('hit'); void deckBtn.offsetWidth; deckBtn.classList.add('hit');
   clearTimeout(draw.tm); draw.tm = setTimeout(() => deckBtn.classList.remove('hit'), 70);
@@ -1963,6 +1969,7 @@ function autoEquip(quiet) {
 // 모두 업그레이드: 살 수 있는 것 중 가장 싼 것부터 코인이 모자랄 때까지 계속 사요
 function buyAll() {
   let n = 0;
+  const cdBefore = S.up.cd;
   for (let k = 0; k < 5000; k++) {
     let best = null, bc = Infinity;
     for (const U of UPGRADES) {
@@ -1971,11 +1978,13 @@ function buyAll() {
       if (c <= S.coins && c < bc) { bc = c; best = U; }
     }
     if (!best) break;
-    S.coins -= bc; S.up[best.id]++; n++;
+    S.coins -= bc; upgradeStep(best.id); n++;
+    if (best.id === 'cd') ST = equipStats(equipped(), S.level, S.up, S.rb);   // 최소 쿨타임에 닿았는지 다시 봐요
   }
   if (!n) { Sound.nope(); toast('지금 살 수 있는 업그레이드가 없어요'); return 0; }
   Sound.equip(); refresh(); save();
   toast(`업그레이드를 ${n}번 했어요`, '#38d064');
+  fullCheck('cd', cdBefore);
   return n;
 }
 // 팩을 화면 없이 바로 뜯어요 (모두 뜯기 · 자동으로 뜯기). 카드는 pickBest로 골라 인벤토리에 넣고, 빈 칸이 있으면 껴요
@@ -2030,14 +2039,26 @@ function discard(id) {
 }
 
 /* ---------- 코인 업그레이드 ---------- */
+// 카드 덕분에 쿨타임이 이미 최소(0.5초)라 더 사도 줄어들 게 없으면, 쿨타임 줄이기는 다음 한 번으로 풀업그레이드(0초)가 돼요
+const cdFloor = () => S.up.cd < UPGRADE.cd.max && ST.cooldown > 0 && ST.cooldown <= MIN_COOLDOWN + 1e-9;
+function upgradeStep(id) { S.up[id] = id === 'cd' && cdFloor() ? UPGRADE.cd.max : S.up[id] + 1; }
 function buyUpgrade(id) {
   const U = UPGRADE[id], lv = S.up[id];
   if (lv >= U.max || !upOpen(U)) return false;
   const cost = upCost(U, lv);
   if (S.coins < cost) { Sound.nope(); toast(`코인이 ${fmt(cost - S.coins)} 모자라요`); return false; }
-  S.coins -= cost; S.up[id]++;
+  S.coins -= cost; upgradeStep(id);
   Sound.equip(); refresh(); save();
+  fullCheck(id, lv);
   return true;
+}
+// 쿨타임 줄이기를 끝까지 사면 축하해요
+function fullCheck(id, before) {
+  if (id === 'cd' && before < UPGRADE.cd.max && S.up.cd >= UPGRADE.cd.max) {
+    setTimeout(() => Sound.jackpot(), 120);
+    toast('쿨타임 줄이기 풀업그레이드! 이제 쿨타임 없이 누르는 대로 뽑아요', '#ffc23d');
+    rings.push({ x: deckX, y: deckY, t: 0, life: 0.7, c: '#ffd84a', r: deckH * 0.8 });
+  }
 }
 
 /* ---------- 인벤토리 · 업그레이드 창 ---------- */
@@ -2081,7 +2102,8 @@ const Sheet = (() => {
     if (ST.gold) add('jackpot', `황금 카드 ×${GOLD_MUL}`, `${ST.gold}%`, '#ffe27e');
     if (ST.pmul > 1) add('twin', '무한 덤 코인 · XP', `×${fmt(ST.pmul)}`, '#ff8a8a');
     if (Auto.count) add('finger', `자동 손가락 ${Auto.count}개`, fmtSec(autoEvery(S.up.auto)), null, '초');
-    if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', fmtSec(ST.cooldown), null, '초');
+    if (ST.cooldown === 0) add('quick', '쿨타임', '없음', '#ffd84a');
+    else if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', fmtSec(ST.cooldown), null, '초');
     return out;
   }
   // 업그레이드: 지갑 + 상점 줄(그림 · 이름 · 단계 · 지금 → 다음 · 값). 살 수 있는 줄은 초록 테가 둘러요
@@ -2104,7 +2126,8 @@ const Sheet = (() => {
       const name = h('b', null, U.name); name.append(h('em', 'lvb num', `Lv ${lv}${isFinite(U.max) ? '/' + U.max : ''}`));
       const eff = h('span');
       if (locked) eff.append(UP_ABOUT[U.id]);
-      else if (max) eff.append(`${U.text(lv)} · 최대`);
+      else if (max) eff.append(U.id === 'cd' ? '쿨타임 0초 · 풀업그레이드!' : `${U.text(lv)} · 최대`);
+      else if (U.id === 'cd' && cdFloor()) eff.append(`쿨타임 ${fmtSec(ST.cooldown)}초 (최소) `, h('span', 'nx', '→ 0초 풀업그레이드'));
       else if (U.id === 'cd') eff.append(`쿨타임 ${fmtSec(ST.cooldown)}초 `, h('span', 'nx', `→ ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`));
       else eff.append(`${U.text(lv)} `, h('span', 'nx', `→ ${U.next(lv + 1)}`));
       tt.append(name, eff);
@@ -2114,7 +2137,7 @@ const Sheet = (() => {
       }
       const buy = h('button', 'ubuy'); buy.type = 'button'; buy.dataset.k = 'u' + U.id;
       if (locked) { buy.classList.add('lock'); buy.append(pix('lock')); buy.disabled = true; buy.setAttribute('aria-label', `${U.name}: 환생 ${U.rb}번 하면 열려요`); }
-      else if (max) { buy.classList.add('max'); buy.textContent = '최대'; buy.disabled = true; }
+      else if (max) { buy.classList.add('max'); buy.textContent = U.id === 'cd' ? '풀업그레이드' : '최대'; buy.disabled = true; if (U.id === 'cd') buy.classList.add('full'); }
       else {
         buy.append(h('i', 'ico'), h('span', 'num', fmt(cost)));
         buy.disabled = !can;
