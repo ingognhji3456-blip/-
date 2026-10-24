@@ -347,7 +347,7 @@ const growthNow = (v, level) => v * Math.min(level, GROWTH_MAX_LEVEL);
 const ABILITIES = [
   { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
   { id:'xp',      name:'별빛',       v:[10, 20, 35, 60, 100],  text: v => `모든 XP +${v}%` },
-  { id:'royal',   name:'왕실 카드',  v:[30, 60, 100, 170, 300], text: v => `J·Q·K·A 코인 +${v}%` },
+  { id:'royal',   name:'왕실 카드',  v:[20, 40, 70, 125, 210], text: v => `J·Q·K·A 코인 +${v}%` },
   { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
   { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
   { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}% (${GROWTH_MAX_LEVEL}레벨까지)` },
