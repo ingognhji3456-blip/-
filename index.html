@@ -133,6 +133,12 @@ button[disabled]{cursor:default}
 /* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
   padding:calc(2.5rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}   /* 위쪽 2.5rem은 알림 자리 */
+/* 아주 낮은 가로 화면(높이 265px 아래)에는 알림 자리를 비울 틈이 없어요. 그때는 창이 떠 있는 동안 알림을 숨기고
+   위 여백을 원래대로 줄여서 제목과 받기 단추가 화면 안에 다 들어오게 해요 */
+@media (max-height:265px){
+  .lv-ov{padding-top:calc(1rem + var(--safe-t))}
+  .lv-ov.in + .toasts{display:none}
+}
 .lv-ov::before{content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
   opacity:0; transition:opacity .35s ease}
 .lv-ov.in::before{opacity:1}
