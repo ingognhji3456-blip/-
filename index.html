@@ -71,8 +71,9 @@ button[disabled]{cursor:default}
 
 /* 아래: 능력 카드 3칸 · 인벤토리 · XP 막대 */
 .dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(44rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
-  display:flex; flex-direction:column; align-items:center; gap:.5rem; z-index:5}
-.land .dock{flex-direction:row-reverse; align-items:center}
+  display:flex; flex-direction:column; align-items:center; gap:.4rem; z-index:5}
+.land .dock{flex-direction:row-reverse; align-items:center; width:min(34rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)))}
+.port .dock{width:min(26rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)))}
 .equip{display:flex; gap:.3rem; align-items:center}
 .slot{position:relative; width:2.3rem; height:2.3rem; border-radius:.55rem; display:grid; place-items:center; font-size:1.15rem; line-height:1;
   background:var(--ink-2); border:.16rem solid var(--gc,#4a3d7a); box-shadow:0 .14rem 0 var(--ink), inset 0 0 0 .1rem rgba(255,255,255,.08)}
@@ -83,14 +84,14 @@ button[disabled]{cursor:default}
 .bag i{font-style:normal; font-size:1rem}
 .bag em{position:absolute; top:-.4rem; right:-.4rem; min-width:1.05rem; height:1.05rem; padding:0 .25rem; border-radius:.55rem; background:var(--red); color:#fff;
   font-style:normal; font-size:.6rem; display:grid; place-items:center; border:.12rem solid var(--ink)}
-.xp{position:relative; width:100%; height:2.2rem; display:flex; align-items:center; gap:.55rem; padding:0 .6rem; background:rgba(16,6,40,.85); border-radius:.7rem; border:.14rem solid var(--ink)}
+.xp{position:relative; width:100%; height:1.6rem; display:flex; align-items:center; gap:.4rem; padding:0 .45rem; background:rgba(16,6,40,.85); border-radius:.55rem; border:.12rem solid var(--ink)}
 .land .xp{flex:1; min-width:0}
-.xp .ico{width:1.55rem; height:1.55rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
-.xp b{font-size:1.25rem; color:#d6e6ff; min-width:2ch}
-.xp .bar{position:relative; flex:1; height:.9rem; border-radius:.45rem; background:#100630; overflow:hidden; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
-.xp .bar i{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:.45rem; background:linear-gradient(90deg,#39b6ff,#8f6bff 55%,#ff79d9); transition:width .25s}
-.xp .bar i::after{content:""; position:absolute; right:-.1rem; top:50%; width:.8rem; height:.8rem; margin-top:-.4rem; background:#fff; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
-.xp .bar span{position:absolute; right:.45rem; top:50%; transform:translateY(-50%); font-size:.66rem; color:rgba(255,255,255,.8); white-space:nowrap}
+.xp .ico{width:1.1rem; height:1.1rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
+.xp b{font-size:.9rem; color:#d6e6ff; min-width:2ch}
+.xp .bar{position:relative; flex:1; height:.62rem; border-radius:.31rem; background:#100630; overflow:hidden; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
+.xp .bar i{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:.31rem; background:linear-gradient(90deg,#39b6ff,#8f6bff 55%,#ff79d9); transition:width .25s}
+.xp .bar i::after{content:""; position:absolute; right:-.1rem; top:50%; width:.6rem; height:.6rem; margin-top:-.3rem; background:#fff; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
+.xp .bar span{position:absolute; right:.4rem; top:50%; transform:translateY(-50%); font-size:.5rem; color:rgba(255,255,255,.8); white-space:nowrap}
 .xp.lvup b{animation:pop .5s}
 
 /* 알림 */
@@ -561,7 +562,7 @@ function layout() {
   document.documentElement.style.setProperty('--s', s.toFixed(3));
   REM = 16 * s;
   // 위는 코인 상자, 아래는 3칸과 XP 막대 자리를 비워 둬요
-  const top = 4.9 * REM, bot = H - (land ? 4.4 : 7.4) * REM, avail = Math.max(120, bot - top);
+  const top = 4.9 * REM, bot = H - (land ? 3.8 : 6.4) * REM, avail = Math.max(120, bot - top);
   // 덱은 화면 높이의 30%쯤(세로 화면은 25%). 픽셀 크기는 기기 픽셀 단위로 맞춰 또렷하게 그려요
   const want = Math.min(avail * 0.7 / 39, (land ? W * 0.16 : W * 0.34) / 25, H * (land ? 0.3 : 0.25) / 39);
   ps = Math.max(1.5, Math.floor(want * DPR) / DPR);
