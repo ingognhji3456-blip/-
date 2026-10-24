@@ -28,7 +28,7 @@ html{font-size:calc(16px * var(--s,1))}
 *{box-sizing:border-box}
 [hidden]{display:none !important}
 html,body{height:100%; overflow:hidden}
-body{margin:0; background:var(--ink); color:var(--text); font-family:var(--f-ui); font-size:1rem; line-height:1.35;
+body{margin:0; background:var(--ink); color:var(--text); font-family:var(--f-ui); font-size:1rem; line-height:1.35; word-break:keep-all; overflow-wrap:break-word;
   -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased}
 button{font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; padding:0; border:0; background:none}
 button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.25rem}
@@ -113,6 +113,10 @@ button[disabled]{cursor:default}
 .toast{padding:.28rem .75rem; border-radius:.55rem; background:rgba(34,19,74,.95); border:.12rem solid var(--tc,#5fb8ff); color:#fff; font-size:.74rem; box-shadow:0 .2rem 0 var(--ink); animation:tin .25s ease-out; text-align:center}
 .toast.out{opacity:0; transform:translateY(-.4rem); transition:.3s}
 @keyframes tin{from{opacity:0; transform:translateY(-.5rem) scale(.95)}}
+/* 레벨 보상 창이 떠 있으면 알림은 맨 위 빈 줄로 스르륵 비켜나요. 제목 · 설명 · 카드 · 받기 단추를 가리지 않고, 가장 새 알림 하나만 보여요.
+   창이 닫히면 제자리로 바로 돌아와요 (돌아올 때는 움직이지 않아요) */
+.lv-ov.in + .toasts{top:calc(.3rem + var(--safe-t)); transition:top .2s cubic-bezier(.2,.9,.3,1)}
+.lv-ov.in + .toasts .toast:not(:last-child){display:none}
 
 /* 능력 카드 그림 (캔버스 틀 위에 이모지) */
 .art{position:relative; aspect-ratio:25/35; flex:none}
@@ -128,7 +132,7 @@ button[disabled]{cursor:default}
 
 /* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
-  padding:calc(1rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}
+  padding:calc(2.5rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}   /* 위쪽 2.5rem은 알림 자리 */
 .lv-ov::before{content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
   opacity:0; transition:opacity .35s ease}
 .lv-ov.in::before{opacity:1}
@@ -228,6 +232,7 @@ button[disabled]{cursor:default}
 .eq .art{width:2.4rem; --ae:1.1rem}
 .eq b{font-weight:400; font-size:.72rem; color:var(--gc)}
 .eq span{color:var(--muted); line-height:1.25}
+.eq .now,.tile .now{font-style:normal; color:var(--gold); line-height:1.25}
 .eq.empty{border-style:dashed; border-color:rgba(255,255,255,.25); justify-content:center; color:var(--dim)}
 .sum{display:flex; flex-wrap:wrap; gap:.35rem}
 .wallet{margin:0; display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:var(--coin)}
@@ -329,6 +334,9 @@ function rollGrade(rnd) {
   for (let i = 0; i < GRADES.length; i++) { x -= GRADES[i].chance; if (x < 0) return i; }
   return 0;
 }
+// 성장은 20레벨까지만 쌓여요. 그 뒤로는 그 값 그대로예요 (끝없이 세지지 않게)
+const GROWTH_MAX_LEVEL = 20;
+const growthNow = (v, level) => v * Math.min(level, GROWTH_MAX_LEVEL);
 // 능력: 모두 % 값이에요. v는 등급별 세기(일반 → 신화). 같은 능력을 여러 장 끼면 더해져요 (쿨타임만 곱해서 줄어요)
 const ABILITIES = [
   { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
@@ -336,7 +344,7 @@ const ABILITIES = [
   { id:'royal',   name:'왕실 카드',  v:[30, 60, 100, 170, 300], text: v => `J·Q·K·A 코인 +${v}%` },
   { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
   { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
-  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}%` },
+  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}% (${GROWTH_MAX_LEVEL}레벨까지)` },
   { id:'jackpot', name:'대박',       v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 코인 ×5` },
   { id:'meteor',  name:'별똥별',     v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 XP ×5` },
   { id:'twin',    name:'두 장 뽑기', v:[5, 10, 15, 25, 40],    text: v => `${v}% 확률로 카드 한 장 더` },
@@ -370,8 +378,9 @@ function equipStats(cards, level, up = {}) {
   st.jackpot = Math.min(100, st.jackpot);
   st.meteor = Math.min(100, st.meteor);
   st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul * (1 - UPGRADE.cd.per / 100) ** (up.cd || 0));
-  st.coinPct = st.coin + st.growth * level + UPGRADE.coin.per * (up.coin || 0);
-  st.xpPct = st.xp + st.growth * level + UPGRADE.xp.per * (up.xp || 0);
+  const grow = growthNow(st.growth, level);
+  st.coinPct = st.coin + grow + UPGRADE.coin.per * (up.coin || 0);
+  st.xpPct = st.xp + grow + UPGRADE.xp.per * (up.xp || 0);
   return st;
 }
 // 카드 한 장에서 받는 코인과 XP
@@ -442,6 +451,9 @@ function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ?
 function save() { S.lastSeen = Date.now(); try { localStorage.setItem(SAVE_KEY, JSON.stringify(S)); } catch (e) { /* 저장 불가: 이번 세션만 유지 */ } }
 let S = fresh();
 const cardById = id => S.inv.find(c => c.id === id);
+// 가진 성장 카드가 지금 얼마나 컸는지 ("지금 +12%", 20레벨이 되면 "다 컸어요")
+const growNote = c => c.a !== 'growth' ? ''
+  : `지금 +${growthNow(ABILITY.growth.v[c.g], S.level)}%${S.level >= GROWTH_MAX_LEVEL ? ' · 다 컸어요' : ''}`;
 const equipped = () => S.equip.map(cardById).filter(Boolean);
 
 /* ---------- 소리 ---------- */
@@ -1072,8 +1084,9 @@ function paintEquip() {
     if (c) {
       const A = ABILITY[c.a];
       b.append(pix(c.a)); b.style.setProperty('--gc', GRADES[c.g].color);
-      b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}`);
-      b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}`;
+      const now = growNote(c) ? ` · ${growNote(c)}` : '';
+      b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}${now}`);
+      b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}${now}`;
     } else { b.textContent = '+'; b.setAttribute('aria-label', `${i + 1}번 칸: 비어 있어요`); }
     b.addEventListener('click', () => Sheet.show('inv', true));
     box.append(b);
@@ -1263,6 +1276,7 @@ const Sheet = (() => {
       if (!c) { row.append(h('div', 'eq empty', '빈 칸')); continue; }
       const b = h('button', 'eq'); b.type = 'button'; b.dataset.k = 'e' + c.id; b.style.setProperty('--gc', GRADES[c.g].color);
       b.append(cardArt(c), h('b', null, `${GRADES[c.g].name} ${ABILITY[c.a].name}`), h('span', null, cardText(c)));
+      if (growNote(c)) b.append(h('em', 'now', growNote(c)));
       b.setAttribute('aria-label', `${GRADES[c.g].name} ${ABILITY[c.a].name} 빼기`);
       b.addEventListener('click', () => toggleEquip(c.id));
       row.append(b);
@@ -1282,8 +1296,9 @@ const Sheet = (() => {
       const tile = h('div', 'tile' + (on ? ' on' : '') + (armed === c.id ? ' arming' : '')); tile.style.setProperty('--gc', G.color);
       const main = h('button', 'tmain'); main.type = 'button'; main.dataset.k = 'm' + c.id;
       const tt = h('span', 'tt'); tt.append(h('b', null, `${G.name} ${A.name}`), cardText(c));
+      if (growNote(c)) tt.append(h('em', 'now', growNote(c)));
       main.append(cardArt(c), tt);
-      main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}. ${on ? '빼기' : '끼기'}`);
+      main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}${growNote(c) ? ', ' + growNote(c) : ''}. ${on ? '빼기' : '끼기'}`);
       main.addEventListener('click', () => toggleEquip(c.id));
       tile.append(main);
       if (!on) {
