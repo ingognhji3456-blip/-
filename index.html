@@ -8,7 +8,7 @@
 <meta name="description" content="덱을 눌러 카드를 뽑아 코인과 XP를 모으고, 레벨이 오르면 능력 카드 3장 중 하나를 골라 3칸에 끼는 픽셀 카드 뽑기 게임.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Jua&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jersey+10&family=Jua&display=swap">
 <style>
 /* 레이아웃: 보라색 픽셀 배경 한가운데 덱 하나. 위 가운데 코인, 아래에 능력 카드 3칸 · 인벤토리 · XP 막대.
    가로 화면은 3칸이 XP 막대 오른쪽에, 세로 화면은 XP 막대 위에 놓여요. 크기는 html 글자 크기(--s)로 한꺼번에 맞춰요. */
@@ -17,7 +17,7 @@
   --ink:#160a33; --ink-2:#22134a; --panel:#2c1b5e; --panel-hi:#3b2780; --panel-lo:#1d1042;
   --text:#ffffff; --muted:#d3c8ff; --dim:#9d8ed8;
   --gold:#ffc83d; --coin:#ffd34d; --xp:#62b9ff; --green:#38d064; --red:#ff3b55;
-  --f-pix:"Pixelify Sans","Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-pix:"Jersey 10","Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --f-ui:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --ol:0 .13rem 0 var(--ink),.13rem 0 0 var(--ink),-.13rem 0 0 var(--ink),0 -.13rem 0 var(--ink);
   --ol-s:0 .08rem 0 var(--ink),.08rem 0 0 var(--ink),-.08rem 0 0 var(--ink),0 -.08rem 0 var(--ink);
@@ -33,7 +33,7 @@ body{margin:0; background:var(--ink); color:var(--text); font-family:var(--f-ui)
 button{font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; padding:0; border:0; background:none}
 button:focus-visible{outline:.18rem solid var(--gold); outline-offset:.25rem}
 button[disabled]{cursor:default}
-.num{font-family:var(--f-pix); font-weight:700; font-variant-numeric:tabular-nums; letter-spacing:.02em}
+.num{font-family:var(--f-pix); font-weight:400; font-variant-numeric:tabular-nums; letter-spacing:.03em}
 
 /* 무대 */
 .stage{position:fixed; inset:0; overflow:hidden; touch-action:manipulation}
@@ -51,7 +51,7 @@ button[disabled]{cursor:default}
 /* 쿨타임: 덱 오른쪽 위에서 금색이 한 바퀴 돌아요 */
 .cd{--cs:2.4rem; position:absolute; left:0; top:0; width:var(--cs); height:var(--cs); margin:calc(var(--cs) / -2) 0 0 calc(var(--cs) / -2); border-radius:50%; pointer-events:none; z-index:4;
   background:conic-gradient(var(--gold) calc(var(--p,0) * 1turn), #2b1d57 0); border:.15rem solid var(--ink); box-shadow:0 .16rem 0 var(--ink)}
-.cd b{position:absolute; inset:calc(var(--cs) * .1); display:grid; place-items:center; border-radius:50%; background:var(--ink-2); font-size:calc(var(--cs) * .33); color:#fff}
+.cd b{position:absolute; inset:calc(var(--cs) * .1); display:grid; place-items:center; border-radius:50%; background:var(--ink-2); font-size:calc(var(--cs) * .42); color:#fff}
 .cd.pulse{animation:pop .3s}
 .tap-hint{position:absolute; left:0; top:0; transform:translate(-50%,0); padding:.25rem .6rem; border-radius:.5rem; background:var(--gold); color:var(--ink);
   border:.12rem solid var(--ink); box-shadow:0 .16rem 0 var(--ink); font-size:.8rem; white-space:nowrap; pointer-events:none; animation:bob 1s ease-in-out infinite; z-index:4}
@@ -64,10 +64,10 @@ button[disabled]{cursor:default}
 .coinbox{display:flex; align-items:center; gap:.4rem; min-width:7rem; height:2.05rem; padding:0 .8rem 0 .4rem; background:var(--panel); border:.15rem solid var(--ink); border-radius:.65rem;
   box-shadow:inset 0 -.22rem 0 var(--panel-lo), inset 0 .12rem 0 var(--panel-hi), 0 .16rem 0 var(--ink)}
 .coinbox .ico{width:1.4rem; height:1.4rem; flex:none; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
-.coinbox b{font-size:1.1rem; line-height:1; white-space:nowrap; color:#fff}
+.coinbox b{font-size:1.3rem; line-height:1; white-space:nowrap; color:#fff}
 .coinbox.bump b{animation:pop .25s}
 .bonus{position:absolute; right:calc(.8rem + var(--safe-r)); bottom:calc(.6rem + var(--safe-b)); display:flex; flex-direction:column; align-items:flex-end; gap:.25rem; z-index:5; pointer-events:none}
-.port .bonus{bottom:calc(2.75rem + var(--safe-b))}
+.port .bonus{bottom:calc(5.3rem + var(--safe-b)); flex-direction:row; gap:.3rem}
 .bonus span{display:flex; align-items:center; gap:.3rem; padding:.12rem .5rem .14rem .3rem; border-radius:.5rem; background:rgba(16,6,40,.85); border:.12rem solid var(--ink);
   font-size:.7rem; white-space:nowrap; animation:bin .35s cubic-bezier(.2,.9,.3,1.2) both}
 .bonus span.bump{animation:bump .4s cubic-bezier(.2,.9,.3,1.4)}
@@ -91,16 +91,18 @@ button[disabled]{cursor:default}
 .bag{position:relative; height:2.3rem; padding:0 .55rem 0 .4rem; display:flex; align-items:center; gap:.25rem; border-radius:.55rem; background:#ffae35; color:var(--ink);
   border:.14rem solid var(--ink); box-shadow:inset 0 -.2rem 0 #e07b00, 0 .14rem 0 var(--ink); font-size:.7rem}
 .bag i{font-style:normal; font-size:1rem}
+.upbtn{background:var(--green); box-shadow:inset 0 -.2rem 0 #1f9a42, 0 .14rem 0 var(--ink); color:#fff; text-shadow:var(--ol-s)}
+.upbtn .dot{min-width:.8rem; width:.8rem; height:.8rem; padding:0; top:-.3rem; right:-.3rem}
 .bag em{position:absolute; top:-.4rem; right:-.4rem; min-width:1.05rem; height:1.05rem; padding:0 .25rem; border-radius:.55rem; background:var(--red); color:#fff;
-  font-style:normal; font-size:.6rem; display:grid; place-items:center; border:.12rem solid var(--ink)}
+  font-style:normal; font-size:.72rem; display:grid; place-items:center; border:.12rem solid var(--ink)}
 .xp{position:relative; width:100%; height:1.6rem; display:flex; align-items:center; gap:.4rem; padding:0 .45rem; background:rgba(16,6,40,.85); border-radius:.55rem; border:.12rem solid var(--ink)}
 .land .xp{flex:1; min-width:0}
 .xp .ico{width:1.1rem; height:1.1rem; flex:none; background:var(--ico-star) center/contain no-repeat; image-rendering:pixelated}
-.xp b{font-size:.9rem; color:#d6e6ff; min-width:2ch}
+.xp b{font-size:1.05rem; color:#d6e6ff; min-width:2ch}
 .xp .bar{position:relative; flex:1; height:.62rem; border-radius:.31rem; background:#100630; overflow:hidden; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.08)}
 .xp .bar i{position:absolute; left:0; top:0; bottom:0; width:0; border-radius:.31rem; background:linear-gradient(90deg,#39b6ff,#8f6bff 55%,#ff79d9); transition:width .25s}
 .xp .bar i::after{content:""; position:absolute; right:-.1rem; top:50%; width:.6rem; height:.6rem; margin-top:-.3rem; background:#fff; clip-path:polygon(50% 0,62% 38%,100% 50%,62% 62%,50% 100%,38% 62%,0 50%,38% 38%)}
-.xp .bar span{position:absolute; right:.4rem; top:50%; transform:translateY(-50%); font-size:.5rem; color:rgba(255,255,255,.8); white-space:nowrap}
+.xp .bar span{position:absolute; right:.4rem; top:50%; transform:translateY(-50%); font-size:.62rem; color:rgba(255,255,255,.8); white-space:nowrap}
 .xp.lvup b{animation:pop .5s}
 
 /* 알림 */
@@ -112,7 +114,15 @@ button[disabled]{cursor:default}
 /* 능력 카드 그림 (캔버스 틀 위에 이모지) */
 .art{position:relative; aspect-ratio:25/35; flex:none}
 .art canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
-.art .ae{position:absolute; left:0; right:0; top:15%; height:51%; display:grid; place-items:center; font-size:var(--ae,1.4rem); line-height:1; filter:drop-shadow(0 .12rem 0 rgba(0,0,0,.45))}
+.pix{display:block; flex:none; image-rendering:pixelated}
+.slot .pix{width:1.45rem; height:1.45rem}
+.bag .pix{width:1.15rem; height:1.15rem}
+.uprow .ui .pix{width:1.55rem; height:1.55rem}
+.sum .pix{display:inline-block; width:.95rem; height:.95rem; vertical-align:-.15rem; margin-right:.25rem}
+.sheet header h2{display:flex; align-items:center; gap:.4rem}
+.sheet header h2 .pix{width:1.2rem; height:1.2rem}
+.lv-ov h3{display:flex; align-items:center; justify-content:center; gap:.45rem}
+.lv-ov h3 .pix{width:1.3rem; height:1.3rem}
 
 /* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
@@ -180,6 +190,19 @@ button[disabled]{cursor:default}
 .eq span{color:var(--muted); line-height:1.25}
 .eq.empty{border-style:dashed; border-color:rgba(255,255,255,.25); justify-content:center; color:var(--dim)}
 .sum{display:flex; flex-wrap:wrap; gap:.35rem}
+.wallet{margin:0; display:flex; align-items:center; gap:.35rem; font-size:.85rem; color:var(--coin)}
+.wallet .ico{width:1.1rem; height:1.1rem; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
+.uprow{display:flex; align-items:center; gap:.6rem; padding:.5rem .55rem; border-radius:.65rem; background:var(--panel-hi); border:.14rem solid var(--ink); box-shadow:0 .14rem 0 var(--ink)}
+.uprow.bump{animation:pop .35s}
+.uprow .ui{width:2.2rem; height:2.2rem; flex:none; display:grid; place-items:center; font-size:1.2rem; border-radius:.5rem; background:var(--ink-2)}
+.uprow .ut{flex:1; min-width:0; display:flex; flex-direction:column; gap:.08rem; font-size:.7rem; color:#a5ffbf; line-height:1.3}
+.uprow .ut b{font-weight:400; font-size:.85rem; color:#fff}
+.uprow .ut b em{font-style:normal; font-size:.66rem; color:var(--gold)}
+.ubuy{flex:none; min-width:4.6rem; height:2.1rem; padding:0 .6rem; display:flex; align-items:center; justify-content:center; gap:.3rem; border-radius:.55rem; background:var(--green); color:#fff;
+  border:.13rem solid var(--ink); box-shadow:inset 0 -.2rem 0 #1f9a42, 0 .14rem 0 var(--ink); font-size:.8rem; text-shadow:var(--ol-s)}
+.ubuy .ico{width:.95rem; height:.95rem; background:var(--ico-coin) center/contain no-repeat; image-rendering:pixelated}
+.ubuy:active:not([disabled]){transform:translateY(.12rem)}
+.ubuy[disabled]{background:#6b6f86; box-shadow:inset 0 -.2rem 0 #545a73, 0 .14rem 0 var(--ink); opacity:.8}
 .sum span{padding:.15rem .5rem; border-radius:.45rem; background:var(--ink-2); font-size:.7rem; color:var(--muted)}
 .sum span b{font-weight:400; color:#fff}
 .inv{display:grid; grid-template-columns:repeat(auto-fill,minmax(9rem,1fr)); gap:.4rem}
@@ -218,7 +241,7 @@ button[disabled]{cursor:default}
 </div>
 <div class="sheet-wrap" id="sheetWrap" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
-    <header><h2 id="sheetTitle">🎒 인벤토리</h2><button class="x" id="sheetClose" type="button" aria-label="닫기">✕</button></header>
+    <header><h2 id="sheetTitle">인벤토리</h2><button class="x" id="sheetClose" type="button" aria-label="닫기">✕</button></header>
     <div class="sbody" id="sheetBody"></div>
   </div>
 </div>
@@ -262,16 +285,16 @@ function rollGrade(rnd) {
 }
 // 능력: 모두 % 값이에요. v는 등급별 세기(일반 → 신화). 같은 능력을 여러 장 끼면 더해져요 (쿨타임만 곱해서 줄어요)
 const ABILITIES = [
-  { id:'coin',    icon:'💰', name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
-  { id:'xp',      icon:'⭐', name:'별빛',       v:[10, 20, 35, 60, 100],  text: v => `모든 XP +${v}%` },
-  { id:'royal',   icon:'👑', name:'왕실 카드',  v:[30, 60, 100, 170, 300], text: v => `J·Q·K·A 코인 +${v}%` },
-  { id:'red',     icon:'❤️', name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
-  { id:'black',   icon:'🖤', name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
-  { id:'growth',  icon:'📈', name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}%` },
-  { id:'jackpot', icon:'🎰', name:'대박',       v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 코인 ×5` },
-  { id:'meteor',  icon:'🌠', name:'별똥별',     v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 XP ×5` },
-  { id:'twin',    icon:'🃏', name:'두 장 뽑기', v:[5, 10, 15, 25, 40],    text: v => `${v}% 확률로 카드 한 장 더` },
-  { id:'quick',   icon:'⏱️', name:'빠른 손',    v:[5, 10, 15, 25, 40],    text: v => `쿨타임 −${v}%` },
+  { id:'coin',    name:'황금 손',    v:[10, 20, 35, 60, 100],  text: v => `모든 코인 +${v}%` },
+  { id:'xp',      name:'별빛',       v:[10, 20, 35, 60, 100],  text: v => `모든 XP +${v}%` },
+  { id:'royal',   name:'왕실 카드',  v:[30, 60, 100, 170, 300], text: v => `J·Q·K·A 코인 +${v}%` },
+  { id:'red',     name:'붉은 행운',  v:[20, 40, 70, 120, 200], text: v => `♥·♦ 카드 코인 +${v}%` },
+  { id:'black',   name:'검은 별',    v:[20, 40, 70, 120, 200], text: v => `♠·♣ 카드 XP +${v}%` },
+  { id:'growth',  name:'성장',       v:[1, 2, 3, 5, 8],        text: v => `레벨마다 코인·XP +${v}%` },
+  { id:'jackpot', name:'대박',       v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 코인 ×5` },
+  { id:'meteor',  name:'별똥별',     v:[3, 5, 8, 12, 20],      text: v => `${v}% 확률로 XP ×5` },
+  { id:'twin',    name:'두 장 뽑기', v:[5, 10, 15, 25, 40],    text: v => `${v}% 확률로 카드 한 장 더` },
+  { id:'quick',   name:'빠른 손',    v:[5, 10, 15, 25, 40],    text: v => `쿨타임 −${v}%` },
 ];
 const ABILITY = Object.fromEntries(ABILITIES.map(A => [A.id, A]));
 const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g]);
@@ -281,8 +304,17 @@ function rollOffer(rnd) {
   while (out.length < LEVEL_CARDS && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: rollGrade(rnd) });
   return out;
 }
-// 낀 카드들 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %예요
-function equipStats(cards, level) {
+// 코인 업그레이드: 단계마다 per만큼 세지고, 살 때마다 값이 grow배씩 올라요 (처음엔 싸요)
+const UPGRADES = [
+  { id:'xp',   name:'XP 늘리기',    per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 XP +${10 * lv}%` },
+  { id:'cd',   name:'쿨타임 줄이기', per:4,  max:40,       base:20, grow:1.55, text: lv => `쿨타임 −${Math.round((1 - 0.96 ** lv) * 100)}%` },
+  { id:'coin', name:'코인 더 받기',  per:10, max:Infinity, base:12, grow:1.45, text: lv => `모든 코인 +${10 * lv}%` },
+];
+const UPGRADE = Object.fromEntries(UPGRADES.map(U => [U.id, U]));
+const upCost = (U, lv) => Math.round(U.base * U.grow ** lv);
+const upFresh = () => Object.fromEntries(UPGRADES.map(U => [U.id, 0]));
+// 낀 카드들 + 업그레이드 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %예요
+function equipStats(cards, level, up = {}) {
   const st = Object.fromEntries(ABILITIES.map(A => [A.id, 0]));
   let cdMul = 1;
   for (const c of cards) {
@@ -291,9 +323,9 @@ function equipStats(cards, level) {
   }
   st.jackpot = Math.min(100, st.jackpot);
   st.meteor = Math.min(100, st.meteor);
-  st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul);
-  st.coinPct = st.coin + st.growth * level;
-  st.xpPct = st.xp + st.growth * level;
+  st.cooldown = Math.max(MIN_COOLDOWN, DRAW_COOLDOWN * cdMul * (1 - UPGRADE.cd.per / 100) ** (up.cd || 0));
+  st.coinPct = st.coin + st.growth * level + UPGRADE.coin.per * (up.coin || 0);
+  st.xpPct = st.xp + st.growth * level + UPGRADE.xp.per * (up.xp || 0);
   return st;
 }
 // 카드 한 장에서 받는 코인과 XP
@@ -333,7 +365,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -343,6 +375,7 @@ function revive(raw) {
   if (raw.level >= 1) S.level = Math.floor(raw.level);
   if (raw.xp >= 0) S.xp = raw.xp;
   if (raw.v === 3 && raw.coins >= 0) S.coins = raw.coins;   // 아주 예전 판(코인 게임)의 코인은 가져오지 않아요
+  if (raw.v === 3 && raw.up && typeof raw.up === 'object') for (const U of UPGRADES) { const lv = raw.up[U.id]; if (Number.isInteger(lv) && lv > 0) S.up[U.id] = Math.min(U.max, lv); }
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
   if (raw.pending >= 0) S.pending = Math.floor(raw.pending);
@@ -502,9 +535,9 @@ function faceSprite(r, s) {
   sprites.set(key, cv);
   return cv;
 }
-// 능력 카드: 등급 바탕 위에 그림 칸(능력 그림은 화면에서 얹어요), 아래에 등급 점 1~5개
-function abilitySprite(grade) {
-  const key = 'a' + grade;
+// 능력 카드: 등급 바탕 위에 그림 칸과 능력 그림, 아래에 등급 점 1~5개
+function abilitySprite(grade, id) {
+  const key = 'a' + grade + id;
   if (sprites.has(key)) return sprites.get(key);
   const cv = mk(25, 35), g = cv.getContext('2d'), col = GRADES[grade].color;
   cardShape(g, 0, grade === 3 ? '#7a4b00' : INK, paper(grade));
@@ -513,6 +546,7 @@ function abilitySprite(grade) {
   g.fillStyle = '#22134a'; g.fillRect(5, 6, 15, 16);
   const n = grade + 1, x0 = 12 - Math.floor((4 * n + 1) / 2);
   for (let i = 0; i < n; i++) { g.fillStyle = INK; g.fillRect(x0 + i * 4, 26, 5, 5); g.fillStyle = col; g.fillRect(x0 + i * 4 + 1, 27, 3, 3); }
+  if (id) g.drawImage(iconSprite(id), 6, 7);
   sprites.set(key, cv);
   return cv;
 }
@@ -555,20 +589,123 @@ function starURL() {
   return cv.toDataURL();
 }
 function coinURL() {
-  const cv = mk(13, 13), g = cv.getContext('2d');
+  const cv = mk(13, 13); drawCoin(cv.getContext('2d'));
+  return cv.toDataURL();
+}
+/* ----- 직접 그린 13×13 픽셀 그림: 능력 10가지 · 가방 · 화살표 ----- */
+const PAL = { K:INK, Y:'#ffd34d', y:'#e0921a', W:'#ffffff', w:'#d9dcf5', R:'#e3263f', r:'#ff8a9a', B:'#3fa2ff', b:'#a8dcff',
+  G:'#38d064', g:'#1f9a42', O:'#ffae35', o:'#d97a10', P:'#c77dff', D:'#4b4f7a', L:'#cbc3ee' };
+function pmap(g, rows, x, y) { rows.forEach((row, j) => [...row].forEach((ch, i) => { if (PAL[ch]) px(g, x + i, y + j, PAL[ch]); })); }
+// 안쪽 판정 함수를 칠하고, 바로 바깥 한 줄은 테두리로
+function fillShape(g, inside, fill, outline) {
+  for (let y = 0; y < 13; y++) for (let x = 0; x < 13; x++) {
+    if (inside(x, y)) px(g, x, y, typeof fill === 'function' ? fill(x, y) : fill);
+    else if (outline && (inside(x - 1, y) || inside(x + 1, y) || inside(x, y - 1) || inside(x, y + 1))) px(g, x, y, outline);
+  }
+}
+function starShape(cx, cy, R, r) {
+  const pts = Array.from({ length: 10 }, (_, i) => { const a = -Math.PI / 2 + i * Math.PI / 5, d = i % 2 ? r : R; return [cx + Math.cos(a) * d, cy + Math.sin(a) * d]; });
+  return (x, y) => { let c = false; for (let i = 0, j = 9; i < 10; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+}
+function drawCoin(g) {
   for (let y = 0; y < 13; y++) for (let x = 0; x < 13; x++) {
     const d = Math.hypot(x - 6, y - 6);
     if (d > 6.4) continue;
     px(g, x, y, d > 5.5 ? '#7a4300' : d > 4.5 ? '#f0a020' : (x + y < 10 && d > 2.5 ? '#ffe58f' : '#ffd34d'));
   }
   map(g, PIP5[0], 4, 4, '#b86b00');
-  return cv.toDataURL();
 }
-// 능력 카드 그림 한 장 (틀 캔버스 + 능력 이모지)
+const ICON_DRAW = {
+  coin: drawCoin,
+  xp: g => fillShape(g, starShape(6, 6.8, 5.6, 2.4), (x, y) => y < 6 && x < 7 ? PAL.b : PAL.B, INK),
+  royal: g => pmap(g, [
+    '..K...K...K..',
+    '.KYK.KYK.KYK.',
+    '.KYYKYYYKYYK.',
+    '.KYYYYYYYYYK.',
+    '.KYRYYBYYRYK.',
+    '.KYYYYYYYYYK.',
+    '.KKKKKKKKKKK.',
+    '.KyyyyyyyyyK.',
+    '.KKKKKKKKKKK.'], 0, 2),
+  red: g => fillShape(g, (x, y) => pipShape(1, (x - 6) / 5.4, (y - 6.4) / 5.4), (x, y) => x < 6 && y < 5 ? PAL.r : PAL.R, INK),
+  black: g => { fillShape(g, (x, y) => x < 11 && pipShape(0, (x - 5.5) / 5.2, (y - 6.6) / 5.6), PAL.D, PAL.w); pmap(g, ['.b.', 'bWb', '.b.'], 10, 0); },
+  growth: g => {
+    for (const [x0, top] of [[0, 9], [4, 6], [8, 3]]) { g.fillStyle = INK; g.fillRect(x0, top, 5, 13 - top); g.fillStyle = PAL.G; g.fillRect(x0 + 1, top + 1, 3, 12 - top - 1); g.fillStyle = PAL.g; g.fillRect(x0 + 3, top + 1, 1, 12 - top - 1); }
+    for (const [x, y] of [[1, 6], [2, 5], [3, 5], [4, 4], [5, 3], [6, 3], [7, 2], [8, 1], [9, 1], [10, 0], [9, 0], [8, 0], [10, 1], [10, 2]]) px(g, x, y, PAL.W);
+  },
+  jackpot: g => { pmap(g, [
+    'KKKKKKKKK',
+    'KrRRRRRRK',
+    'KRRRRRRRK',
+    'KKKKKKRRK',
+    '.....KRRK',
+    '....KRRK.',
+    '....KRRK.',
+    '...KRRK..',
+    '...KRRK..',
+    '...KRRK..',
+    '...KKKK..'], 2, 1); pmap(g, ['.Y.', 'YWY', '.Y.'], 0, 10); px(g, 12, 1, PAL.Y); px(g, 11, 0, PAL.Y); },
+  meteor: g => {
+    for (let i = 0; i < 7; i++) px(g, i, 12 - i, i < 2 ? PAL.P : i < 4 ? PAL.O : PAL.Y);
+    for (let i = 0; i < 5; i++) px(g, i + 2, 12 - i, i < 2 ? PAL.P : PAL.O);
+    for (let i = 0; i < 4; i++) px(g, i, 10 - i, PAL.P);
+    fillShape(g, starShape(8.8, 4, 3.9, 1.7), (x, y) => y < 4 && x < 9 ? PAL.W : PAL.Y, INK);
+  },
+  twin: g => {
+    const card = (x, y, fill) => { g.fillStyle = INK; g.fillRect(x, y, 8, 11); g.fillStyle = fill; g.fillRect(x + 1, y + 1, 6, 9); };
+    card(1, 0, PAL.L); card(4, 2, PAL.W); map(g, PIP5[1], 5, 5, PAL.R);
+  },
+  quick: g => {
+    g.fillStyle = INK; g.fillRect(5, 0, 3, 2);
+    fillShape(g, (x, y) => Math.hypot(x - 6, y - 7.2) <= 4.4, (x, y) => x < 5 && y < 6 ? PAL.w : PAL.W, INK);
+    for (let y = 4; y <= 7; y++) px(g, 6, y, INK);
+    px(g, 7, 7, PAL.R); px(g, 8, 7, PAL.R); px(g, 6, 7, PAL.R);
+  },
+  bag: g => pmap(g, [
+    '....KKKKK....',
+    '...K.....K...',
+    '..KKKKKKKKK..',
+    '.KOOOOOOOOOK.',
+    '.KOOOOOOOOOK.',
+    '.KOoKKKKKoOK.',
+    '.KOoKYYYKoOK.',
+    '.KOoKKKKKoOK.',
+    '.KOOOOOOOOOK.',
+    '.KooooooooOK.',
+    '.KKKKKKKKKKK.'], 0, 1),
+  up: g => pmap(g, [
+    '......K......',
+    '.....KWK.....',
+    '....KWWWK....',
+    '...KWWWWWK...',
+    '..KWWWWWWWK..',
+    '.KKKKWWWKKKK.',
+    '....KWWWK....',
+    '....KWWWK....',
+    '....KWWWK....',
+    '....KKKKK....'], 0, 1),
+};
+function iconSprite(id) {
+  const key = 'i' + id;
+  if (sprites.has(key)) return sprites.get(key);
+  const cv = mk(13, 13); ICON_DRAW[id](cv.getContext('2d'));
+  sprites.set(key, cv);
+  return cv;
+}
+// 화면에 놓을 그림 한 개 (캔버스는 한 곳에만 붙일 수 있어서 매번 새로 복사해요)
+function pix(id, cls) {
+  const cv = mk(13, 13); cv.className = 'pix' + (cls ? ' ' + cls : '');
+  cv.getContext('2d').drawImage(iconSprite(id), 0, 0);
+  cv.setAttribute('aria-hidden', 'true');
+  return cv;
+}
+const UP_ICON = { xp:'xp', cd:'quick', coin:'coin' };
+// 능력 카드 그림 한 장 (등급 틀 + 능력 그림이 한 캔버스에)
 function cardArt(c) {
   const art = h('div', 'art'), cv = mk(25, 35);
-  cv.getContext('2d').drawImage(abilitySprite(c.g), 0, 0);
-  art.append(cv, h('span', 'ae', ABILITY[c.a].icon));
+  cv.getContext('2d').drawImage(abilitySprite(c.g, c.a), 0, 0);
+  art.append(cv);
   return art;
 }
 
@@ -647,7 +784,7 @@ function bgDraw(t, dt) {
 
 /* ---------- 날아가는 카드와 숫자 ---------- */
 const flyers = [], pops = [], sparks = [], rings = [];
-const FONT = px => `700 ${px}px "Pixelify Sans", Jua, "Apple SD Gothic Neo", sans-serif`;
+const FONT = px => `400 ${px}px "Jersey 10", Jua, "Apple SD Gothic Neo", sans-serif`;
 const ease = {
   out: k => 1 - (1 - k) ** 3,
   inOut: k => 0.5 - Math.cos(Math.PI * k) / 2,
@@ -714,7 +851,7 @@ function drawPop(g, p) {
   g.save(); g.translate(p.x, p.y - ease.out(k) * 34); g.scale(sIn, sIn);
   let y = 0;
   for (const [text, color, size] of p.lines) {
-    const fs = Math.round(REM * size * (land ? 1 : 0.88));
+    const fs = Math.round(REM * size * (land ? 1.12 : 0.98));
     g.font = FONT(fs);
     g.lineWidth = Math.max(3, fs * 0.28); g.strokeStyle = INK;
     g.strokeText(text, 0, y);
@@ -786,12 +923,15 @@ function toast(msg, color) {
 let ST = equipStats([], 1);
 // 낀 카드나 레벨이 바뀌면 다시 계산하고 화면을 고쳐요
 function refresh() {
-  ST = equipStats(equipped(), S.level);
+  ST = equipStats(equipped(), S.level, S.up);
   paintTop(); paintEquip(); paintXp();
   if (Sheet.open) Sheet.render();
 }
+// 지금 코인으로 살 수 있는 업그레이드가 있는지
+const canUpgrade = () => UPGRADES.some(U => S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
 function paintTop() {
   $('coins').textContent = fmt(S.coins);
+  const dot = $('upDot'); if (dot) dot.hidden = !canUpgrade();
   const b = $('bonus');
   b.hidden = !(ST.coinPct || ST.xpPct);
   // 값이 바뀌면 살짝 튀어요
@@ -814,7 +954,7 @@ function paintEquip() {
     b.type = 'button';
     if (c) {
       const A = ABILITY[c.a];
-      b.textContent = A.icon; b.style.setProperty('--gc', GRADES[c.g].color);
+      b.append(pix(c.a)); b.style.setProperty('--gc', GRADES[c.g].color);
       b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${A.name}, ${cardText(c)}`);
       b.title = `${GRADES[c.g].name} ${A.name} · ${cardText(c)}`;
     } else { b.textContent = '+'; b.setAttribute('aria-label', `${i + 1}번 칸: 비어 있어요`); }
@@ -822,11 +962,16 @@ function paintEquip() {
     box.append(b);
   }
   const bag = h('button', 'bag'); bag.type = 'button';
-  bag.append(h('i', null, '🎒'), h('span', null, '인벤토리'));
+  bag.append(pix('bag'), h('span', null, '인벤토리'));
   if (S.inv.length) bag.append(h('em', 'num', String(S.inv.length)));
   bag.setAttribute('aria-label', `인벤토리 열기, 카드 ${S.inv.length}장`);
   bag.addEventListener('click', () => Sheet.show());
-  box.append(bag);
+  const upb = h('button', 'bag upbtn'); upb.type = 'button';
+  upb.append(pix('up'), h('span', null, '업그레이드'));
+  const dot = h('em', 'dot'); dot.id = 'upDot'; dot.hidden = !canUpgrade(); upb.append(dot);
+  upb.setAttribute('aria-label', '코인 업그레이드 열기');
+  upb.addEventListener('click', () => Sheet.show('up'));
+  box.append(bag, upb);
 }
 function addXp(x) {
   S.xp += x;
@@ -878,11 +1023,11 @@ function drawCards() {
     S.draws++;
     S.coins += got.coins;
     const lines = [];
-    if (i > 0) lines.push(['🃏 한 장 더', '#ffffff', 0.72]);
+    if (i > 0) lines.push(['한 장 더!', '#ffffff', 0.72]);
     lines.push([`+${fmt(got.coins)} 코인`, '#ffd34d', 1.05]);
-    if (got.jackpot) lines.push(['🎰 대박! 코인 ×5', '#ffd34d', 0.78]);
+    if (got.jackpot) lines.push(['대박! 코인 ×5', '#ffd34d', 0.78]);
     lines.push([`+${fmt(got.xp)} XP`, '#62b9ff', 0.88]);
-    if (got.meteor) lines.push(['🌠 별똥별! XP ×5', '#9fd6ff', 0.78]);
+    if (got.meteor) lines.push(['별똥별! XP ×5', '#9fd6ff', 0.78]);
     spawnCard(r, s, lines, i * 0.14);
     if (got.jackpot || got.meteor) big = true;
     addXp(got.xp);
@@ -913,7 +1058,7 @@ function takeCard(c) {
   if (free >= 0) S.equip[free] = item.id;
   refresh(); save();
   const name = `${GRADES[c.g].name} ${ABILITY[c.a].name}`;
-  toast(free >= 0 ? `${ABILITY[c.a].icon} ${name}을(를) ${free + 1}번 칸에 꼈어요` : `${ABILITY[c.a].icon} ${name}을(를) 인벤토리에 넣었어요. 🎒에서 바꿔 낄 수 있어요`, GRADES[c.g].color);
+  toast(free >= 0 ? `${name}을(를) ${free + 1}번 칸에 꼈어요` : `${name}을(를) 인벤토리에 넣었어요. 인벤토리에서 바꿔 낄 수 있어요`, GRADES[c.g].color);
   const slot = $('equip').children[free];
   if (slot) { slot.classList.remove('pop'); void slot.offsetWidth; slot.classList.add('pop'); }
 }
@@ -933,27 +1078,68 @@ function discard(id) {
   refresh(); save();
 }
 
-/* ---------- 인벤토리 창 ---------- */
+/* ---------- 코인 업그레이드 ---------- */
+function buyUpgrade(id) {
+  const U = UPGRADE[id], lv = S.up[id];
+  if (lv >= U.max) return false;
+  const cost = upCost(U, lv);
+  if (S.coins < cost) { Sound.nope(); toast(`코인이 ${fmt(cost - S.coins)} 모자라요`); return false; }
+  S.coins -= cost; S.up[id]++;
+  Sound.equip(); refresh(); save();
+  return true;
+}
+
+/* ---------- 인벤토리 · 업그레이드 창 ---------- */
 const Sheet = (() => {
   const wrap = $('sheetWrap'), body = $('sheetBody');
-  let open = false, armed = 0, armTm = 0;
+  let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '';
   function summary() {
     const out = [];
-    const add = (label, v) => { const s = h('span'); s.append(label + ' ', h('b', null, v)); out.push(s); };
-    if (ST.coinPct) add('💰 모든 코인', `+${fmt(ST.coinPct)}%`);
-    if (ST.xpPct) add('⭐ 모든 XP', `+${fmt(ST.xpPct)}%`);
-    if (ST.royal) add('👑 J·Q·K·A 코인', `+${ST.royal}%`);
-    if (ST.red) add('❤️ ♥·♦ 코인', `+${ST.red}%`);
-    if (ST.black) add('🖤 ♠·♣ XP', `+${ST.black}%`);
-    if (ST.jackpot) add('🎰 코인 ×5', `${ST.jackpot}%`);
-    if (ST.meteor) add('🌠 XP ×5', `${ST.meteor}%`);
-    if (ST.twin) add('🃏 한 장 더', `${ST.twin}%`);
-    if (ST.cooldown < DRAW_COOLDOWN) add('⏱️ 쿨타임', `${fmtSec(ST.cooldown)}초`);
+    const add = (icon, label, v) => { const s = h('span'); s.append(pix(icon), label + ' ', h('b', 'num', v)); out.push(s); };
+    if (ST.coinPct) add('coin', '모든 코인', `+${fmt(ST.coinPct)}%`);
+    if (ST.xpPct) add('xp', '모든 XP', `+${fmt(ST.xpPct)}%`);
+    if (ST.royal) add('royal', 'J·Q·K·A 코인', `+${ST.royal}%`);
+    if (ST.red) add('red', '♥·♦ 코인', `+${ST.red}%`);
+    if (ST.black) add('black', '♠·♣ XP', `+${ST.black}%`);
+    if (ST.jackpot) add('jackpot', '코인 ×5', `${ST.jackpot}%`);
+    if (ST.meteor) add('meteor', 'XP ×5', `${ST.meteor}%`);
+    if (ST.twin) add('twin', '한 장 더', `${ST.twin}%`);
+    if (ST.cooldown < DRAW_COOLDOWN) add('quick', '쿨타임', `${fmtSec(ST.cooldown)}초`);
+    if (out.length && UPGRADES.some(U => S.up[U.id])) out.push(h('span', null, '코인 업그레이드 포함'));
     return out;
+  }
+  // 업그레이드: 단계 · 지금 → 다음 · 값. 살 때마다 값이 올라요
+  function renderUp() {
+    $('sheetTitle').replaceChildren(pix('up'), '업그레이드');
+    const wallet = h('p', 'wallet'); wallet.append(h('i', 'ico'), h('b', 'num', fmt(S.coins)), ' 코인');
+    body.append(wallet, h('p', 'note', '코인으로 사요. 살 때마다 다음 단계 값이 올라가요. 능력 카드와 더해져요.'));
+    for (const U of UPGRADES) {
+      const lv = S.up[U.id], max = lv >= U.max, cost = upCost(U, lv);
+      const row = h('div', 'uprow' + (bumped === U.id ? ' bump' : ''));
+      const tt = h('span', 'ut');
+      const name = h('b', null, U.name); name.append(h('em', 'num', ` Lv ${lv}${isFinite(U.max) ? ' / ' + U.max : ''}`));
+      const next = U.id === 'cd'
+        ? `쿨타임 ${fmtSec(ST.cooldown)}초 → ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`
+        : `${U.text(lv)} → +${U.per * (lv + 1)}%`;
+      tt.append(name, h('span', null, max ? `${U.text(lv)} · 최대` : next));
+      const buy = h('button', 'ubuy'); buy.type = 'button';
+      if (max) { buy.textContent = '최대'; buy.disabled = true; }
+      else {
+        buy.append(h('i', 'ico'), h('span', 'num', fmt(cost)));
+        buy.disabled = S.coins < cost;
+        buy.setAttribute('aria-label', `${U.name} ${lv + 1}단계 사기, ${fmt(cost)} 코인`);
+        buy.addEventListener('click', () => { bumped = U.id; buyUpgrade(U.id); });
+      }
+      const ui = h('span', 'ui'); ui.append(pix(UP_ICON[U.id]));
+      row.append(ui, tt, buy);
+      body.append(row);
+    }
+    bumped = '';
   }
   function render() {
     body.replaceChildren();
-    $('sheetTitle').textContent = `🎒 인벤토리 (${S.inv.length}장)`;
+    if (mode === 'up') { renderUp(); return; }
+    $('sheetTitle').replaceChildren(pix('bag'), `인벤토리 (${S.inv.length}장)`);
     body.append(h('h3', null, `낀 카드 · 최대 ${EQUIP_SLOTS}장`));
     const row = h('div', 'eqrow');
     for (let i = 0; i < EQUIP_SLOTS; i++) {
@@ -997,9 +1183,9 @@ const Sheet = (() => {
     }
     body.append(grid);
   }
-  function show() {
+  function show(m = 'inv') {
     if (LvOv.open) return;
-    open = true; armed = 0; wrap.hidden = false; render();
+    mode = m; open = true; armed = 0; wrap.hidden = false; render();
     $('sheetClose').focus({ preventScroll: true });
   }
   function close() { if (!open) return; open = false; wrap.hidden = true; save(); }
@@ -1087,7 +1273,7 @@ const LvOv = (() => {
       take.disabled = false;
       const c = items[i].c, free = S.equip.indexOf(null);
       tip.textContent = free < 0 ? '칸이 다 찼어요. 받으면 인벤토리로 가요' : `받으면 ${free + 1}번 칸에 바로 껴요`;
-      take.textContent = `${ABILITY[c.a].icon} 이 카드 받기`;
+      take.textContent = '이 카드 받기';
     }
     function choose() {
       if (sel < 0 || busy) return;
@@ -1116,7 +1302,8 @@ const LvOv = (() => {
     }
     take.addEventListener('click', choose);
     const acts = h('div', 'lv-acts'); acts.append(take);
-    ov.replaceChildren(h('h3', null, `⭐ 레벨 ${lv}! 능력 카드 3장 중 하나를 골라요`), tip, row, acts);
+    const title = h('h3'); title.append(pix('xp'), `레벨 ${lv}! 능력 카드 3장 중 하나를 골라요`);
+    ov.replaceChildren(title, tip, row, acts);
     ov.hidden = false;
     void ov.offsetWidth;
     ov.classList.add('in');
