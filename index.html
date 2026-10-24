@@ -77,6 +77,7 @@ button[disabled]{cursor:default}
 .bonus b{font-weight:400}
 .bonus .b-coin{color:var(--coin)} .bonus .b-coin .ico{background-image:var(--ico-coin)}
 .bonus .b-xp{color:var(--xp)} .bonus .b-xp .ico{background-image:var(--ico-star)}
+.bonus .b-rb{color:#e2b8ff} .bonus .b-rb .ico{background-image:var(--ico-rb)}
 
 /* 아래: 덱 바로 밑에 능력 카드 3칸, 맨 아래 XP 막대 */
 .dock{position:absolute; left:50%; transform:translateX(-50%); bottom:calc(.6rem + var(--safe-b)); width:min(26rem, calc(100% - 1.6rem - var(--safe-l) - var(--safe-r)));
@@ -90,6 +91,7 @@ button[disabled]{cursor:default}
 .mbtn:active{transform:translateY(.12rem)}
 .mbtn .pix{width:1.65rem; height:1.65rem}
 .mbtn.bagbtn{--c:#ffae35; --lo:#e07b00}
+.mbtn.rbbtn{--c:#b46cff; --lo:#7d38cc}
 .mbtn[aria-pressed="true"]{box-shadow:0 0 0 .18rem var(--gold), inset 0 -.25rem 0 var(--lo), 0 .18rem 0 var(--ink)}
 .mbtn .dot{position:absolute; top:-.3rem; right:-.3rem; width:.8rem; height:.8rem; border-radius:50%; background:var(--red); border:.12rem solid var(--ink); pointer-events:none}
 .mbtn em{position:absolute; top:-.4rem; right:-.45rem; min-width:1.05rem; height:1.05rem; padding:0 .25rem; border-radius:.55rem; background:var(--red); color:#fff;
@@ -123,25 +125,44 @@ button[disabled]{cursor:default}
 .art canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
 .pix{display:block; flex:none; image-rendering:pixelated}
 .slot .pix{width:1.45rem; height:1.45rem}
-.lv-ov h3{display:flex; align-items:center; justify-content:center; gap:.45rem}
-.lv-ov h3 .pix{width:1.3rem; height:1.3rem}
+
 
 /* 레벨 보상: 3장 중 1장 고르기 */
 .lv-ov{position:fixed; inset:0; z-index:70; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.7rem;
   padding:calc(2.5rem + var(--safe-t)) calc(1rem + var(--safe-r)) calc(1rem + var(--safe-b)) calc(1rem + var(--safe-l))}   /* 위쪽 2.5rem은 알림 자리 */
-/* 아주 낮은 가로 화면(높이 265px 아래)에는 알림 자리를 비울 틈이 없어요. 그때는 창이 떠 있는 동안 알림을 숨기고
+/* 아주 낮은 가로 화면(높이 280px 아래)에는 알림 자리를 비울 틈이 없어요. 그때는 창이 떠 있는 동안 알림을 숨기고
    위 여백을 원래대로 줄여서 제목과 받기 단추가 화면 안에 다 들어오게 해요 */
-@media (max-height:265px){
+@media (max-height:280px){
   .lv-ov{padding-top:calc(1rem + var(--safe-t))}
   .lv-ov.in + .toasts{display:none}
 }
 .lv-ov::before{content:""; position:absolute; inset:0; z-index:-1; background:radial-gradient(circle at 50% 45%,rgba(78,36,160,.9),rgba(10,3,28,.96) 70%);
   opacity:0; transition:opacity .35s ease}
 .lv-ov.in::before{opacity:1}
-.lv-ov h3{margin:0; font-weight:400; font-size:1.1rem; text-align:center; text-wrap:balance; text-shadow:var(--ol); opacity:0}
+/* 뒤에서 천천히 도는 빛살과 떠오르는 반짝이. 팩을 뜯으면 빛살이 가장 좋은 카드의 등급 색으로 바뀌어요 */
+.lv-rays{position:absolute; left:50%; top:52%; width:150vmax; height:150vmax; margin:-75vmax 0 0 -75vmax; z-index:-1; pointer-events:none; opacity:0;
+  background:repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--rc,#ffd34d) 22%, transparent) 0 6deg, transparent 6deg 18deg);
+  -webkit-mask:radial-gradient(circle, #000 4%, transparent 40%); mask:radial-gradient(circle, #000 4%, transparent 40%);
+  transition:opacity .6s ease; animation:raysspin 40s linear infinite}
+.lv-ov.in .lv-rays{opacity:1}
+.lv-ov.out .lv-rays{opacity:0}
+@keyframes raysspin{to{transform:rotate(360deg)}}
+.lv-ov .mote{position:absolute; bottom:-1rem; width:.3rem; height:.3rem; z-index:-1; pointer-events:none; background:var(--mc,#fff); opacity:0; animation:mote linear infinite}
+@keyframes mote{0%{transform:translateY(0); opacity:0} 15%{opacity:.8} 85%{opacity:.6} 100%{transform:translateY(-85vh); opacity:0}}
+/* 리본 제목: "★ 레벨 5 달성! ★" */
+.lv-ov h3{position:relative; margin:0; display:flex; align-items:center; justify-content:center; gap:.4rem; padding:.22rem 1.4rem .3rem; font-weight:400; font-size:1.15rem; line-height:1.2;
+  color:#fff; text-shadow:var(--ol); white-space:nowrap; opacity:0;
+  background:linear-gradient(180deg,#d68cff,#a052f0 55%,#8a3fe0); border:.16rem solid var(--ink); border-radius:.5rem;
+  box-shadow:inset 0 .14rem 0 rgba(255,255,255,.4), inset 0 -.2rem 0 rgba(60,10,120,.35), 0 .2rem 0 var(--ink)}
+.lv-ov h3::before,.lv-ov h3::after{content:""; position:absolute; top:.4rem; width:1rem; height:calc(100% - .1rem); background:linear-gradient(180deg,#7d38cc,#5a2399);
+  box-shadow:inset 0 0 0 .16rem var(--ink)}
+.lv-ov h3::before{left:-1.05rem; clip-path:polygon(0 0,100% 0,100% 100%,0 100%,45% 50%)}
+.lv-ov h3::after{right:-1.05rem; clip-path:polygon(0 0,100% 0,55% 50%,100% 100%,0 100%)}
+.lv-ov h3 .pix{width:1.1rem; height:1.1rem}
+.lv-ov h3 b{font-weight:400; font-size:1.45rem; line-height:1; color:var(--gold)}
 .lv-ov.in h3{animation:drop .5s .1s cubic-bezier(.2,.9,.3,1.25) both}
 @keyframes drop{from{opacity:0; transform:translateY(-1.2rem) scale(.92)} to{opacity:1}}
-.lv-ov p{margin:0; font-size:.74rem; color:var(--muted); text-align:center; min-height:1.15rem; transition:opacity .25s}
+.lv-ov p{margin:0; padding:.12rem .7rem .16rem; border-radius:1rem; background:rgba(14,6,36,.55); font-size:.72rem; color:var(--muted); text-align:center; min-height:1.15rem; transition:opacity .25s}
 .reveal{display:flex; justify-content:center; gap:.9rem}
 .rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
   transition:transform .28s cubic-bezier(.3,1.4,.5,1), opacity .25s, background .2s, box-shadow .2s}
@@ -159,13 +180,19 @@ button[disabled]{cursor:default}
 @keyframes lift{45%{transform:translateY(-.6rem) scale(1.1)}}
 .rv.dealt:not(.open) .face{animation:wiggle 1.6s .3s ease-in-out infinite}
 @keyframes wiggle{0%,70%,100%{transform:rotate(0)} 80%{transform:rotate(-3deg)} 90%{transform:rotate(3deg)}}
-.rv .lbl{font-size:.8rem; line-height:1.25; min-height:3.2rem; opacity:0; transform:translateY(.4rem); transition:opacity .3s .28s, transform .3s .28s}
-.rv .lbl small{display:block; margin-top:.1rem; font-size:.74rem; color:var(--muted)}
+/* 카드 아래 이름표: 등급 딱지 + 이름, 효과 */
+.rv .lbl{align-self:stretch; display:flex; flex-direction:column; align-items:center; gap:.12rem; min-height:3.3rem; padding:.3rem .3rem .35rem; border-radius:.55rem;
+  background:rgba(14,6,36,.62); border:.12rem solid rgba(255,255,255,.06); border-top:.16rem solid var(--gc); font-size:.74rem; line-height:1.25;
+  opacity:0; transform:translateY(.4rem); transition:opacity .3s .28s, transform .3s .28s}
+.rv .lbl small{display:block; font-size:.68rem; color:var(--muted)}
 .rv.open .lbl{opacity:1; transform:none}
-.rv .lbl b{display:block; font-weight:400; font-size:.92rem; color:var(--gc)}
+.rv .lbl b{display:block; font-weight:400; font-size:.86rem; color:#fff}
 .rv.open.glow .face{filter:drop-shadow(0 0 .7rem var(--gc)) drop-shadow(0 0 .25rem var(--gc))}
 .reveal.has-sel .rv:not(.sel){opacity:.45; transform:scale(.94)}
-.rv.sel{transform:translateY(-.5rem) scale(1.04); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold)}
+.rv.sel{transform:translateY(-.25rem) scale(1.03); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold), 0 0 1.4rem rgba(255,200,61,.35)}
+.rv.sel::after{content:"고름"; position:absolute; top:.1rem; left:.05rem; transform:rotate(-10deg); padding:0 .4rem; border-radius:.45rem; font-size:.62rem; line-height:1.45;
+  background:var(--gold); color:var(--ink); border:.12rem solid var(--ink); box-shadow:0 .12rem 0 var(--ink); pointer-events:none; z-index:2; animation:pop .3s}
+.rv{position:relative}
 .rv .face > .spark{position:absolute; inset:auto; left:50%; top:45%; width:.32rem; height:.32rem; margin:-.16rem 0 0 -.16rem; background:var(--gc); pointer-events:none; transition:none}
 .lv-acts{display:flex; gap:.6rem; transition:opacity .25s; min-height:2.2rem}
 /* 카드 팩: 카드 줄 위에 겹쳐 놓고, 카드는 팩 뒤에서 올라와요 */
@@ -174,8 +201,27 @@ button[disabled]{cursor:default}
 .pack{position:absolute; left:50%; top:50%; width:7.5rem; height:11.5rem; margin:-5.75rem 0 0 -3.75rem; z-index:2; touch-action:none; cursor:grab;
   filter:drop-shadow(0 .5rem .8rem rgba(0,0,0,.5))}
 .pack canvas{display:block; width:100%; height:100%; image-rendering:pixelated; pointer-events:none}
+/* 팩은 둥실 떠 있고(뜯는 동안은 멈춰요), 바닥에 그림자가 지고, 몸통 위로 빛이 쓸고 지나가요 */
+.pack{animation:packfloat 2.6s ease-in-out infinite}
+.pack.tearing,.pack.opened{animation-play-state:paused}
+@keyframes packfloat{0%,100%{translate:0 0} 50%{translate:0 -.35rem}}
 .pack:not(.nudge) canvas{animation:packidle 2.4s 1s ease-in-out infinite}
+.pack.tearing canvas,.pack.opened canvas{animation:none}
 @keyframes packidle{0%,80%,100%{transform:none} 87%{transform:rotate(-2deg)} 94%{transform:rotate(2deg)}}
+.pack::after{content:""; position:absolute; left:12%; right:12%; bottom:-1.2rem; height:.9rem; border-radius:50%; pointer-events:none;
+  background:radial-gradient(closest-side, rgba(0,0,0,.55), transparent); animation:packshadow 2.6s ease-in-out infinite}
+.pack.tearing::after,.pack.opened::after{animation-play-state:paused}
+@keyframes packshadow{0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(.85); opacity:.7}}
+.pack .pack-shine{position:absolute; left:3.4%; right:3.4%; top:calc(100% * 7 / 46); bottom:calc(100% * 3 / 46); overflow:hidden; pointer-events:none}
+.pack .pack-shine::before{content:""; position:absolute; top:-20%; bottom:-20%; width:35%; left:-50%; transform:skewX(-18deg);
+  background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation:packshine 3.2s 1.2s ease-in-out infinite}
+@keyframes packshine{0%{left:-50%} 45%,100%{left:130%}}
+.pack.opened .pack-shine{display:none}
+/* 점선 바로 오른쪽 말풍선: "← 쭉 밀어요" */
+.pack .tear-tip{position:absolute; left:calc(100% + .55rem); top:calc(100% * 12 / 46); margin-top:-.62rem; white-space:nowrap; padding:.06rem .5rem .1rem; border-radius:.5rem;
+  font-size:.66rem; line-height:1.4; color:var(--ink); background:#fff; border:.12rem solid var(--ink); box-shadow:0 .14rem 0 var(--ink); pointer-events:none; animation:tiptap 1.5s ease-in-out .8s infinite}
+.pack .tear-tip::before{content:""; position:absolute; left:-.32rem; top:50%; width:.5rem; height:.5rem; margin-top:-.25rem; background:#fff; border-left:.12rem solid var(--ink); border-bottom:.12rem solid var(--ink); transform:rotate(45deg)}
+@keyframes tiptap{0%,100%{translate:0 0} 50%{translate:-.25rem 0}}
 .pack.nudge canvas{animation:nope .35s}
 .pack .tear-hint{position:absolute; top:calc(100% * 12 / 46); left:6%; width:.65rem; height:.65rem; margin-top:-.32rem; border-radius:50%; background:#fff;
   box-shadow:0 0 .5rem #fff, 0 0 1rem var(--gold); pointer-events:none; animation:tearhint 1.5s ease-in-out .8s infinite both}
@@ -192,6 +238,11 @@ button[disabled]{cursor:default}
   box-shadow:inset 0 -.24rem 0 rgba(0,0,0,.22), 0 .18rem 0 var(--ink); text-shadow:var(--ol-s)}
 .btn:active:not([disabled]){transform:translateY(.15rem)}
 .btn[disabled]{--c:#6b6f86; opacity:.75}
+/* 이 카드 받기: 고르면 금색으로 빛나요 */
+.btn.take{min-width:9rem; padding:.45rem 1.2rem .55rem; font-size:.95rem; border-radius:.7rem; border-width:.16rem; color:var(--ink); text-shadow:none;
+  background:linear-gradient(180deg,#ffe27e,#ffc23d 55%,#f0a21f); box-shadow:inset 0 -.24rem 0 #c7800f, inset 0 .14rem 0 rgba(255,255,255,.5), 0 .2rem 0 var(--ink)}
+.btn.take:not([disabled]){animation:pop .35s}
+.btn.take[disabled]{background:#2a1b57; color:#a99ad9; opacity:1; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.07), 0 .2rem 0 var(--ink)}
 
 /* 인벤토리 · 업그레이드 창: 머리띠는 여는 단추와 같은 색(업그레이드 초록, 인벤토리 주황).
    안쪽은 "낀 카드 소켓 → 효과 표 → 가진 카드" / "지갑 → 상점 줄" 순서로 묶어요 */
@@ -201,6 +252,7 @@ button[disabled]{cursor:default}
   background:linear-gradient(180deg,#34216e,#251754 55%,#1f1249); border:.2rem solid var(--ink); border-radius:1.1rem;
   box-shadow:inset 0 0 0 .12rem rgba(255,255,255,.06), 0 .35rem 0 var(--ink), 0 .8rem 2rem rgba(0,0,0,.45); animation:sin .2s ease-out}
 .sheet.up{--acc:#38d064; --acc-lo:#1f9a42}
+.sheet.rb{--acc:#b46cff; --acc-lo:#7d38cc}
 @keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
 .port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
 .port .sheet{width:100%; border-radius:1.1rem 1.1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
@@ -232,6 +284,7 @@ button[disabled]{cursor:default}
 /* 몸통 */
 .sbody{flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:.65rem .75rem .85rem; display:flex; flex-direction:column; gap:.55rem;
   scrollbar-width:thin; scrollbar-color:#5b44aa transparent}
+.sbody > *{flex:none}
 .sec{display:flex; align-items:center; gap:.45rem; margin:.1rem 0 -.1rem; font-size:.76rem; color:var(--muted); white-space:nowrap}
 .sec::after{content:""; order:1; flex:1; min-width:.5rem; height:.12rem; border-radius:.1rem; background:linear-gradient(90deg,rgba(255,255,255,.18),rgba(255,255,255,0))}
 .sec small{order:2; font-size:.6rem; color:var(--dim)}
@@ -285,6 +338,42 @@ button[disabled]{cursor:default}
 .blank{display:flex; flex-direction:column; align-items:center; gap:.4rem; padding:.9rem .6rem; border-radius:.7rem; border:.15rem dashed rgba(255,255,255,.14);
   background:rgba(14,6,36,.35); text-align:center; font-size:.66rem; color:var(--dim)}
 .blank .pix{width:1.8rem; height:1.8rem; opacity:.55}
+/* 환생 창 */
+.rbhero{position:relative; overflow:hidden; display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.55rem .6rem .5rem; border-radius:.8rem; text-align:center;
+  background:radial-gradient(90% 80% at 50% 0%, rgba(199,125,255,.45), transparent 70%), linear-gradient(180deg,#3d2586,#2a1960);
+  border:.15rem solid var(--ink); box-shadow:inset 0 0 0 .13rem rgba(199,125,255,.55), inset 0 .25rem 0 rgba(255,255,255,.08), 0 .16rem 0 var(--ink)}
+.rbhero small{font-size:.64rem; color:var(--muted)}
+.rbmul{display:flex; align-items:baseline; gap:.4rem; font-size:2rem; line-height:1; color:#fff; text-shadow:var(--ol)}
+.rbmul .nx{font-size:1.5rem; color:#7dffa6}
+.rbmul i{font-style:normal; font-family:var(--f-ui); font-size:.9rem; color:var(--muted); text-shadow:none}
+.rbneed{display:flex; flex-direction:column; gap:.3rem; padding:.5rem .65rem; border-radius:.7rem; background:rgba(14,6,36,.5); box-shadow:inset 0 .15rem .4rem rgba(0,0,0,.3)}
+.rbneed > span{display:flex; align-items:center; gap:.4rem; font-size:.7rem; color:var(--muted)}
+.rbneed > span b{margin-left:auto; font-weight:400; font-size:1rem; color:#fff}
+.rbneed .upbar{height:.45rem; margin:0}
+.rbneed .upbar i{background:linear-gradient(90deg,#8f6bff,#e2b8ff)}
+.rbneed.ready .upbar i{background:linear-gradient(90deg,#38d064,#a5ffbf)}
+.rblist{display:flex; flex-direction:column; gap:.2rem; padding:.42rem .6rem; border-radius:.65rem; background:rgba(14,6,36,.4); border:.12rem solid rgba(255,255,255,.06)}
+.rblist p{margin:0; font-size:.64rem; line-height:1.4; color:var(--muted)}
+.rblist b{display:inline-block; min-width:3.2rem; margin-right:.3rem; font-weight:400; font-size:.7rem}
+.rblist .lose b{color:#ff9aa8} .rblist .keep b{color:#7dffa6}
+.rbgo{height:2.7rem; border-radius:.75rem; display:flex; align-items:center; justify-content:center; gap:.4rem; font-size:1.05rem; color:#fff; text-shadow:var(--ol-s);
+  background:linear-gradient(180deg,#d9a2ff,#b46cff 50%,#9346e6); border:.17rem solid var(--ink); box-shadow:inset 0 -.25rem 0 #6f2fc0, inset 0 .14rem 0 rgba(255,255,255,.45), 0 .18rem 0 var(--ink)}
+.rbgo .pix{width:1.3rem; height:1.3rem}
+.rbgo:active:not([disabled]){transform:translateY(.12rem); box-shadow:inset 0 -.12rem 0 #6f2fc0, 0 .05rem 0 var(--ink)}
+.rbgo.arm{background:linear-gradient(180deg,#ffe27e,#ffc23d 55%,#f0a21f); color:var(--ink); text-shadow:none; box-shadow:inset 0 -.25rem 0 #c7800f, 0 .18rem 0 var(--ink); animation:pop .35s}
+.rbgo[disabled]{background:#26174f; color:#a99ad9; font-size:.78rem; text-shadow:none; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.07)}
+.rbgo[disabled] .pix{opacity:.45}
+/* 환생하는 순간: 하얀 빛 → 돌아가는 빛살 → "환생!" */
+.rbfx{position:fixed; inset:0; z-index:75; pointer-events:none; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.4rem; overflow:hidden}
+.rbfx::before{content:""; position:absolute; inset:0; background:radial-gradient(circle at 50% 45%, rgba(255,255,255,.95), rgba(199,125,255,.55) 28%, rgba(40,12,90,0) 65%); animation:rbflash 1.8s ease-out both}
+.rbfx .rays{position:absolute; left:50%; top:45%; width:150vmax; height:150vmax; margin:-75vmax 0 0 -75vmax; border-radius:50%;
+  background:repeating-conic-gradient(rgba(255,226,140,.34) 0 7deg, transparent 7deg 20deg);
+  -webkit-mask:radial-gradient(circle, #000 8%, transparent 55%); mask:radial-gradient(circle, #000 8%, transparent 55%); animation:rbrays 2.4s ease-out both}
+.rbfx b{position:relative; font-weight:400; font-size:3.2rem; line-height:1; color:#fff; text-shadow:var(--ol), 0 0 1.4rem #c77dff; animation:rbtext 2.4s cubic-bezier(.2,.9,.3,1.3) both}
+.rbfx span{position:relative; font-size:1rem; color:#fff; text-shadow:var(--ol-s); animation:rbtext 2.4s .12s cubic-bezier(.2,.9,.3,1.3) both}
+@keyframes rbflash{0%{opacity:0} 8%{opacity:1} 100%{opacity:0}}
+@keyframes rbrays{0%{opacity:0; transform:rotate(0) scale(.5)} 18%{opacity:1} 100%{opacity:0; transform:rotate(50deg) scale(1.1)}}
+@keyframes rbtext{0%{opacity:0; transform:scale(.3)} 22%{opacity:1; transform:scale(1.12)} 32%{transform:scale(1)} 78%{opacity:1; transform:none} 100%{opacity:0; transform:translateY(-1.2rem)}}
 .foot{margin:.1rem 0 0; font-size:.58rem; color:var(--dim); text-align:center}
 
 /* 업그레이드: 지갑 + 상점 줄 */
@@ -355,10 +444,11 @@ button[disabled]{cursor:default}
   <div class="top">
     <div class="coinbox" id="coinbox" aria-label="코인"><i class="ico"></i><b class="num" id="coins">0</b></div>
   </div>
-  <div class="bonus" id="bonus" aria-label="지금 붙은 보너스" hidden><span class="b-coin" id="bonusCoin" hidden><i class="ico"></i><b class="num"></b></span><span class="b-xp" id="bonusXp" hidden><i class="ico"></i><b class="num"></b></span></div>
+  <div class="bonus" id="bonus" aria-label="지금 붙은 보너스" hidden><span class="b-coin" id="bonusCoin" hidden><i class="ico"></i><b class="num"></b></span><span class="b-xp" id="bonusXp" hidden><i class="ico"></i><b class="num"></b></span><span class="b-rb" id="bonusRb" hidden><i class="ico"></i><b class="num"></b></span></div>
   <nav class="menu" aria-label="메뉴">
     <div class="mtile"><button class="mbtn" id="upBtn" type="button" aria-label="코인 업그레이드 열기" aria-pressed="false"><em class="dot" id="upDot" hidden></em></button><span>업그레이드</span></div>
     <div class="mtile"><button class="mbtn bagbtn" id="invBtn" type="button" aria-label="인벤토리 열기" aria-pressed="false"><em class="num" id="invCount" hidden></em></button><span>인벤토리</span></div>
+    <div class="mtile"><button class="mbtn rbbtn" id="rbBtn" type="button" aria-label="환생 열기" aria-pressed="false"><em class="dot" id="rbDot" hidden></em></button><span>환생</span></div>
   </nav>
   <div class="dock">
     <div class="equip" id="equip" aria-label="낀 능력 카드"></div>
@@ -373,6 +463,7 @@ button[disabled]{cursor:default}
 </div>
 <div class="lv-ov" id="lvOv" role="dialog" aria-modal="true" aria-label="레벨 보상" hidden></div>
 <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+<div class="rbfx" id="rbFx" aria-hidden="true" hidden></div>
 
 <script id="core-rules">
 "use strict";
@@ -442,8 +533,13 @@ const UPGRADES = [
 const UPGRADE = Object.fromEntries(UPGRADES.map(U => [U.id, U]));
 const upCost = (U, lv) => Math.round(U.base * U.grow ** lv);
 const upFresh = () => Object.fromEntries(UPGRADES.map(U => [U.id, 0]));
-// 낀 카드들 + 업그레이드 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %예요
-function equipStats(cards, level, up = {}) {
+// 환생: n번 환생했으면 다음 환생에 레벨 rebirthNeed(n)이 필요해요 (5 → 10 → 15 …).
+// 환생할 때마다 모든 코인 · XP에 곱하는 보너스가 0.5씩 커져요 (×1.5 → ×2 → ×2.5 …)
+const REBIRTH_FIRST = 5, REBIRTH_STEP = 5, REBIRTH_BONUS = 0.5;
+const rebirthNeed = n => REBIRTH_FIRST + REBIRTH_STEP * n;
+const rebirthMul = n => 1 + REBIRTH_BONUS * n;
+// 낀 카드들 + 업그레이드 + 환생 → 지금 붙는 값. coinPct · xpPct는 모든 카드에 붙는 %, mul은 환생 보너스(곱하기)예요
+function equipStats(cards, level, up = {}, rebirths = 0) {
   const st = Object.fromEntries(ABILITIES.map(A => [A.id, 0]));
   let cdMul = 1;
   for (const c of cards) {
@@ -456,6 +552,7 @@ function equipStats(cards, level, up = {}) {
   const grow = growthNow(st.growth, level);
   st.coinPct = st.coin + grow + UPGRADE.coin.per * (up.coin || 0);
   st.xpPct = st.xp + grow + UPGRADE.xp.per * (up.xp || 0);
+  st.mul = rebirthMul(rebirths);
   return st;
 }
 // 카드 한 장에서 받는 코인과 XP
@@ -465,9 +562,10 @@ function cardGain(r, s, st, rnd) {
   if (SUITS[s].red) coinPct += st.red; else xpPct += st.black;
   const jackpot = st.jackpot > 0 && rnd() * 100 < st.jackpot;
   const meteor = st.meteor > 0 && rnd() * 100 < st.meteor;
+  const mul = st.mul || 1;
   return {
-    coins: rankValue(r) * (1 + coinPct / 100) * (jackpot ? 5 : 1),
-    xp: BASE_XP * (1 + xpPct / 100) * (meteor ? 5 : 1),
+    coins: rankValue(r) * (1 + coinPct / 100) * (jackpot ? 5 : 1) * mul,
+    xp: BASE_XP * (1 + xpPct / 100) * (meteor ? 5 : 1) * mul,
     jackpot, meteor,
   };
 }
@@ -495,7 +593,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -506,6 +604,7 @@ function revive(raw) {
   if (raw.xp >= 0) S.xp = raw.xp;
   if (raw.v === 3 && raw.coins >= 0) S.coins = raw.coins;   // 아주 예전 판(코인 게임)의 코인은 가져오지 않아요
   if (raw.v === 3 && raw.up && typeof raw.up === 'object') for (const U of UPGRADES) { const lv = raw.up[U.id]; if (Number.isInteger(lv) && lv > 0) S.up[U.id] = Math.min(U.max, lv); }
+  if (raw.v === 3 && Number.isInteger(raw.rb) && raw.rb > 0) S.rb = Math.min(raw.rb, 9999);
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
   if (raw.pending >= 0) S.pending = Math.floor(raw.pending);
@@ -582,6 +681,12 @@ const Sound = (() => {
     tear() { if (!ready()) return; hiss(0.32, { vol: 0.26, freq: 900, to: 6500, q: 0.5 }); arp([988, 1319, 1760], 0.07, { type:'triangle', vol: 0.08, dur: 0.18 }); },
     equip() { if (!ready()) return; tone(660, 0.07, { vol: 0.07 }); tone(990, 0.1, { vol: 0.06, at: 0.06 }); },
     level() { if (!ready()) return; arp([523, 659, 784, 1047, 1319], 0.08, { vol: 0.07, dur: 0.16 }); },
+    rebirth() {
+      if (!ready()) return;
+      tone(131, 0.9, { type:'sine', vol: 0.14 }); hiss(0.7, { vol: 0.14, freq: 500, to: 7000, q: 0.4 });
+      arp([392, 523, 659, 784, 1047, 1319, 1568, 2093], 0.07, { type:'triangle', vol: 0.08, dur: 0.24 });
+      arp([1568, 2093, 2637], 0.09, { type:'square', vol: 0.03, dur: 0.3, at: 0.6 });
+    },
   };
 })();
 
@@ -826,6 +931,20 @@ const ICON_DRAW = {
     '....KWWWK....',
     '....KWWWK....',
     '....KKKKK....'], 0, 1),
+  rebirth: g => pmap(g, [   // 시계 방향으로 도는 화살표 (오른쪽 위 화살촉이 아래를 가리켜요)
+    '...KKKKKK....',
+    '.KKKWWWWKKKKK',
+    '.KWWWKKWWWWWK',
+    'KKWWKKKKWWWKK',
+    'KWWKK..KKWKK.',
+    'KWWK....KKK..',
+    'KwwK....KKKK.',
+    'KwwKK..KKwwK.',
+    'KwwwKKKKwwwK.',
+    'KKwwwKKwwwKK.',
+    '.KKwwwwwwKK..',
+    '..KKKKKKKK...',
+    '.............'], 0, 1),
   close: g => pmap(g, [
     'KKK.......KKK',
     'KWWK.....KWWK',
@@ -1146,18 +1265,24 @@ function toast(msg, color) {
 let ST = equipStats([], 1);
 // 낀 카드나 레벨이 바뀌면 다시 계산하고 화면을 고쳐요
 function refresh() {
-  ST = equipStats(equipped(), S.level, S.up);
+  ST = equipStats(equipped(), S.level, S.up, S.rb);
   paintTop(); paintEquip(); paintXp();
-  if (Sheet.open && Sheet.mode !== 'up') Sheet.render();
+  if (Sheet.open && Sheet.mode === 'inv') Sheet.render();
 }
+// 환생할 수 있는지 (레벨이 됐고, 아직 안 뜯은 카드 팩이 없을 때)
+const canRebirth = () => S.level >= rebirthNeed(S.rb) && !S.pending && !S.offer;
 // 지금 코인으로 살 수 있는 업그레이드가 있는지
 const canUpgrade = () => UPGRADES.some(U => S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
 function paintTop() {
   $('coins').textContent = fmt(Math.floor(S.coins));
-  if (Sheet.open && Sheet.mode === 'up') Sheet.render();
+  if (Sheet.open && Sheet.mode !== 'inv') Sheet.render();   // 업그레이드 · 환생 창은 코인과 레벨을 보여 줘요
   $('upDot').hidden = !canUpgrade();
+  $('rbDot').hidden = !canRebirth();
   const b = $('bonus');
-  b.hidden = !(ST.coinPct || ST.xpPct);
+  b.hidden = !(ST.coinPct || ST.xpPct || S.rb);
+  const rb = $('bonusRb'), rt = `환생 ×${fmt(ST.mul)}`;
+  rb.hidden = !S.rb;
+  if (rb.querySelector('b').textContent !== rt) rb.querySelector('b').textContent = rt;
   // 값이 바뀌면 살짝 튀어요
   for (const [id, v, label] of [['bonusCoin', ST.coinPct, '코인'], ['bonusXp', ST.xpPct, 'XP']]) {
     const el = $(id), txt = `${label} +${fmt(v)}%`, t = el.querySelector('b');
@@ -1266,6 +1391,28 @@ function draw() {
   $('tapHint').hidden = true;
 }
 
+/* ---------- 환생 ---------- */
+// 레벨 · XP · 코인 · 업그레이드는 처음으로, 능력 카드와 뽑은 장수는 그대로. 보너스가 한 단계 커져요
+function rebirth() {
+  if (!canRebirth() || LvOv.open) return false;
+  S.rb++; S.level = 1; S.xp = 0; S.coins = 0; S.up = upFresh();
+  refresh(); save();
+  Sound.rebirth();
+  RbFx.play(ST.mul);
+  return true;
+}
+const RbFx = (() => {
+  const el = $('rbFx'); let tm = 0;
+  function play(mul) {
+    clearTimeout(tm);
+    el.replaceChildren(h('i', 'rays'), h('b', null, '환생!'), h('span', null, `모든 코인 · XP ×${fmt(mul)}`));
+    el.hidden = false;
+    if (!reduced()) burst(innerWidth / 2, innerHeight * 0.45, 48, ['#ffffff', '#e2b8ff', '#c77dff', '#ffd34d'], 420);
+    tm = setTimeout(() => { el.hidden = true; el.replaceChildren(); }, reduced() ? 1400 : 2500);
+  }
+  return { play };
+})();
+
 /* ---------- 끼기 · 빼기 · 버리기 ---------- */
 function takeCard(c) {
   const item = { id: S.nextId++, a: c.a, g: c.g };
@@ -1308,7 +1455,7 @@ function buyUpgrade(id) {
 /* ---------- 인벤토리 · 업그레이드 창 ---------- */
 const Sheet = (() => {
   const wrap = $('sheetWrap'), body = $('sheetBody');
-  let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '';
+  let open = false, mode = 'inv', armed = 0, armTm = 0, bumped = '', rbArm = false, rbTm = 0;
   // 머리띠 제목: 그림 상자 + 이름 (+ 장수)
   function title(icon, text, count) {
     const ic = h('span', 'hico'); ic.append(pix(icon));
@@ -1379,6 +1526,37 @@ const Sheet = (() => {
     }
     bumped = '';
   }
+  // 환생: 지금 보너스 → 다음 보너스, 필요 레벨 막대, 처음으로 돌아가는 것 · 남는 것, 환생 단추(두 번 눌러요)
+  function renderRb() {
+    title('rebirth', '환생');
+    const n = S.rb, need = rebirthNeed(n), ready = S.level >= need;
+    const hero = h('div', 'rbhero'), mul = h('div', 'rbmul num');
+    mul.append(h('span', null, `×${fmt(rebirthMul(n))}`), h('span', 'nx', `→ ×${fmt(rebirthMul(n + 1))}`));
+    hero.append(h('small', null, n ? `지금까지 ${n}번 환생했어요` : '아직 환생하지 않았어요'), mul, h('small', null, '모든 코인 · XP에 곱해지는 보너스'));
+    body.append(hero);
+    const box = h('div', 'rbneed' + (ready ? ' ready' : ''));
+    const line = h('span'); line.append(`환생 ${n + 1}번째 · 레벨 ${need} 필요`, h('b', 'num', `${Math.min(S.level, need)} / ${need}`));
+    const bar = h('span', 'upbar'), fill = h('i'); fill.style.width = (100 * Math.min(1, S.level / need)).toFixed(1) + '%'; bar.append(fill);
+    box.append(line, bar);
+    body.append(box);
+    const list = h('div', 'rblist'), lose = h('p', 'lose'), keep = h('p', 'keep');
+    lose.append(h('b', null, '처음으로'), '레벨 · XP · 코인 · 업그레이드');
+    keep.append(h('b', null, '그대로'), `능력 카드 ${S.inv.length}장 · 뽑은 장수`);
+    list.append(lose, keep);
+    body.append(list);
+    const go = h('button', 'rbgo' + (rbArm ? ' arm' : '')); go.type = 'button'; go.dataset.k = 'rb';
+    if (S.pending || S.offer) { go.disabled = true; go.append('카드 팩을 먼저 뜯어요'); }
+    else if (!ready) { go.disabled = true; go.append(pix('rebirth'), `레벨 ${need}부터 할 수 있어요`); }
+    else if (rbArm) go.append('정말 할까요? 한 번 더 눌러요');
+    else go.append(pix('rebirth'), '환생하기');
+    go.setAttribute('aria-label', go.textContent);
+    go.addEventListener('click', () => {
+      if (!rbArm) { rbArm = true; clearTimeout(rbTm); rbTm = setTimeout(() => { rbArm = false; if (open) render(); }, 3000); render(); return; }
+      rbArm = false; clearTimeout(rbTm);
+      if (rebirth()) render();
+    });
+    body.append(go, h('p', 'note', `그다음 환생은 레벨 ${rebirthNeed(n + 1)}부터예요`));
+  }
   // 창을 다시 그려도 키보드 초점은 같은 단추에 남아요 (그 단추가 없어지면 닫기 단추로)
   function render() {
     const a = document.activeElement, k = body.contains(a) ? a.dataset.k : '';
@@ -1390,6 +1568,7 @@ const Sheet = (() => {
   function build() {
     body.replaceChildren();
     if (mode === 'up') { renderUp(); return; }
+    if (mode === 'rb') { renderRb(); return; }
     title('bag', '인벤토리', S.inv.length);
     // 낀 카드 소켓 3칸
     body.append(sec('낀 카드', `${S.equip.filter(Boolean).length} / ${EQUIP_SLOTS}`, true));
@@ -1443,19 +1622,21 @@ const Sheet = (() => {
     }
     body.append(grid, h('p', 'foot', '같은 능력은 더해져요 · 빠른 손은 곱해서 줄어요'));
   }
-  // 업그레이드 창은 늘, 인벤토리 창은 가로 화면에서 옆 창이에요. 옆 창은 화면을 가리지 않아서 연 채로 덱을 눌러요
+  // 업그레이드 창은 늘, 인벤토리 · 환생 창은 가로 화면에서 옆 창이에요. 옆 창은 화면을 가리지 않아서 연 채로 덱을 눌러요
   const isSide = m => m === 'up' || land;
   function pressed() {
     $('upBtn').setAttribute('aria-pressed', String(open && mode === 'up'));
     $('invBtn').setAttribute('aria-pressed', String(open && mode === 'inv'));
+    $('rbBtn').setAttribute('aria-pressed', String(open && mode === 'rb'));
   }
   function show(m = 'inv', keep) {
     if (LvOv.open) return;
     if (open && mode === m && !keep) { close(); return; }   // 같은 단추를 한 번 더 누르면 닫혀요
-    mode = m; open = true; armed = 0;
+    mode = m; open = true; armed = 0; rbArm = false;
     wrap.classList.toggle('side', isSide(m));
     wrap.classList.toggle('wide', m === 'inv');
     wrap.querySelector('.sheet').classList.toggle('up', m === 'up');
+    wrap.querySelector('.sheet').classList.toggle('rb', m === 'rb');
     wrap.querySelector('.sheet').setAttribute('aria-modal', String(!isSide(m)));
     wrap.hidden = false; render(); aimDeck(); pressed();
     $('sheetClose').focus({ preventScroll: true, focusVisible: false });
@@ -1465,6 +1646,7 @@ const Sheet = (() => {
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
   $('upBtn').addEventListener('click', () => show('up'));
   $('invBtn').addEventListener('click', () => show('inv'));
+  $('rbBtn').addEventListener('click', () => show('rb'));
   return { show, close, render, get open() { return open; }, get mode() { return mode; }, get side() { return open && isSide(mode); } };
 })();
 
@@ -1510,15 +1692,17 @@ const LvOv = (() => {
     open = true; busy = false;
     const offer = S.offer, lv = S.level - S.pending;
     const best = Math.max(...offer.map(c => c.g)), glow = GRADES[best].color;
-    const row = h('div', 'reveal'), tip = h('p', null, '윗부분 점선을 손가락으로 쭉 밀어서 뜯어요');
-    const take = h('button', 'btn', '이 카드 받기'); take.type = 'button'; take.disabled = true; take.hidden = true;
+    const rays = h('i', 'lv-rays');
+    const row = h('div', 'reveal'), tip = h('p', null, '팩 위쪽 점선을 옆으로 쭉 밀어서 뜯어요');
+    const take = h('button', 'btn take', '이 카드 받기'); take.type = 'button'; take.disabled = true; take.hidden = true;
     let flipped = 0, sel = -1, selAt = 0;
     const items = offer.map((c, i) => {
       const G = GRADES[c.g], A = ABILITY[c.a];
       const back = mk(25, 35); back.className = 'backside'; back.getContext('2d').drawImage(backSprite(false), 0, 0);
       const front = cardArt(c); front.classList.add('front');
       const face = h('div', 'face'); face.append(back, front);
-      const lbl = h('div', 'lbl'); lbl.append(h('b', null, `${G.name} · ${A.name}`), h('small', null, cardText(c)));
+      const nm = h('b'); nm.append(h('i', 'gtag', G.name), ' ' + A.name);
+      const lbl = h('div', 'lbl'); lbl.append(nm, h('small', null, cardText(c)));
       const rv = h('button', 'rv'); rv.type = 'button';
       rv.style.setProperty('--gc', G.color); rv.style.visibility = 'hidden';
       rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
@@ -1580,10 +1764,10 @@ const LvOv = (() => {
     pack.setAttribute('aria-label', '카드 팩. 윗부분을 밀어서 뜯어요. 엔터를 누르면 자동으로 뜯어요');
     const cv = mk(PACK_W, PACK_H + PACK_TOP), g = cv.getContext('2d');
     const torn = Array(PACK_W).fill(false);
-    const hint = h('i', 'tear-hint');
-    pack.append(cv, hint);
+    const hint = h('i', 'tear-hint'), tearTip = h('span', 'tear-tip', '쭉 밀어요'), shine = h('i', 'pack-shine');
+    pack.append(cv, shine, hint, tearTip);
     drawPack(g, torn, false);
-    let tearing = false, lastCol = -1, opened = false, nudged = false;
+    let tearing = false, lastCol = -1, opened = false, nudged = false, byKey = false;
     const tornCount = () => torn.filter(Boolean).length;
     function colAt(e) { const r = cv.getBoundingClientRect(); return clamp(Math.floor((e.clientX - r.left) / r.width * PACK_W), 0, PACK_W - 1); }
     function nearTop(e) { const r = cv.getBoundingClientRect(); return (e.clientY - r.top) / r.height < (TEAR_Y + PACK_TOP + 7) / (PACK_H + PACK_TOP); }
@@ -1606,24 +1790,25 @@ const LvOv = (() => {
         return;
       }
       if (reduced()) { autoTear(); return; }
-      tearing = true; lastCol = -1; hint.hidden = true;
+      tearing = true; lastCol = -1; hint.hidden = true; tearTip.hidden = true; pack.classList.add('tearing');
       try { pack.setPointerCapture(e.pointerId); } catch (_) {}
       tearTo(colAt(e));
     });
     pack.addEventListener('pointermove', e => { if (tearing && !opened) tearTo(colAt(e)); });
-    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pack.addEventListener(ev, () => { tearing = false; lastCol = -1; });
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pack.addEventListener(ev, () => { tearing = false; lastCol = -1; pack.classList.remove('tearing'); });
     // 키보드: 엔터나 스페이스를 누르면 왼쪽부터 자동으로 뜯어요
     function autoTear() {
       if (opened || tearing) return;
-      tearing = true; hint.hidden = true;
+      tearing = true; hint.hidden = true; tearTip.hidden = true; pack.classList.add('tearing');
       let x = 0;
       const step = () => { if (opened) return; tearTo(x); x += 2; if (x < PACK_W) setTimeout(step, ms(22)); };
       step();
     }
-    pack.addEventListener('click', e => { if (e.detail === 0) autoTear(); });
+    pack.addEventListener('click', e => { if (e.detail === 0) { byKey = true; autoTear(); } });
     function finish(dir) {
       if (opened) return;
-      opened = true; tearing = false;
+      opened = true; tearing = false; pack.classList.add('opened'); tearTip.hidden = true;
+      rays.style.setProperty('--rc', glow);
       for (let x = 0; x < PACK_W; x++) torn[x] = true;
       Sound.tear();
       tip.textContent = '카드가 나와요…';
@@ -1663,11 +1848,11 @@ const LvOv = (() => {
       });
       // 마지막 카드가 다 올라오면 팩은 아래로 내려가며 사라져요
       const packGone = ms(2 * 230 + 900 * 0.42);
-      // 팩에 있던 키보드 초점은 첫 카드로 옮겨요
+      // 키보드로 뜯었으면 초점을 첫 카드로 옮겨요 (손가락 · 마우스로 뜯었으면 테두리가 고른 것처럼 보이지 않게 그냥 둬요)
       const dropPack = () => {
         const had = document.activeElement === pack;
         pack.remove();
-        if (had && open && !busy) items[0].rv.focus({ preventScroll: true });
+        if (had && byKey && open && !busy) items[0].rv.focus({ preventScroll: true });
       };
       pack.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(3rem) scale(.9)', opacity: 0 }], { duration: ms(450), delay: packGone, easing: 'ease-in', fill: 'forwards' })
         .onfinish = dropPack;
@@ -1679,8 +1864,17 @@ const LvOv = (() => {
 
     const acts = h('div', 'lv-acts'); acts.append(take);
     const stageBox = h('div', 'pack-stage'); stageBox.append(row, pack);
-    const title = h('h3'); title.append(pix('xp'), `레벨 ${lv}! 카드 팩을 뜯어 하나를 골라요`);
-    ov.replaceChildren(title, tip, stageBox, acts);
+    const title = h('h3'); title.append(pix('xp'), '레벨', h('b', 'num', String(lv)), '달성!', pix('xp'));
+    title.setAttribute('aria-label', `레벨 ${lv} 달성! 카드 팩을 뜯어 하나를 골라요`);
+    const motes = Array.from({ length: reduced() ? 0 : 14 }, (_, i) => {
+      const m = h('i', 'mote');
+      m.style.left = (4 + rnd() * 92).toFixed(1) + '%';
+      m.style.animationDuration = (5 + rnd() * 5).toFixed(1) + 's';
+      m.style.animationDelay = (-rnd() * 8).toFixed(1) + 's';
+      m.style.setProperty('--mc', ['#ffffff', '#ffd34d', '#c77dff', '#62b9ff'][i % 4]);
+      return m;
+    });
+    ov.replaceChildren(rays, ...motes, title, tip, stageBox, acts);
     ov.hidden = false;
     void ov.offsetWidth;
     ov.classList.add('in');
@@ -1727,7 +1921,8 @@ function start(data) {
   document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
   deckCv.getContext('2d').drawImage(backSprite(true), 0, 0);
-  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('sheetClose').replaceChildren(pix('close'));
+  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('rbBtn').prepend(pix('rebirth')); $('sheetClose').replaceChildren(pix('close'));
+  document.documentElement.style.setProperty('--ico-rb', `url(${iconSprite('rebirth').toDataURL()})`);
   $('tapHint').hidden = S.draws >= 3;
   refresh();
   if (S.xp >= xpNeed(S.level)) addXp(0);
