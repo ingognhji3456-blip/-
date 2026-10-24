@@ -161,7 +161,23 @@ button[disabled]{cursor:default}
 .reveal.has-sel .rv:not(.sel){opacity:.45; transform:scale(.94)}
 .rv.sel{transform:translateY(-.5rem) scale(1.04); background:rgba(255,200,61,.16); box-shadow:0 0 0 .18rem var(--gold)}
 .rv .face > .spark{position:absolute; inset:auto; left:50%; top:45%; width:.32rem; height:.32rem; margin:-.16rem 0 0 -.16rem; background:var(--gc); pointer-events:none; transition:none}
-.lv-acts{display:flex; gap:.6rem; transition:opacity .25s}
+.lv-acts{display:flex; gap:.6rem; transition:opacity .25s; min-height:2.2rem}
+/* 카드 팩: 카드 줄 위에 겹쳐 놓고, 카드는 팩 뒤에서 올라와요 */
+.pack-stage{position:relative; display:grid; place-items:center}
+.pack-stage .reveal{position:relative; z-index:1}
+.pack{position:absolute; left:50%; top:50%; width:7.5rem; height:11.5rem; margin:-5.75rem 0 0 -3.75rem; z-index:2; touch-action:none; cursor:grab;
+  filter:drop-shadow(0 .5rem .8rem rgba(0,0,0,.5))}
+.pack canvas{display:block; width:100%; height:100%; image-rendering:pixelated; pointer-events:none}
+.pack:not(.nudge) canvas{animation:packidle 2.4s 1s ease-in-out infinite}
+@keyframes packidle{0%,80%,100%{transform:none} 87%{transform:rotate(-2deg)} 94%{transform:rotate(2deg)}}
+.pack.nudge canvas{animation:nope .35s}
+.pack .tear-hint{position:absolute; top:calc(100% * 12 / 46); left:6%; width:.65rem; height:.65rem; margin-top:-.32rem; border-radius:50%; background:#fff;
+  box-shadow:0 0 .5rem #fff, 0 0 1rem var(--gold); pointer-events:none; animation:tearhint 1.5s ease-in-out .8s infinite both}
+@keyframes tearhint{0%{left:4%; opacity:0} 15%{opacity:1} 80%{opacity:1} 100%{left:90%; opacity:0}}
+.pack .pack-strip{position:absolute; left:0; top:calc(100% * 4 / 46); width:100%; height:calc(100% * 8 / 46); image-rendering:pixelated; pointer-events:none}
+.pack .pack-glow{position:absolute; left:8%; right:8%; top:calc(100% * 4 / 46 - 2.5rem); height:3rem; pointer-events:none; transform-origin:50% 100%;
+  background:radial-gradient(ellipse at 50% 100%, var(--gc) 0, transparent 70%); mix-blend-mode:screen}
+.pack > .spark{position:absolute; left:50%; top:calc(100% * 12 / 46); width:.32rem; height:.32rem; margin:-.16rem 0 0 -.16rem; pointer-events:none}
 /* 고른 카드만 아래 칸으로 날아가고 나머지는 사라져요 */
 .lv-ov.out::before{opacity:0}
 .lv-ov.out h3,.lv-ov.out p,.lv-ov.out .lv-acts,.lv-ov.out .rv:not(.sel){opacity:0; transition:opacity .25s}
@@ -231,15 +247,17 @@ button[disabled]{cursor:default}
 .sum span b{font-weight:400; color:#fff}
 .inv{display:grid; grid-template-columns:repeat(auto-fill,minmax(9rem,1fr)); gap:.4rem}
 .tile{position:relative; border-radius:.6rem; background:var(--panel-hi); border:.16rem solid var(--ink); box-shadow:0 .16rem 0 var(--ink)}
-.tile .tmain{width:100%; display:flex; align-items:center; gap:.45rem; padding:.4rem 1.9rem .4rem .4rem; text-align:left; border-radius:.55rem}
+.tile .tmain{width:100%; display:flex; align-items:center; gap:.45rem; padding:.4rem 2.3rem .4rem .4rem; text-align:left; border-radius:.55rem}
 .tile.on .tmain{padding-right:.4rem}
 .tile .art{width:2rem; --ae:.9rem}
 .tile .tt{min-width:0; display:flex; flex-direction:column; gap:.05rem; font-size:.64rem; color:var(--muted); line-height:1.3}
 .tile .tt b{font-weight:400; font-size:.74rem; color:var(--gc)}
 .tile.on{background:#4a3596; box-shadow:0 0 0 .18rem var(--gold), 0 .16rem 0 var(--ink)}
 .tile.on::after{content:"장착"; position:absolute; top:-.5rem; left:.5rem; font-size:.66rem; padding:0 .35rem; border-radius:.35rem; background:var(--gold); color:var(--ink); pointer-events:none}
-.tile .tdel{position:absolute; top:.3rem; right:.3rem; width:1.5rem; height:1.5rem; border-radius:.4rem; background:var(--ink-2); color:var(--dim); font-size:.72rem; display:grid; place-items:center}
-.tile .tdel.arm{width:auto; padding:0 .4rem; background:var(--red); color:#fff; font-size:.6rem}
+.tile .tdel{position:absolute; top:.25rem; right:.25rem; width:1.9rem; height:1.9rem; border-radius:.45rem; background:var(--ink-2); display:grid; place-items:center}
+.tile .tdel .pix{width:1.1rem; height:1.1rem; opacity:.75}
+.tile.arming{padding-bottom:1.9rem}
+.tile .tdel.arm{top:auto; bottom:.25rem; left:.25rem; width:auto; height:1.6rem; background:var(--red); color:#fff; font-size:.66rem}
 
 @media (prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01s !important; animation-iteration-count:1 !important; transition-duration:.01s !important}
@@ -467,6 +485,8 @@ const Sound = (() => {
     jackpot() { if (!ready()) return; arp([1047, 1319, 1568, 2093, 2637], 0.05, { vol: 0.06 }); },
     nope() { if (!ready()) return; tone(200, 0.12, { type:'triangle', vol: 0.07 }); },
     back() { if (!ready()) return; tone(1175, 0.06, { type:'triangle', vol: 0.06 }); tone(1568, 0.09, { type:'triangle', vol: 0.05, at: 0.05 }); },
+    rip(k) { if (!ready()) return; const n = performance.now(); if (n - lastFlick < 45) return; lastFlick = n; hiss(0.05, { vol: 0.16, freq: 1400 + 2600 * k, to: 3800 + 2600 * k, q: 0.6 }); },
+    tear() { if (!ready()) return; hiss(0.32, { vol: 0.26, freq: 900, to: 6500, q: 0.5 }); arp([988, 1319, 1760], 0.07, { type:'triangle', vol: 0.08, dur: 0.18 }); },
     equip() { if (!ready()) return; tone(660, 0.07, { vol: 0.07 }); tone(990, 0.1, { vol: 0.06, at: 0.06 }); },
     level() { if (!ready()) return; arp([523, 659, 784, 1047, 1319], 0.08, { vol: 0.07, dur: 0.16 }); },
   };
@@ -713,12 +733,60 @@ const ICON_DRAW = {
     '....KWWWK....',
     '....KWWWK....',
     '....KKKKK....'], 0, 1),
+  trash: g => pmap(g, [
+    '....KKKKK....',
+    '.KKKKKKKKKKK.',
+    '.KwwwwwwwwwK.',
+    '.KKKKKKKKKKK.',
+    '..KwWwWwWwK..',
+    '..KwWwWwWwK..',
+    '..KwWwWwWwK..',
+    '..KwWwWwWwK..',
+    '..KwWwWwWwK..',
+    '..KKKKKKKKK..'], 0, 1),
 };
 function iconSprite(id) {
   const key = 'i' + id;
   if (sprites.has(key)) return sprites.get(key);
   const cv = mk(13, 13); ICON_DRAW[id](cv.getContext('2d'));
   sprites.set(key, cv);
+  return cv;
+}
+// 레벨 보상 카드 팩: 위아래 톱니, 보라 포일, 금테 별 딱지. 윗부분(0~7줄)은 점선을 따라 뜯어요
+const PACK_W = 30, PACK_H = 42, PACK_TOP = 4, TEAR_Y = 8;
+function packPixel(x, y) {
+  if (y === 0 || y === PACK_H - 1) return x % 2 ? null : '#c9cde6';                     // 톱니
+  if (y <= 2 || y >= PACK_H - 3) return x % 2 ? '#9aa0c0' : '#c9cde6';                  // 접힌 띠
+  if (x === 0 || x === PACK_W - 1) return y === TEAR_Y ? null : INK;                     // 테두리 (점선 자리에 홈)
+  if (y === TEAR_Y) return x % 3 === 1 ? null : x % 3 ? '#ffffff' : '#e9dcff';          // 뜯는 점선
+  if (y >= 14 && y <= 31 && x >= 6 && x <= 23) {                                        // 별 딱지
+    if (y === 14 || y === 31 || x === 6 || x === 23) return '#ffd34d';
+    return null;
+  }
+  const band = Math.floor((y - 3) / 6) % 2, shine = (x + y) % 13 < 2;
+  return shine ? '#d9c2ff' : band ? '#8a46f0' : '#a456ff';
+}
+const PACK_STAR = starShape(14.5, 22.6, 6, 2.6);
+function drawPack(g, torn, opened, glow) {
+  g.clearRect(0, 0, PACK_W, PACK_H + PACK_TOP);
+  for (let y = 0; y < PACK_H; y++) for (let x = 0; x < PACK_W; x++) {
+    if (y < TEAR_Y && opened) continue;
+    let c = packPixel(x, y);
+    if (y >= 15 && y <= 30 && x >= 7 && x <= 22) c = PACK_STAR(x, y) ? (y < 21 && x < 15 ? '#fff6c2' : '#ffd34d') : '#22134a';
+    if (!c) continue;
+    const lift = y < TEAR_Y && torn[x] ? 2 : 0;   // 뜯긴 칸은 윗부분이 살짝 들려요
+    px(g, x, y + PACK_TOP - lift, c);
+  }
+  // 뜯긴 자리에는 하얀 종이 결이 보이고, 다 뜯으면 입구 안쪽이 빛나요
+  for (let x = 1; x < PACK_W - 1; x++) {
+    if (!(opened || torn[x])) continue;
+    px(g, x, TEAR_Y + PACK_TOP, x % 2 ? '#ffffff' : '#e9dcff');
+    if (opened) { px(g, x, TEAR_Y + PACK_TOP + 1, glow || '#ffffff'); px(g, x, TEAR_Y + PACK_TOP + 2, '#160a33'); }
+  }
+}
+function packStrip() {
+  const cv = mk(PACK_W, TEAR_Y), g = cv.getContext('2d');
+  for (let y = 0; y < TEAR_Y; y++) for (let x = 0; x < PACK_W; x++) { const c = packPixel(x, y); if (c) px(g, x, y, c); }
   return cv;
 }
 // 화면에 놓을 그림 한 개 (캔버스는 한 곳에만 붙일 수 있어서 매번 새로 복사해요)
@@ -1162,7 +1230,7 @@ const Sheet = (() => {
         ? `쿨타임 ${fmtSec(ST.cooldown)}초 → ${fmtSec(equipStats(equipped(), S.level, { ...S.up, cd: lv + 1 }).cooldown)}초`
         : `${U.text(lv)} → +${U.per * (lv + 1)}%`;
       tt.append(name, h('span', null, max ? `${U.text(lv)} · 최대` : next));
-      const buy = h('button', 'ubuy'); buy.type = 'button';
+      const buy = h('button', 'ubuy'); buy.type = 'button'; buy.dataset.k = 'u' + U.id;
       if (max) { buy.textContent = '최대'; buy.disabled = true; }
       else {
         buy.append(h('i', 'ico'), h('span', 'num', fmt(cost)));
@@ -1176,7 +1244,15 @@ const Sheet = (() => {
     }
     bumped = '';
   }
+  // 창을 다시 그려도 키보드 초점은 같은 단추에 남아요 (그 단추가 없어지면 닫기 단추로)
   function render() {
+    const a = document.activeElement, k = body.contains(a) ? a.dataset.k : '';
+    build();
+    if (!k) return;
+    const el = body.querySelector(`[data-k="${k}"]`);
+    (el && !el.disabled ? el : $('sheetClose')).focus({ preventScroll: true });
+  }
+  function build() {
     body.replaceChildren();
     if (mode === 'up') { renderUp(); return; }
     $('sheetTitle').replaceChildren(pix('bag'), `인벤토리 (${S.inv.length}장)`);
@@ -1185,7 +1261,7 @@ const Sheet = (() => {
     for (let i = 0; i < EQUIP_SLOTS; i++) {
       const c = cardById(S.equip[i]);
       if (!c) { row.append(h('div', 'eq empty', '빈 칸')); continue; }
-      const b = h('button', 'eq'); b.type = 'button'; b.style.setProperty('--gc', GRADES[c.g].color);
+      const b = h('button', 'eq'); b.type = 'button'; b.dataset.k = 'e' + c.id; b.style.setProperty('--gc', GRADES[c.g].color);
       b.append(cardArt(c), h('b', null, `${GRADES[c.g].name} ${ABILITY[c.a].name}`), h('span', null, cardText(c)));
       b.setAttribute('aria-label', `${GRADES[c.g].name} ${ABILITY[c.a].name} 빼기`);
       b.addEventListener('click', () => toggleEquip(c.id));
@@ -1198,21 +1274,22 @@ const Sheet = (() => {
     body.append(box);
     body.append(h('h3', null, '가진 카드'));
     if (!S.inv.length) { body.append(h('p', 'note', '레벨이 오르면 능력 카드 3장 중 하나를 골라 여기에 모아요.')); return; }
-    body.append(h('p', 'note', '카드를 누르면 끼거나 빼요. 같은 능력을 여러 장 끼면 더해져요.'));
+    body.append(h('p', 'note', '카드를 누르면 끼거나 빼요. 같은 능력을 여러 장 끼면 더해져요 (빠른 손은 곱해서 줄어요).'));
     const grid = h('div', 'inv');
     const order = [...S.inv].sort((a, b) => (S.equip.includes(b.id) - S.equip.includes(a.id)) || (b.g - a.g) || ABILITIES.indexOf(ABILITY[a.a]) - ABILITIES.indexOf(ABILITY[b.a]) || a.id - b.id);
     for (const c of order) {
       const on = S.equip.includes(c.id), G = GRADES[c.g], A = ABILITY[c.a];
-      const tile = h('div', 'tile' + (on ? ' on' : '')); tile.style.setProperty('--gc', G.color);
-      const main = h('button', 'tmain'); main.type = 'button';
+      const tile = h('div', 'tile' + (on ? ' on' : '') + (armed === c.id ? ' arming' : '')); tile.style.setProperty('--gc', G.color);
+      const main = h('button', 'tmain'); main.type = 'button'; main.dataset.k = 'm' + c.id;
       const tt = h('span', 'tt'); tt.append(h('b', null, `${G.name} ${A.name}`), cardText(c));
       main.append(cardArt(c), tt);
       main.setAttribute('aria-label', `${G.name} ${A.name}, ${cardText(c)}. ${on ? '빼기' : '끼기'}`);
       main.addEventListener('click', () => toggleEquip(c.id));
       tile.append(main);
       if (!on) {
-        const del = h('button', 'tdel' + (armed === c.id ? ' arm' : ''), armed === c.id ? '버릴까요?' : '🗑');
-        del.type = 'button'; del.setAttribute('aria-label', armed === c.id ? '한 번 더 누르면 버려요' : `${G.name} ${A.name} 버리기`);
+        const del = h('button', 'tdel' + (armed === c.id ? ' arm' : ''));
+        if (armed === c.id) del.textContent = '한 번 더 누르면 버려요'; else del.append(pix('trash'));
+        del.type = 'button'; del.dataset.k = 'd' + c.id; del.setAttribute('aria-label', armed === c.id ? '한 번 더 누르면 버려요' : `${G.name} ${A.name} 버리기`);
         del.addEventListener('click', () => {
           if (armed === c.id) { armed = 0; discard(c.id); return; }
           armed = c.id; clearTimeout(armTm); armTm = setTimeout(() => { armed = 0; if (open) render(); }, 3000); render();
@@ -1247,9 +1324,10 @@ const Sheet = (() => {
   return { show, close, render, get open() { return open; }, get mode() { return mode; }, get side() { return open && isSide(mode); } };
 })();
 
-/* ---------- 레벨 보상: 3장 중 1장 고르기 ---------- */
-// 화면이 서서히 어두워지고 → 덱에서 3장을 한 장씩 나눠 주고 → 차례로 들썩이며 뒤집혀요.
-// 고르면 그 카드가 아래 칸(칸이 다 찼으면 인벤토리 단추)으로 날아가 끼워져요
+/* ---------- 레벨 보상: 카드 팩을 뜯어 3장 중 1장 고르기 ---------- */
+// 화면이 서서히 어두워지고 카드 팩이 떨어져요 → 윗부분 점선을 손가락으로 밀어 직접 뜯어요 →
+// 입구에서 빛이 새고 카드 3장이 한 장씩 올라와 자리를 잡아요 → 차례로 뒤집혀요 → 하나를 고르면
+// 그 카드가 아래 칸(칸이 다 찼으면 인벤토리 단추)으로 날아가 끼워져요
 const LvOv = (() => {
   const ov = $('lvOv');
   let open = false, busy = false;
@@ -1267,12 +1345,11 @@ const LvOv = (() => {
       if (S.pending > 0) setTimeout(show, 350);
     }, ms(320));
   }
-  function sparkle(rv, color, n) {
-    const f = rv.querySelector('.face');
+  function sparkle(host, color, n, spread = 1) {
     for (let i = 0; i < n; i++) {
       const sp = h('i', 'spark'); sp.style.background = color;
-      f.append(sp);
-      const a = (i / n) * Math.PI * 2 + rnd() * 0.4, d = 40 + rnd() * 35;
+      host.append(sp);
+      const a = (i / n) * Math.PI * 2 + rnd() * 0.4, d = (40 + rnd() * 35) * spread;
       const an = sp.animate([{ transform: 'translate(0,0) scale(1)', opacity: 1 }, { transform: `translate(${Math.cos(a) * d}px,${Math.sin(a) * d}px) scale(.4)`, opacity: 0 }],
         { duration: 650 + rnd() * 250, easing: 'cubic-bezier(.2,.8,.3,1)' });
       an.onfinish = () => sp.remove();
@@ -1280,7 +1357,7 @@ const LvOv = (() => {
   }
   function show() {
     if (open) return;
-    // 고를 카드 3장은 나오는 순간 저장해요. 고르기 전에 닫았다 열어도 같은 3장이 다시 나와요
+    // 고를 카드 3장은 나오는 순간 저장해요. 뜯기 전에 닫았다 열어도 같은 3장이 다시 나와요
     if (!S.offer) {
       if (S.pending <= 0) return;
       S.pending--; S.offer = rollOffer(rnd); save();
@@ -1288,9 +1365,10 @@ const LvOv = (() => {
     Sheet.close();
     open = true; busy = false;
     const offer = S.offer, lv = S.level - S.pending;
-    const row = h('div', 'reveal'), tip = h('p', null, '카드를 나눠 주고 있어요…');
-    const take = h('button', 'btn', '이 카드 받기'); take.type = 'button'; take.disabled = true;
-    let flipped = 0, sel = -1;
+    const best = Math.max(...offer.map(c => c.g)), glow = GRADES[best].color;
+    const row = h('div', 'reveal'), tip = h('p', null, '윗부분 점선을 손가락으로 쭉 밀어서 뜯어요');
+    const take = h('button', 'btn', '이 카드 받기'); take.type = 'button'; take.disabled = true; take.hidden = true;
+    let flipped = 0, sel = -1, selAt = 0;
     const items = offer.map((c, i) => {
       const G = GRADES[c.g], A = ABILITY[c.a];
       const back = mk(25, 35); back.className = 'backside'; back.getContext('2d').drawImage(backSprite(false), 0, 0);
@@ -1298,35 +1376,38 @@ const LvOv = (() => {
       const face = h('div', 'face'); face.append(back, front);
       const lbl = h('div', 'lbl'); lbl.append(h('b', null, `${G.name} · ${A.name}`), h('small', null, cardText(c)));
       const rv = h('button', 'rv'); rv.type = 'button';
-      rv.style.setProperty('--gc', G.color);
+      rv.style.setProperty('--gc', G.color); rv.style.visibility = 'hidden';
       rv.setAttribute('aria-label', `${i + 1}번째 카드 뒤집기`);
       rv.append(face, lbl);
-      const it = { rv, c, open: false };
+      const it = { rv, c, open: false, out: false, at: 0 };
       rv.addEventListener('click', () => {
-        if (busy) return;
+        if (busy || !it.out) return;
         if (!it.open) { flip(it); return; }
-        if (sel === i) { choose(); return; }   // 고른 카드를 한 번 더 누르면 바로 받아요
+        // 뒤집히자마자, 고르자마자 한 번 더 눌린 건 연타로 보고 넘겨요 (모르고 받는 일을 막아요)
+        const now = performance.now();
+        if (now - it.at < 400) return;
+        if (sel === i) { if (now - selAt >= 400) choose(); return; }   // 고른 카드를 한 번 더 누르면 바로 받아요
         select(i);
       });
+      rv.addEventListener('keydown', e => { if (e.repeat) e.preventDefault(); });   // 엔터를 꾹 눌러 넘기지 않게
       row.append(rv);
       return it;
     });
     function flip(it) {
       if (it.open) return;
-      it.open = true; it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow');
+      it.open = true; it.at = performance.now(); it.rv.classList.add('open'); if (it.c.g >= 2) it.rv.classList.add('glow');
       it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}. 누르면 골라요`);
       Sound.flip(it.c.g);
-      if (it.c.g >= 2 && !reduced()) setTimeout(() => sparkle(it.rv, GRADES[it.c.g].color, 6 + it.c.g * 3), 260);
+      if (it.c.g >= 2 && !reduced()) setTimeout(() => sparkle(it.rv.querySelector('.face'), GRADES[it.c.g].color, 6 + it.c.g * 3), 260);
       if (++flipped === items.length && sel < 0) tip.textContent = '마음에 드는 카드를 하나 골라요';
     }
     function select(i) {
-      sel = i;
+      sel = i; selAt = performance.now();
       items.forEach((it, j) => it.rv.classList.toggle('sel', j === i));
       row.classList.add('has-sel');
       take.disabled = false;
-      const c = items[i].c, free = S.equip.indexOf(null);
+      const free = S.equip.indexOf(null);
       tip.textContent = free < 0 ? '칸이 다 찼어요. 받으면 인벤토리로 가요' : `받으면 ${free + 1}번 칸에 바로 껴요`;
-      take.textContent = '이 카드 받기';
     }
     function choose() {
       if (sel < 0 || busy) return;
@@ -1346,37 +1427,122 @@ const LvOv = (() => {
           { transform: `translate(${dx}px, ${dy}px) scale(${sc}) rotate(0deg)`, opacity: 0.35 },
         ], { duration: 620, easing: 'cubic-bezier(.55,0,.35,1)', fill: 'forwards' });
       }
-      setTimeout(() => {
-        S.offer = null;
-        takeCard(c);
-        Sound.equip();
-        close();
-      }, ms(600));
+      setTimeout(() => { S.offer = null; takeCard(c); Sound.equip(); close(); }, ms(600));
     }
     take.addEventListener('click', choose);
+
+    // ----- 카드 팩 -----
+    const pack = h('button', 'pack'); pack.type = 'button';
+    pack.setAttribute('aria-label', '카드 팩. 윗부분을 밀어서 뜯어요. 엔터를 누르면 자동으로 뜯어요');
+    const cv = mk(PACK_W, PACK_H + PACK_TOP), g = cv.getContext('2d');
+    const torn = Array(PACK_W).fill(false);
+    const hint = h('i', 'tear-hint');
+    pack.append(cv, hint);
+    drawPack(g, torn, false);
+    let tearing = false, lastCol = -1, opened = false, nudged = false;
+    const tornCount = () => torn.filter(Boolean).length;
+    function colAt(e) { const r = cv.getBoundingClientRect(); return clamp(Math.floor((e.clientX - r.left) / r.width * PACK_W), 0, PACK_W - 1); }
+    function nearTop(e) { const r = cv.getBoundingClientRect(); return (e.clientY - r.top) / r.height < (TEAR_Y + PACK_TOP + 7) / (PACK_H + PACK_TOP); }
+    function tearTo(col) {
+      const a = lastCol < 0 ? col : lastCol;
+      for (let x = Math.min(a, col); x <= Math.max(a, col); x++) torn[x] = true;
+      lastCol = col;
+      const k = tornCount() / PACK_W;
+      drawPack(g, torn, false);
+      Sound.rip(k);
+      if (k >= 0.8) finish(col < PACK_W / 2 ? -1 : 1);
+    }
+    pack.addEventListener('pointerdown', e => {
+      if (opened) return;
+      e.preventDefault();
+      Sound.ready(true);
+      if (!nearTop(e) && !reduced()) {   // 몸통을 누르면 뜯는 자리를 알려 줘요
+        pack.classList.remove('nudge'); void pack.offsetWidth; pack.classList.add('nudge');
+        if (!nudged) { nudged = true; tip.textContent = '맨 위 점선을 옆으로 쭉 밀어야 뜯어져요'; }
+        return;
+      }
+      if (reduced()) { autoTear(); return; }
+      tearing = true; lastCol = -1; hint.hidden = true;
+      try { pack.setPointerCapture(e.pointerId); } catch (_) {}
+      tearTo(colAt(e));
+    });
+    pack.addEventListener('pointermove', e => { if (tearing && !opened) tearTo(colAt(e)); });
+    for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) pack.addEventListener(ev, () => { tearing = false; lastCol = -1; });
+    // 키보드: 엔터나 스페이스를 누르면 왼쪽부터 자동으로 뜯어요
+    function autoTear() {
+      if (opened || tearing) return;
+      tearing = true; hint.hidden = true;
+      let x = 0;
+      const step = () => { if (opened) return; tearTo(x); x += 2; if (x < PACK_W) setTimeout(step, ms(22)); };
+      step();
+    }
+    pack.addEventListener('click', e => { if (e.detail === 0) autoTear(); });
+    function finish(dir) {
+      if (opened) return;
+      opened = true; tearing = false;
+      for (let x = 0; x < PACK_W; x++) torn[x] = true;
+      Sound.tear();
+      tip.textContent = '카드가 나와요…';
+      // 뜯긴 띠가 휙 날아가요
+      const strip = packStrip(); strip.className = 'pack-strip';
+      pack.append(strip);
+      drawPack(g, torn, true, glow);
+      if (!reduced()) {
+        strip.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dir * 2.5}rem, -4rem) rotate(${dir * 28}deg)`, opacity: 0 }],
+          { duration: 560, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' });
+        const light = h('i', 'pack-glow'); light.style.setProperty('--gc', glow); pack.append(light);
+        light.animate([{ opacity: 0, transform: 'scaleY(.3)' }, { opacity: 1, transform: 'scaleY(1)', offset: 0.35 }, { opacity: 0, transform: 'scaleY(1.3)' }], { duration: 1300, easing: 'ease-out', fill: 'forwards' });
+        sparkle(pack, glow, 10 + best * 4, 1.2);
+      } else strip.remove();
+      setTimeout(pull, ms(380));
+    }
+    // 카드 3장이 입구에서 한 장씩 올라와 자리를 잡아요 (팩 몸통에 가려서 안에서 나오는 것처럼 보여요)
+    function pull() {
+      const pr = cv.getBoundingClientRect();
+      const mouthY = pr.top + pr.height * (TEAR_Y + PACK_TOP + 1) / (PACK_H + PACK_TOP), cx = pr.left + pr.width / 2;
+      let lastEnd = 0;
+      items.forEach((it, i) => {
+        it.rv.style.visibility = '';
+        if (reduced()) { it.out = true; it.rv.classList.add('dealt'); return; }
+        const f = originAtFace(it.rv), sc = pr.width * 0.78 / f.width, ch = f.height * sc;
+        const dx = cx - (f.left + f.width / 2), fy = f.top + f.height / 2;
+        const inside = mouthY + ch * 0.56 - fy, above = mouthY - ch * 0.5 - pr.height * 0.12 - fy;
+        const delay = i * 230, dur = 900;
+        lastEnd = Math.max(lastEnd, delay + dur);
+        const a = it.rv.animate([
+          { transform: `translate(${dx}px, ${inside}px) scale(${sc})` },
+          { transform: `translate(${dx}px, ${above}px) scale(${sc}) rotate(${(i - 1) * 6}deg)`, offset: 0.42, easing: 'cubic-bezier(.3,.8,.4,1)' },
+          { transform: 'none' },
+        ], { duration: dur, delay, easing: 'cubic-bezier(.4,0,.2,1)', fill: 'backwards' });
+        setTimeout(() => Sound.flick(), delay + 80);
+        a.onfinish = () => { it.out = true; it.rv.style.transformOrigin = ''; it.rv.classList.add('dealt'); };
+      });
+      // 마지막 카드가 다 올라오면 팩은 아래로 내려가며 사라져요
+      const packGone = ms(2 * 230 + 900 * 0.42);
+      // 팩에 있던 키보드 초점은 첫 카드로 옮겨요
+      const dropPack = () => {
+        const had = document.activeElement === pack;
+        pack.remove();
+        if (had && open && !busy) items[0].rv.focus({ preventScroll: true });
+      };
+      pack.animate([{ transform: 'none', opacity: 1 }, { transform: 'translateY(3rem) scale(.9)', opacity: 0 }], { duration: ms(450), delay: packGone, easing: 'ease-in', fill: 'forwards' })
+        .onfinish = dropPack;
+      if (reduced()) dropPack();
+      take.hidden = false;
+      const firstFlip = ms(lastEnd + 150);
+      items.forEach((it, i) => setTimeout(() => { if (open && !busy && ov.contains(it.rv)) { it.out = true; flip(it); } }, firstFlip + i * ms(340)));
+    }
+
     const acts = h('div', 'lv-acts'); acts.append(take);
-    const title = h('h3'); title.append(pix('xp'), `레벨 ${lv}! 능력 카드 3장 중 하나를 골라요`);
-    ov.replaceChildren(title, tip, row, acts);
+    const stageBox = h('div', 'pack-stage'); stageBox.append(row, pack);
+    const title = h('h3'); title.append(pix('xp'), `레벨 ${lv}! 카드 팩을 뜯어 하나를 골라요`);
+    ov.replaceChildren(title, tip, stageBox, acts);
     ov.hidden = false;
     void ov.offsetWidth;
     ov.classList.add('in');
-    // 덱 맨 위 카드 자리에서 한 장씩 날아와 자리를 잡아요
-    const d = deckBtn.getBoundingClientRect(), dx0 = d.left + d.width / 2, dy0 = d.top + d.width * 0.7;
-    items.forEach((it, i) => {
-      const delay = 200 + i * 140;
-      if (reduced()) { it.rv.classList.add('dealt'); return; }
-      const f = originAtFace(it.rv), sc = d.width / f.width;
-      const a = it.rv.animate([
-        { transform: `translate(${dx0 - (f.left + f.width / 2)}px, ${dy0 - (f.top + f.height / 2)}px) scale(${sc}) rotate(${(i - 1) * 14}deg)`, opacity: 0 },
-        { opacity: 1, offset: 0.12 },
-        { transform: 'none', opacity: 1 },
-      ], { duration: 580, delay, easing: 'cubic-bezier(.2,.85,.3,1.12)', fill: 'backwards' });
-      a.onfinish = () => { it.rv.style.transformOrigin = ''; it.rv.classList.add('dealt'); };
-      setTimeout(() => Sound.flick(), delay);
-    });
-    const firstFlip = ms(200 + 2 * 140 + 580 + 180);
-    items.forEach((it, i) => setTimeout(() => { if (open && !busy && ov.contains(it.rv)) flip(it); }, firstFlip + i * ms(340)));
-    items[0].rv.focus({ preventScroll: true, focusVisible: false });
+    if (!reduced()) pack.animate([{ transform: 'translateY(-60vh) rotate(-8deg)' }, { transform: 'translateY(.4rem) rotate(2deg)', offset: 0.75 }, { transform: 'none' }],
+      { duration: 650, delay: 120, easing: 'cubic-bezier(.3,.9,.4,1)', fill: 'backwards' });
+    pack.focus({ preventScroll: true, focusVisible: false });
   }
   return { show, close, get open() { return open; } };
 })();
