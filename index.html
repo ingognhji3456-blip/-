@@ -177,6 +177,24 @@ button[disabled]{cursor:default}
 @keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
 .port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
 .port .sheet{width:100%; border-radius:1rem 1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
+/* 업그레이드 창: 왼쪽 가운데에 떠 있고, 바깥은 그대로 눌러져요 */
+.sheet-wrap.side,.port .sheet-wrap.side{place-items:center start; background:none; pointer-events:none;
+  padding:calc(4.5rem + var(--safe-t)) 0 calc(5rem + var(--safe-b)) calc(.8rem + var(--safe-l))}
+.sheet-wrap.side .sheet,.port .sheet-wrap.side .sheet{pointer-events:auto; width:min(19rem, calc(100vw - 1.6rem)); max-height:100%; border-radius:1rem; padding-bottom:0;
+  animation:slin .25s cubic-bezier(.2,.9,.3,1.1); box-shadow:inset 0 .18rem 0 var(--panel-hi), 0 .3rem 0 var(--ink), 0 .6rem 1.6rem rgba(0,0,0,.45)}
+.port .sheet-wrap.side .sheet{width:min(10.2rem, calc(100vw - 1.6rem))}
+@keyframes slin{from{opacity:0; transform:translateX(-1.5rem)}}
+.side .sbody{padding:.5rem .6rem .7rem; gap:.45rem}
+.side .uprow{gap:.45rem; padding:.4rem .45rem}
+.side .uprow .ui{width:1.9rem; height:1.9rem}
+.side .uprow .ui .pix{width:1.3rem; height:1.3rem}
+.side .ubuy{min-width:3.8rem; height:1.9rem; padding:0 .45rem}
+.port .side .note{display:none}
+.port .side .uprow{display:grid; grid-template-columns:auto 1fr; gap:.3rem .4rem}
+.port .side .uprow .ubuy{grid-column:1 / -1; width:100%; min-width:0}
+.port .side .uprow .ut{font-size:.6rem}
+.port .side .uprow .ut b{font-size:.74rem}
+.port .side .sheet header h2{font-size:.86rem}
 .sheet header{flex:none; display:flex; align-items:center; gap:.6rem; padding:.45rem .6rem .4rem .9rem; background:var(--panel-lo)}
 .sheet header h2{flex:1; margin:0; font-weight:400; font-size:1rem; text-shadow:var(--ol-s)}
 .x{width:1.8rem; height:1.8rem; display:grid; place-items:center; font-size:.85rem; flex:none; border-radius:.7rem; background:var(--red); border:.15rem solid var(--ink); box-shadow:inset 0 -.25rem 0 #b81b33, 0 .18rem 0 var(--ink)}
@@ -727,15 +745,35 @@ function layout() {
   // 덱은 화면 높이의 30%쯤(세로 화면은 25%). 픽셀 크기는 기기 픽셀 단위로 맞춰 또렷하게 그려요
   const want = Math.min(avail * 0.7 / 39, (land ? W * 0.16 : W * 0.34) / 25, H * (land ? 0.3 : 0.25) / 39);
   ps = Math.max(1.5, Math.floor(want * DPR) / DPR);
-  deckW = 25 * ps; deckH = 39 * ps; deckX = W / 2; deckY = top + avail / 2;
+  deckW = 25 * ps; deckH = 39 * ps; deckY = top + avail / 2;
+  placeDeck();
+  for (const cv of [backCv, fxCv]) { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
+  bgLayout();
+  if (typeof Sheet !== 'undefined') aimDeck();
+}
+// 세로 화면에서 왼쪽 업그레이드 창이 열리면 덱이 오른쪽으로 살짝 비켜나요
+let deckShift = 0, deckShiftTo = 0;
+function placeDeck() {
+  deckX = W / 2 + deckShift;
   const snap = v => Math.round(v * DPR) / DPR;
   Object.assign(deckBtn.style, { left: snap(deckX - deckW / 2) + 'px', top: snap(deckY - deckH / 2) + 'px', width: deckW + 'px', height: deckH + 'px' });
   const hint = $('tapHint'); hint.style.left = deckX + 'px'; hint.style.top = (deckY + deckH / 2 + 0.6 * REM) + 'px';
   // 쿨타임 동그라미는 덱 크기에 맞춰요 (너비의 40%쯤)
   const cs = clamp(deckW * 0.4, 24, 2.4 * REM);
   const cd = $('cd'); cd.style.setProperty('--cs', cs + 'px'); cd.style.left = (deckX + deckW / 2 - cs * 0.1) + 'px'; cd.style.top = (deckY - deckH / 2 + cs * 0.2) + 'px';
-  for (const cv of [backCv, fxCv]) { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
-  bgLayout();
+}
+function aimDeck() {
+  deckShiftTo = 0;
+  if (!land && Sheet.open && Sheet.mode === 'up') {
+    // 미끄러져 들어오는 움직임과 상관없이 창의 실제 오른쪽 끝을 재요
+    const sh = $('sheetWrap').querySelector('.sheet'), right = sh.offsetLeft + sh.offsetWidth;
+    deckShiftTo = clamp(right + 0.5 * REM - (W / 2 - deckW / 2), 0, W / 2 - deckW / 2 - 0.5 * REM);
+  }
+}
+function stepDeck(dt) {
+  if (Math.abs(deckShiftTo - deckShift) < 0.5) { if (deckShift !== deckShiftTo) { deckShift = deckShiftTo; placeDeck(); } return; }
+  deckShift += (deckShiftTo - deckShift) * Math.min(1, dt * (reduced() ? 60 : 10));
+  placeDeck();
 }
 
 /* ---------- 배경 ---------- */
@@ -925,12 +963,13 @@ let ST = equipStats([], 1);
 function refresh() {
   ST = equipStats(equipped(), S.level, S.up);
   paintTop(); paintEquip(); paintXp();
-  if (Sheet.open) Sheet.render();
+  if (Sheet.open && Sheet.mode !== 'up') Sheet.render();
 }
 // 지금 코인으로 살 수 있는 업그레이드가 있는지
 const canUpgrade = () => UPGRADES.some(U => S.up[U.id] < U.max && S.coins >= upCost(U, S.up[U.id]));
 function paintTop() {
   $('coins').textContent = fmt(S.coins);
+  if (Sheet.open && Sheet.mode === 'up') Sheet.render();
   const dot = $('upDot'); if (dot) dot.hidden = !canUpgrade();
   const b = $('bonus');
   b.hidden = !(ST.coinPct || ST.xpPct);
@@ -1038,7 +1077,7 @@ function drawCards() {
   paintTop(); paintXp();
 }
 function draw() {
-  if (LvOv.open || Sheet.open) return;
+  if (LvOv.open || (Sheet.open && Sheet.mode !== 'up')) return;
   if (cooldownLeft() > 0) { deny(); return; }
   cdLen = ST.cooldown; cdEnd = performance.now() + cdLen * 1000; cdShown = true;
   $('cd').hidden = false; deckBtn.classList.add('cooling'); deckBtn.setAttribute('aria-label', '쿨타임 중이에요');
@@ -1185,13 +1224,18 @@ const Sheet = (() => {
   }
   function show(m = 'inv') {
     if (LvOv.open) return;
-    mode = m; open = true; armed = 0; wrap.hidden = false; render();
-    $('sheetClose').focus({ preventScroll: true });
+    if (open && mode === m && m === 'up') { close(); return; }   // 업그레이드 단추를 한 번 더 누르면 닫혀요
+    mode = m; open = true; armed = 0;
+    // 업그레이드 창은 화면을 가리지 않아서, 연 채로 덱을 눌러 코인을 모을 수 있어요
+    wrap.classList.toggle('side', m === 'up');
+    wrap.querySelector('.sheet').setAttribute('aria-modal', String(m !== 'up'));
+    wrap.hidden = false; render(); aimDeck();
+    $('sheetClose').focus({ preventScroll: true, focusVisible: false });
   }
-  function close() { if (!open) return; open = false; wrap.hidden = true; save(); }
+  function close() { if (!open) return; open = false; wrap.hidden = true; aimDeck(); save(); }
   $('sheetClose').addEventListener('click', close);
   wrap.addEventListener('pointerdown', e => { if (e.target === wrap) close(); });
-  return { show, close, render, get open() { return open; } };
+  return { show, close, render, get open() { return open; }, get mode() { return mode; } };
 })();
 
 /* ---------- 레벨 보상: 3장 중 1장 고르기 ---------- */
@@ -1347,6 +1391,7 @@ function frame(t) {
   const dt = Math.min((t - last) / 1000, 0.1); last = t;
   simT += dt;
   paintCooldown();
+  stepDeck(dt);
   stepFx(dt);
   bgDraw(simT, dt);
   renderFx();
