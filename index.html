@@ -163,10 +163,14 @@ button[disabled]{cursor:default}
 .lv-ov.in h3{animation:drop .5s .1s cubic-bezier(.2,.9,.3,1.25) both}
 @keyframes drop{from{opacity:0; transform:translateY(-1.2rem) scale(.92)} to{opacity:1}}
 .lv-ov p{margin:0; padding:.12rem .7rem .16rem; border-radius:1rem; background:rgba(14,6,36,.55); font-size:.72rem; color:var(--muted); text-align:center; min-height:1.15rem; transition:opacity .25s}
-.reveal{display:flex; justify-content:center; gap:.9rem}
-.rv{width:6rem; display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
+/* 카드 줄: 카드가 4 · 5장이면 조금 작게, 세로 화면의 5장은 3 + 2 두 줄로 */
+.reveal{--cw:6rem; display:flex; flex-wrap:wrap; justify-content:center; gap:.9rem}
+.reveal.n4,.reveal.n5{--cw:5.4rem; gap:.7rem}
+.port .reveal.n4{--cw:4.9rem; gap:.45rem}
+.port .reveal.n5{--cw:5.2rem; gap:.6rem .5rem; max-width:calc(3 * 5.2rem + 2 * .5rem)}
+.rv{width:var(--cw); display:flex; flex-direction:column; align-items:center; gap:.4rem; text-align:center; border-radius:.8rem; padding:.3rem .2rem .2rem;
   transition:transform .28s cubic-bezier(.3,1.4,.5,1), opacity .25s, background .2s, box-shadow .2s}
-.rv .face{width:5.6rem; height:7.84rem; position:relative; perspective:30rem; transition:filter .5s}
+.rv .face{width:calc(var(--cw) - .4rem); height:calc((var(--cw) - .4rem) * 1.4); position:relative; perspective:30rem; transition:filter .5s}
 .rv .face > *{position:absolute; inset:0; width:100%; height:100%; -webkit-backface-visibility:hidden; backface-visibility:hidden; transition:transform .5s cubic-bezier(.45,.05,.25,1)}
 .rv .face canvas{display:block; width:100%; height:100%; image-rendering:pixelated}
 .rv .face .front{transform:rotateY(180deg); --ae:2.3rem; overflow:hidden}
@@ -212,6 +216,11 @@ button[disabled]{cursor:default}
   background:radial-gradient(closest-side, rgba(0,0,0,.55), transparent); animation:packshadow 2.6s ease-in-out infinite}
 .pack.tearing::after,.pack.opened::after{animation-play-state:paused}
 @keyframes packshadow{0%,100%{transform:scale(1); opacity:1} 50%{transform:scale(.85); opacity:.7}}
+/* 팩 이름표(아래 톱니 위)와, 전설 · 신화 팩의 빛 */
+.pack .pack-tag{position:absolute; left:50%; bottom:-.5rem; transform:translateX(-50%); white-space:nowrap; padding:.04rem .5rem .08rem; border-radius:.5rem;
+  font-size:.66rem; line-height:1.4; color:var(--ink); background:var(--pc); border:.12rem solid var(--ink); box-shadow:0 .14rem 0 var(--ink); pointer-events:none}
+.pack.opened .pack-tag{opacity:0; transition:opacity .3s}
+.pack.t3,.pack.t4{filter:drop-shadow(0 .5rem .8rem rgba(0,0,0,.5)) drop-shadow(0 0 .9rem var(--pc))}
 .pack .pack-shine{position:absolute; left:3.4%; right:3.4%; top:calc(100% * 7 / 46); bottom:calc(100% * 3 / 46); overflow:hidden; pointer-events:none}
 .pack .pack-shine::before{content:""; position:absolute; top:-20%; bottom:-20%; width:35%; left:-50%; transform:skewX(-18deg);
   background:linear-gradient(90deg, transparent, rgba(255,255,255,.45), transparent); animation:packshine 3.2s 1.2s ease-in-out infinite}
@@ -486,7 +495,6 @@ const xpNeed = L => Math.floor(3 + 2 * (L - 1) + 0.5 * (L - 1) ** 2);
 const DRAW_COOLDOWN = 5;
 const MIN_COOLDOWN = 0.5;
 // 레벨이 오르면 서로 다른 능력 카드 3장 중에 1장을 골라요. 낄 수 있는 칸은 3개예요
-const LEVEL_CARDS = 3;
 const EQUIP_SLOTS = 3;
 const GRADES = [
   { name:'일반', chance:55, color:'#dfe2f5' },
@@ -518,10 +526,26 @@ const ABILITIES = [
 ];
 const ABILITY = Object.fromEntries(ABILITIES.map(A => [A.id, A]));
 const cardText = c => ABILITY[c.a].text(ABILITY[c.a].v[c.g]);
-// 서로 다른 능력 3장, 등급은 장마다 따로
-function rollOffer(rnd) {
-  const pool = ABILITIES.map(A => A.id), out = [];
-  while (out.length < LEVEL_CARDS && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: rollGrade(rnd) });
+// 카드 팩 등급: 레벨이 오를 때마다 팩 하나. g는 GRADES 번호예요(희귀 1 · 영웅 2 · 전설 3 · 신화 4).
+// 등급이 높을수록 카드가 많고(3 → 4 → 4 → 5장 중 1장), min은 모든 카드의 최소 등급, sure는 이 등급 이상 카드가 한 장은 꼭 들어 있다는 뜻
+const PACKS = [
+  { g:1, chance:72,  cards:3, min:0, sure:0 },
+  { g:2, chance:20,  cards:4, min:0, sure:0 },
+  { g:3, chance:6.5, cards:4, min:1, sure:2 },
+  { g:4, chance:1.5, cards:5, min:2, sure:3 },
+];
+const PACK = Object.fromEntries(PACKS.map(P => [P.g, P]));
+const PACK_MILESTONE = 5;   // 5레벨마다 영웅 팩 이상
+function rollPack(rnd, level) {
+  let x = rnd() * 100, g = PACKS[0].g;
+  for (const P of PACKS) { x -= P.chance; if (x < 0) { g = P.g; break; } }
+  return level % PACK_MILESTONE === 0 ? Math.max(g, 2) : g;
+}
+// 서로 다른 능력으로 팩 크기만큼, 등급은 장마다 따로 (팩의 최소 등급 · 꼭 들어가는 등급을 지켜요)
+function rollOffer(rnd, packG = 1) {
+  const P = PACK[packG] || PACKS[0], pool = ABILITIES.map(A => A.id), out = [];
+  while (out.length < P.cards && pool.length) out.push({ a: pool.splice(Math.floor(rnd() * pool.length), 1)[0], g: Math.max(P.min, rollGrade(rnd)) });
+  if (P.sure && !out.some(c => c.g >= P.sure)) out[Math.floor(rnd() * out.length)].g = P.sure;
   return out;
 }
 // 코인 업그레이드: 단계마다 per만큼 세지고, 살 때마다 값이 grow배씩 올라요 (처음엔 싸요)
@@ -593,7 +617,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, pending:0, offer:null, pack:1, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -608,7 +632,11 @@ function revive(raw) {
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
   if (raw.pending >= 0) S.pending = Math.floor(raw.pending);
-  if (Array.isArray(raw.offer) && raw.offer.length === LEVEL_CARDS && raw.offer.every(okCard)) S.offer = raw.offer.map(c => ({ a: c.a, g: c.g }));
+  // 아직 안 뜯은 팩: 예전 판의 3장짜리는 희귀 팩이에요
+  if (Array.isArray(raw.offer) && raw.offer.length >= 3 && raw.offer.length <= 5 && raw.offer.every(okCard)) {
+    S.offer = raw.offer.map(c => ({ a: c.a, g: c.g }));
+    S.pack = PACK[raw.pack] && PACK[raw.pack].cards === S.offer.length ? raw.pack : (PACKS.find(P => P.cards === S.offer.length) || PACKS[0]).g;
+  }
   if (Array.isArray(raw.inv)) for (const c of raw.inv) if (okCard(c) && Number.isInteger(c.id) && !S.inv.some(x => x.id === c.id)) S.inv.push({ id: c.id, a: c.a, g: c.g });
   if (raw.v === 2 && raw.cards && typeof raw.cards === 'object') {
     for (const [old, row] of Object.entries(raw.cards)) if (OLD_ABILITY[old] && Array.isArray(row))
@@ -980,24 +1008,31 @@ function iconSprite(id) {
 }
 // 레벨 보상 카드 팩: 위아래 톱니, 보라 포일, 금테 별 딱지. 윗부분(0~7줄)은 점선을 따라 뜯어요
 const PACK_W = 30, PACK_H = 42, PACK_TOP = 4, TEAR_Y = 8;
-function packPixel(x, y) {
+// 팩 포일 색: 희귀 파랑 · 영웅 보라 · 전설 금색 · 신화 분홍 (a 밝은 띠, b 어두운 띠, s 반짝이, seal 딱지 테두리)
+const PACK_PAL = {
+  1: { a:'#4fb0ff', b:'#2f8ee6', s:'#c4ecff', seal:'#ffd34d' },
+  2: { a:'#a456ff', b:'#8a46f0', s:'#d9c2ff', seal:'#ffd34d' },
+  3: { a:'#ffc23d', b:'#f0a21f', s:'#fff2b8', seal:'#ffffff' },
+  4: { a:'#ff79d9', b:'#e64fc0', s:'#ffd6f3', seal:'#ffd34d' },
+};
+function packPixel(x, y, pal = PACK_PAL[2]) {
   if (y === 0 || y === PACK_H - 1) return x % 2 ? null : '#c9cde6';                     // 톱니
   if (y <= 2 || y >= PACK_H - 3) return x % 2 ? '#9aa0c0' : '#c9cde6';                  // 접힌 띠
   if (x === 0 || x === PACK_W - 1) return y === TEAR_Y ? null : INK;                     // 테두리 (점선 자리에 홈)
   if (y === TEAR_Y) return x % 3 === 1 ? null : x % 3 ? '#ffffff' : '#e9dcff';          // 뜯는 점선
   if (y >= 14 && y <= 31 && x >= 6 && x <= 23) {                                        // 별 딱지
-    if (y === 14 || y === 31 || x === 6 || x === 23) return '#ffd34d';
+    if (y === 14 || y === 31 || x === 6 || x === 23) return pal.seal;
     return null;
   }
   const band = Math.floor((y - 3) / 6) % 2, shine = (x + y) % 13 < 2;
-  return shine ? '#d9c2ff' : band ? '#8a46f0' : '#a456ff';
+  return shine ? pal.s : band ? pal.b : pal.a;
 }
 const PACK_STAR = starShape(14.5, 22.6, 6, 2.6);
-function drawPack(g, torn, opened, glow) {
+function drawPack(g, torn, opened, glow, pal) {
   g.clearRect(0, 0, PACK_W, PACK_H + PACK_TOP);
   for (let y = 0; y < PACK_H; y++) for (let x = 0; x < PACK_W; x++) {
     if (y < TEAR_Y && opened) continue;
-    let c = packPixel(x, y);
+    let c = packPixel(x, y, pal);
     if (y >= 15 && y <= 30 && x >= 7 && x <= 22) c = PACK_STAR(x, y) ? (y < 21 && x < 15 ? '#fff6c2' : '#ffd34d') : '#22134a';
     if (!c) continue;
     const lift = y < TEAR_Y && torn[x] ? 2 : 0;   // 뜯긴 칸은 윗부분이 살짝 들려요
@@ -1010,9 +1045,9 @@ function drawPack(g, torn, opened, glow) {
     if (opened) { px(g, x, TEAR_Y + PACK_TOP + 1, glow || '#ffffff'); px(g, x, TEAR_Y + PACK_TOP + 2, '#160a33'); }
   }
 }
-function packStrip() {
+function packStrip(pal) {
   const cv = mk(PACK_W, TEAR_Y), g = cv.getContext('2d');
-  for (let y = 0; y < TEAR_Y; y++) for (let x = 0; x < PACK_W; x++) { const c = packPixel(x, y); if (c) px(g, x, y, c); }
+  for (let y = 0; y < TEAR_Y; y++) for (let x = 0; x < PACK_W; x++) { const c = packPixel(x, y, pal); if (c) px(g, x, y, c); }
   return cv;
 }
 // 화면에 놓을 그림 한 개 (캔버스는 한 곳에만 붙일 수 있어서 매번 새로 복사해요)
@@ -1683,17 +1718,19 @@ const LvOv = (() => {
   }
   function show() {
     if (open) return;
-    // 고를 카드 3장은 나오는 순간 저장해요. 뜯기 전에 닫았다 열어도 같은 3장이 다시 나와요
+    // 팩 등급과 안에 든 카드는 나오는 순간 저장해요. 뜯기 전에 닫았다 열어도 같은 팩이 다시 나와요
     if (!S.offer) {
       if (S.pending <= 0) return;
-      S.pending--; S.offer = rollOffer(rnd); save();
+      S.pending--;
+      S.pack = rollPack(rnd, S.level - S.pending); S.offer = rollOffer(rnd, S.pack); save();
     }
     Sheet.close();
     open = true; busy = false;
     const offer = S.offer, lv = S.level - S.pending;
+    const P = PACK[S.pack] || PACKS[0], PG = GRADES[P.g], pal = PACK_PAL[P.g];
     const best = Math.max(...offer.map(c => c.g)), glow = GRADES[best].color;
-    const rays = h('i', 'lv-rays');
-    const row = h('div', 'reveal'), tip = h('p', null, '팩 위쪽 점선을 옆으로 쭉 밀어서 뜯어요');
+    const rays = h('i', 'lv-rays'); rays.style.setProperty('--rc', PG.color);
+    const row = h('div', `reveal n${offer.length}`), tip = h('p', null, `${PG.name} 팩이에요! 위쪽 점선을 쭉 밀어서 뜯어요`);
     const take = h('button', 'btn take', '이 카드 받기'); take.type = 'button'; take.disabled = true; take.hidden = true;
     let flipped = 0, sel = -1, selAt = 0;
     const items = offer.map((c, i) => {
@@ -1727,7 +1764,7 @@ const LvOv = (() => {
       it.rv.setAttribute('aria-label', `${GRADES[it.c.g].name} ${ABILITY[it.c.a].name}: ${cardText(it.c)}. 누르면 골라요`);
       Sound.flip(it.c.g);
       if (it.c.g >= 2 && !reduced()) setTimeout(() => sparkle(it.rv.querySelector('.face'), GRADES[it.c.g].color, 6 + it.c.g * 3), 260);
-      if (++flipped === items.length && sel < 0) tip.textContent = '마음에 드는 카드를 하나 골라요';
+      if (++flipped === items.length && sel < 0) tip.textContent = `${items.length}장 중 마음에 드는 카드를 하나 골라요`;
     }
     function select(i) {
       sel = i; selAt = performance.now();
@@ -1760,13 +1797,14 @@ const LvOv = (() => {
     take.addEventListener('click', choose);
 
     // ----- 카드 팩 -----
-    const pack = h('button', 'pack'); pack.type = 'button';
-    pack.setAttribute('aria-label', '카드 팩. 윗부분을 밀어서 뜯어요. 엔터를 누르면 자동으로 뜯어요');
+    const pack = h('button', `pack t${P.g}`); pack.type = 'button'; pack.style.setProperty('--pc', PG.color);
+    pack.setAttribute('aria-label', `${PG.name} 카드 팩, ${P.cards}장 중 1장. 윗부분을 밀어서 뜯어요. 엔터를 누르면 자동으로 뜯어요`);
     const cv = mk(PACK_W, PACK_H + PACK_TOP), g = cv.getContext('2d');
     const torn = Array(PACK_W).fill(false);
     const hint = h('i', 'tear-hint'), tearTip = h('span', 'tear-tip', '쭉 밀어요'), shine = h('i', 'pack-shine');
-    pack.append(cv, shine, hint, tearTip);
-    drawPack(g, torn, false);
+    const tag = h('span', 'pack-tag', `${PG.name} 팩 · ${P.cards}장`);
+    pack.append(cv, shine, hint, tearTip, tag);
+    drawPack(g, torn, false, null, pal);
     let tearing = false, lastCol = -1, opened = false, nudged = false, byKey = false;
     const tornCount = () => torn.filter(Boolean).length;
     function colAt(e) { const r = cv.getBoundingClientRect(); return clamp(Math.floor((e.clientX - r.left) / r.width * PACK_W), 0, PACK_W - 1); }
@@ -1776,7 +1814,7 @@ const LvOv = (() => {
       for (let x = Math.min(a, col); x <= Math.max(a, col); x++) torn[x] = true;
       lastCol = col;
       const k = tornCount() / PACK_W;
-      drawPack(g, torn, false);
+      drawPack(g, torn, false, null, pal);
       Sound.rip(k);
       if (k >= 0.8) finish(col < PACK_W / 2 ? -1 : 1);
     }
@@ -1813,9 +1851,9 @@ const LvOv = (() => {
       Sound.tear();
       tip.textContent = '카드가 나와요…';
       // 뜯긴 띠가 휙 날아가요
-      const strip = packStrip(); strip.className = 'pack-strip';
+      const strip = packStrip(pal); strip.className = 'pack-strip';
       pack.append(strip);
-      drawPack(g, torn, true, glow);
+      drawPack(g, torn, true, glow, pal);
       if (!reduced()) {
         strip.animate([{ transform: 'none', opacity: 1 }, { transform: `translate(${dir * 2.5}rem, -4rem) rotate(${dir * 28}deg)`, opacity: 0 }],
           { duration: 560, easing: 'cubic-bezier(.2,.7,.4,1)', fill: 'forwards' });
@@ -1881,6 +1919,8 @@ const LvOv = (() => {
     if (!reduced()) pack.animate([{ transform: 'translateY(-60vh) rotate(-8deg)' }, { transform: 'translateY(.4rem) rotate(2deg)', offset: 0.75 }, { transform: 'none' }],
       { duration: 650, delay: 120, easing: 'cubic-bezier(.3,.9,.4,1)', fill: 'backwards' });
     pack.focus({ preventScroll: true, focusVisible: false });
+    // 전설 · 신화 팩은 떨어질 때부터 반짝이가 튀고 소리가 나요
+    if (P.g >= 3 && !reduced()) setTimeout(() => { if (open && !opened) { sparkle(pack, PG.color, 12 + 4 * P.g, 1.4); Sound.jackpot(); } }, 650);
   }
   return { show, close, get open() { return open; } };
 })();
