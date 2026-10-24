@@ -102,6 +102,7 @@ button[disabled]{cursor:default}
 .mbtn.bagbtn{--c:#ffae35; --lo:#e07b00}
 .mbtn.rbbtn{--c:#b46cff; --lo:#7d38cc}
 .mbtn.pkbtn{--c:#ff79d9; --lo:#c9409f}
+.mbtn.dexbtn{--c:#3fb9ff; --lo:#1f7fcc}
 .mbtn.pkbtn.has .pix{animation:pkwob 1.8s ease-in-out infinite}
 @keyframes pkwob{0%,70%,100%{transform:none} 80%{transform:rotate(-10deg) scale(1.08)} 90%{transform:rotate(8deg) scale(1.08)}}
 .mbtn.pop{animation:pop .4s}
@@ -281,13 +282,38 @@ button[disabled]{cursor:default}
 .sheet.up{--acc:#38d064; --acc-lo:#1f9a42}
 .sheet.rb{--acc:#b46cff; --acc-lo:#7d38cc}
 .sheet.pk{--acc:#ff79d9; --acc-lo:#c9409f}
+.sheet.dx{--acc:#3fb9ff; --acc-lo:#1f7fcc}
+/* 도감 */
+.dexhero{display:flex; flex-direction:column; align-items:center; gap:.1rem; padding:.45rem .6rem; border-radius:.7rem; background:rgba(14,6,36,.5); text-align:center}
+.dexhero b{font-weight:400; font-size:1.6rem; line-height:1.05; color:#8fd8ff; text-shadow:var(--ol-s)}
+.dexhero small{font-size:.58rem; color:var(--muted)}
+.dtabs,.dkinds{display:flex; gap:.3rem}
+.dtab,.dkind{flex:1 1 0; min-width:0; display:flex; flex-direction:column; align-items:center; gap:.05rem; padding:.3rem .2rem; border-radius:.55rem;
+  background:rgba(14,6,36,.45); color:var(--muted); font-size:.68rem; line-height:1.15; box-shadow:inset 0 0 0 .1rem rgba(255,255,255,.06)}
+.dtab small,.dkind small{font-size:.56rem; color:var(--dim)}
+.dtab[aria-pressed="true"]{background:#1f7fcc; color:#fff; box-shadow:inset 0 -.15rem 0 rgba(0,0,0,.25), 0 0 0 .12rem #8fd8ff}
+.dtab[aria-pressed="true"] small{color:#d8f1ff}
+.dkind{flex-direction:row; justify-content:center; flex-wrap:wrap; gap:.05rem .25rem; font-size:.62rem; color:var(--kc,#fff)}
+.dkind[aria-pressed="true"]{background:rgba(63,185,255,.22); box-shadow:0 0 0 .12rem var(--kc,#8fd8ff)}
+.dkind:disabled{opacity:.5} .dkind .pix{width:.8rem; height:.8rem}
+.dgrid{display:grid; gap:.14rem; align-items:center; justify-items:center}
+.dgrid.card{grid-template-columns:1rem repeat(13,minmax(0,1fr)) 1.7rem}
+.dgrid.ab{grid-template-columns:1.1rem repeat(10,minmax(0,1fr)) .1rem}
+.dcv{width:100%; height:auto; image-rendering:pixelated; display:block}
+.dlab{font-size:.75rem; color:#fff; text-shadow:var(--ol-s)} .dlab.red{color:#ff8a9a} .dlab .pix{width:1rem; height:1rem}
+.dgrid.ab > .dlab:last-of-type{font-size:.5rem; color:var(--muted)}
+.dgc{width:.55rem; height:.55rem; border-radius:50%; background:var(--gc); box-shadow:0 0 0 .1rem var(--ink)}
+.dgot{font-size:.5rem; color:var(--dim); white-space:nowrap} .dgot.ok{font-size:.8rem; color:#7dff9a}
+.dgo{width:1.6rem; height:1.6rem; border-radius:.45rem; display:grid; place-items:center; background:var(--gc,#3fb9ff);
+  box-shadow:inset 0 -.15rem 0 rgba(0,0,0,.25), 0 0 0 .1rem var(--ink); animation:pkwob 1.6s ease-in-out infinite}
+.dgo .pix{width:1.1rem; height:1.1rem}
 @keyframes sin{from{opacity:0; transform:translateY(1rem) scale(.97)}}
 .port .sheet-wrap{place-items:end center; padding:calc(2rem + var(--safe-t)) 0 0}
 .port .sheet{width:100%; border-radius:1.1rem 1.1rem 0 0; padding-bottom:var(--safe-b); max-height:78vh}
 /* 옆 창(업그레이드, 가로 화면의 인벤토리): 왼쪽 메뉴 단추 바로 옆에 떠 있고, 바깥은 그대로 눌러져요 */
 .sheet-wrap.side,.port .sheet-wrap.side{place-items:center start; background:none; pointer-events:none;
   padding:calc(3.3rem + var(--safe-t)) 0 calc(5.2rem + var(--safe-b)) calc(5rem + var(--safe-l))}
-@media (max-height:480px){ .side .note{display:none} }
+@media (max-height:480px){ .side .note{display:none} .side .note.rbnew.s2{display:block} }
 .sheet-wrap.side.wide .sheet{width:min(21rem, calc(100vw - 6rem))}
 .sheet-wrap.side .sheet,.port .sheet-wrap.side .sheet{pointer-events:auto; width:min(19rem, calc(100vw - 1.6rem)); max-height:100%; border-radius:1rem; padding-bottom:0;
   animation:slin .25s cubic-bezier(.2,.9,.3,1.1)}
@@ -412,7 +438,7 @@ button[disabled]{cursor:default}
 .rbfx.st2 .rays{background:repeating-conic-gradient(rgba(239,225,184,.42) 0 6deg, transparent 6deg 17deg); animation-duration:3.6s}
 .rbfx.st2 b{text-shadow:var(--ol), 0 0 1.4rem #3fd6c8; animation-duration:3.6s}
 .rbfx.st2 span{animation-duration:3.6s}
-.rbfx.st2 small{position:relative; font-size:.82rem; color:#fff1c9; text-shadow:var(--ol-s); animation:rbtext 3.6s .25s cubic-bezier(.2,.9,.3,1.3) both}
+.rbfx.st2 small{position:relative; max-width:calc(100vw - 2rem); padding:0 .5rem; text-align:center; font-size:.82rem; color:#fff1c9; text-shadow:var(--ol-s); animation:rbtext 3.6s .25s cubic-bezier(.2,.9,.3,1.3) both}
 @keyframes rbflash{0%{opacity:0} 8%{opacity:1} 100%{opacity:0}}
 @keyframes rbrays{0%{opacity:0; transform:rotate(0) scale(.5)} 18%{opacity:1} 100%{opacity:0; transform:rotate(50deg) scale(1.1)}}
 @keyframes rbtext{0%{opacity:0; transform:scale(.3)} 22%{opacity:1; transform:scale(1.12)} 32%{transform:scale(1)} 78%{opacity:1; transform:none} 100%{opacity:0; transform:translateY(-1.2rem)}}
@@ -551,6 +577,7 @@ button[disabled]{cursor:default}
     <div class="mtile"><button class="mbtn bagbtn" id="invBtn" type="button" aria-label="인벤토리 열기" aria-pressed="false"><em class="num" id="invCount" hidden></em></button><span>인벤토리</span></div>
     <div class="mtile"><button class="mbtn rbbtn" id="rbBtn" type="button" aria-label="환생 열기" aria-pressed="false"><em class="dot" id="rbDot" hidden></em></button><span>환생</span></div>
     <div class="mtile"><button class="mbtn pkbtn" id="pkBtn" type="button" aria-label="카드 팩 열기" aria-pressed="false"><em class="num" id="pkCount" hidden></em></button><span>카드 팩</span></div>
+    <div class="mtile"><button class="mbtn dexbtn" id="dexBtn" type="button" aria-label="도감 열기" aria-pressed="false"><em class="dot" id="dexDot" hidden></em></button><span>도감</span></div>
   </nav>
   <div class="dock">
     <div class="equip" id="equip" aria-label="낀 능력 카드"></div>
@@ -703,6 +730,34 @@ const TORN_RB = 10, TORN_CHANCE = 20, TORN_MUL = 5;
 const STAGE2_RB = 15, TAPE_MUL = 4;
 const stageOf = rebirths => rebirths >= STAGE2_RB ? 2 : 1;
 const STAGES = [null, { name:'카드 별밤' }, { name:'찢어진 들판' }];
+// 도감: 트럼프 카드 52장을 보통 · 황금 · 찢어진 · 테이프로 뽑아 본 적이 있는지(칸 번호 = 무늬 × 13 + 숫자, 덱 카드 번호와 같아요),
+// 능력 카드 10가지 × 10등급을 가져 본 적이 있는지(칸 번호 = 능력 번호 × 10 + 등급). 환생해도 그대로예요.
+// 칸을 채울 때마다 모든 코인 · XP가 커지고(카드 칸 0.25%, 능력 칸 0.5%, 카드 · 업그레이드와 따로 곱해요), 한 줄을 다 채우면 카드 팩을 받아요
+const DEX_KINDS = [
+  { k:'n', name:'보통' },
+  { k:'g', name:'황금', rb:1, color:'#ffe27e' },
+  { k:'t', name:'찢어진', rb:TORN_RB, color:'#ffb36b' },
+  { k:'p', name:'테이프', rb:STAGE2_RB, color:'#9fe8ff' },
+];
+const DEX_CARD_PCT = 0.25, DEX_ABILITY_PCT = 0.5;
+const DEX_ROW_PACK = { n:2, g:3, t:4, p:4 };   // 트럼프 한 줄(무늬 13장) 보상 팩 등급: 보통 영웅 · 황금 전설 · 찢어진 · 테이프 신화
+const dexFresh = () => ({ n:'0'.repeat(52), g:'0'.repeat(52), t:'0'.repeat(52), p:'0'.repeat(52), a:'0'.repeat(100), got:[] });
+const dexCount = str => { let n = 0; for (const ch of str) if (ch === '1') n++; return n; };
+const dexCards = dex => DEX_KINDS.reduce((n, K) => n + dexCount(dex[K.k]), 0);
+const dexMul = dex => 1 + (DEX_CARD_PCT * dexCards(dex) + DEX_ABILITY_PCT * dexCount(dex.a)) / 100;
+// 줄 목록: 트럼프는 종류 × 무늬 줄(13칸), 능력은 등급 줄(10가지). done이면 pack 등급의 팩을 받을 수 있어요
+function dexRows(dex) {
+  const rows = [];
+  for (const K of DEX_KINDS) for (let s = 0; s < 4; s++) {
+    const have = dexCount(dex[K.k].slice(s * 13, s * 13 + 13));
+    rows.push({ key: K.k + s, have, need: 13, done: have === 13, pack: DEX_ROW_PACK[K.k] });
+  }
+  for (let g = 0; g < GRADES.length; g++) {
+    let have = 0; for (let i = 0; i < ABILITIES.length; i++) if (dex.a[i * 10 + g] === '1') have++;
+    rows.push({ key: 'a' + g, have, need: ABILITIES.length, done: have === ABILITIES.length, pack: Math.max(1, g) });
+  }
+  return rows;
+}
 // 코인 업그레이드: 단계마다 세지고, 살 때마다 값이 grow배씩 올라요 (처음엔 싸요). rb가 있으면 환생을 그만큼 해야 열려요.
 // 코인 · XP 늘리기는 카드 효과와 따로 곱해져요(카드 몫이 업그레이드에 묻히지 않게). 그래서 단계마다 5%예요
 // text(lv)는 지금 효과, next(lv)는 다음 단계 값(짧게)
@@ -831,7 +886,7 @@ function cardGain(r, s, st, rnd) {
   for (const p of goldChances(st)) if (rnd() * 100 < p) golden *= GOLD_MUL;
   const torn = st.torn > 0 && rnd() * 100 < st.torn, triple = torn && st.triple > 0 && rnd() * 100 < st.triple;
   const tape = st.tape > 0 && rnd() * 100 < st.tape;
-  const mul = (st.mul || 1) * (st.pmul || 1) * (st.quick || 1) * golden;
+  const mul = (st.mul || 1) * (st.pmul || 1) * (st.quick || 1) * (st.book || 1) * golden;   // book: 도감 보너스
   const tornX = torn ? (st.tornMul || TORN_MUL) * (triple ? 2 : 1) : 1;
   // jackpot · meteor · golden: 터졌으면 곱한 배수, 아니면 0. torn · triple · tape: 찢어졌나 · 세 조각인가 · 테이프 카드인가
   return { coins: coins * jackpot * mul * tornX, xp: xp * meteor * mul * (tape ? TAPE_MUL : 1), jackpot: jackpot > 1 ? jackpot : 0, meteor: meteor > 1 ? meteor : 0, golden: golden > 1 ? golden : 0, torn, triple, tape };
@@ -896,7 +951,7 @@ const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
 const h = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; };
 
 /* ---------- 저장 ---------- */
-const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, autoOpen:false, deck:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, lastSeen:Date.now() });
+const fresh = () => ({ v:3, level:1, xp:0, coins:0, draws:0, packs:[], offer:null, pack:1, offerLv:1, autoEq:false, autoOpen:false, deck:null, inv:[], equip:Array(EQUIP_SLOTS).fill(null), nextId:1, up:upFresh(), rb:0, dex:dexFresh(), lastSeen:Date.now() });
 const okCard = c => c && ABILITY[c.a] && Number.isInteger(c.g) && c.g >= 0 && c.g < GRADES.length;
 // 지난 판(능력이 저절로 쌓이던 판)의 능력 카드는 가장 가까운 새 능력으로 바꿔 인벤토리에 넣어요
 const OLD_ABILITY = { quick:'quick', bag:'xp', shine:'xp', twin:'twin', lucky:'meteor', flash:'quick', paw:'coin' };
@@ -908,6 +963,7 @@ function revive(raw) {
   if (raw.v === 3 && raw.coins >= 0) S.coins = raw.coins;   // 아주 예전 판(코인 게임)의 코인은 가져오지 않아요
   if (raw.v === 3 && raw.up && typeof raw.up === 'object') for (const U of UPGRADES) { const lv = raw.up[U.id]; if (Number.isInteger(lv) && lv > 0) S.up[U.id] = Math.min(U.max, lv); }
   if (raw.v === 3 && Number.isInteger(raw.rb) && raw.rb > 0) S.rb = Math.min(raw.rb, 9999);
+  for (const U of UPGRADES) if ((U.stage || 1) !== stageOf(S.rb)) S.up[U.id] = 0;   // 다른 스테이지 업그레이드는 안 붙어요 (스테이지 2가 생기기 전에 환생 15번을 넘긴 판도)
   const d = raw.draws ?? (raw.stats && raw.stats.draws);
   if (d >= 0) S.draws = d;
   // 모아 둔 카드 팩 [{g 등급, lv 받은 레벨}]. 예전 판의 "아직 안 고른 보상"은 그 수만큼 팩으로 바꿔 넣어요
@@ -935,6 +991,12 @@ function revive(raw) {
   S.equip = Array(slotsFor(S.rb)).fill(null);   // 환생 10번이면 4칸
   if (Array.isArray(raw.equip)) raw.equip.slice(0, S.equip.length).forEach((id, i) => { if (S.inv.some(c => c.id === id) && !S.equip.includes(id)) S.equip[i] = id; });
   else [...S.inv].sort((a, b) => b.g - a.g).slice(0, S.equip.length).forEach((c, i) => { S.equip[i] = c.id; });
+  // 도감: 저장된 칸을 믿을 수 있으면 가져오고, 지금 가진 능력 카드는 꼭 채워 둬요 (도감이 없던 판도)
+  if (raw.dex && typeof raw.dex === 'object') {
+    for (const k of ['n', 'g', 't', 'p', 'a']) { const v = raw.dex[k]; if (typeof v === 'string' && v.length === (k === 'a' ? 100 : 52) && /^[01]+$/.test(v)) S.dex[k] = v; }
+    if (Array.isArray(raw.dex.got)) S.dex.got = [...new Set(raw.dex.got.filter(x => typeof x === 'string' && /^[ngtpa]\d$/.test(x)))];
+  }
+  for (const c of S.inv) { const i = ABILITIES.indexOf(ABILITY[c.a]) * 10 + c.g; S.dex.a = S.dex.a.slice(0, i) + '1' + S.dex.a.slice(i + 1); }
   return S;
 }
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; } }
@@ -1095,6 +1157,16 @@ function paper(grade) {
   }
 }
 const sprites = new Map();
+// 도감의 아직 못 모은 칸: 어두운 카드 실루엣에 물음표
+function unknownSprite() {
+  if (sprites.has('unk')) return sprites.get('unk');
+  const cv = mk(25, 35), g = cv.getContext('2d');
+  cardShape(g, 0, '#120830', '#2a1d5c');
+  g.fillStyle = '#4c3d8f';
+  for (const [x, y, w, hh] of [[9, 10, 7, 2], [15, 12, 2, 4], [12, 16, 4, 2], [12, 18, 2, 3], [12, 23, 2, 2], [8, 12, 2, 2]]) g.fillRect(x, y, w, hh);
+  sprites.set('unk', cv);
+  return cv;
+}
 function faceSprite(r, s) {
   const key = `f${r}.${s}`;
   if (sprites.has(key)) return sprites.get(key);
@@ -1387,6 +1459,19 @@ const ICON_DRAW = {
     'KWWWK...KWWWK',
     'KWWK.....KWWK',
     'KKK.......KKK'], 0, 0),
+  book: g => pmap(g, [   // 파란 표지에 금색 이름표가 붙은 도감
+    '..KKKKKKKKKK.',
+    '.KBBBBBBBBBK.',
+    'KBBBBBBBBBBK.',
+    'KBBKKKKKKBBK.',
+    'KBBKYYYYKBBK.',
+    'KBBKKKKKKBBK.',
+    'KBBBBBBBBBBK.',
+    'KBbBBBBBBBBK.',
+    'KBbBBBBBBBBK.',
+    'KBBBBBBBBBBKK',
+    'KWWWWWWWWWWWK',
+    '.KKKKKKKKKKKK'], 0, 0),
   // 스테이지 2 업그레이드 그림
   scissors: g => pmap(g, [   // 가위 (쿨타임)
     'K...........K',
@@ -1609,6 +1694,7 @@ function layout() {
   for (const cv of [backCv, fxCv]) { cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
   bgLayout();
   if (typeof Sheet !== 'undefined') aimDeck();
+  if (flyers.length) gatherAll();   // 화면이 바뀌면 놓인 카드를 새 덱 자리로 거둬요
 }
 // 왼쪽 옆 창이 덱을 가리면 덱이 오른쪽으로 살짝 비켜나요 (가로 · 세로 모두)
 let deckShift = 0, deckShiftTo = 0;
@@ -1716,27 +1802,38 @@ function bgDraw(t, dt) {
 const flyers = [], pops = [], sparks = [], rings = [], inbound = [];
 // 덱을 채울 때 날아오는 카드 뒷면: 덱 둘레 어딘가에서 빙글 돌며 덱 맨 위로 (0.45초)
 const T_IN = 0.45;
+// 놓인 카드 한 장을 덱으로 거둬요 (그 자리에서 앞면 그대로 출발해서 뒤집히며 날아와요). delay초 뒤에 출발
+function gather(f, delay = 0) {
+  flyers.splice(flyers.indexOf(f), 1);
+  inbound.push({ x0: f.x1, y0: f.y1, r0: f.r1, t: -delay, face: f.spr, torn: f.torn, triple: f.triple, gold: f.gold, sc0: f.sc1 });
+}
+// 테이블의 카드를 모두 덱으로 거둬요 (환생할 때 · 화면 크기가 바뀔 때)
+function gatherAll() {
+  flyers.filter(lying).forEach((f, i) => gather(f, reduced() ? 0 : i * 0.04));
+  for (const f of flyers) if (f.leave == null) f.leave = f.t;   // 아직 날던 카드는 천천히 흐려져요
+}
 function dealIn() {
   // 테이블에 놓인 카드가 있으면 가장 오래 놓인 것부터 뒤집어 덱으로 거둬요
-  const f = flyers.find(f => f.leave == null && f.t >= T_LIFT + T_FLY);
-  if (f) {
-    flyers.splice(flyers.indexOf(f), 1);
-    if (inbound.length < 24) inbound.push({ x0: f.x1, y0: f.y1, r0: f.r1, t: 0, face: f.torn ? null : f.spr, sc0: f.sc1 });
-    return;
-  }
+  const f = flyers.find(lying);
+  if (f) { gather(f); return; }
   const a = rnd() * Math.PI * 2, d = deckH * (1.25 + rnd() * 0.5);
   const x0 = clamp(deckX + Math.cos(a) * d, 13 * ps, W - 13 * ps), y0 = clamp(deckY + Math.sin(a) * d * 0.8, 18 * ps, H - 18 * ps);   // 화면 안에서 출발
   if (inbound.length < 16) inbound.push({ x0, y0, r0: (rnd() - 0.5) * 2.4, t: 0 });
 }
 function drawInbound(g, c) {
-  const k = Math.min(1, c.t / T_IN), m = k * k * (3 - 2 * k), tx = deckX, ty = deckY - deckH / 2 + 17.5 * ps;
+  const k = clamp(c.t / T_IN, 0, 1), m = k * k * (3 - 2 * k), tx = deckX, ty = deckY - deckH / 2 + 17.5 * ps;
   const x = c.x0 + (tx - c.x0) * m, y = c.y0 + (ty - c.y0) * m - Math.sin(Math.PI * k) * deckH * 0.25;
   g.save();
-  g.globalAlpha = Math.min(1, c.t / 0.08) * (k > 0.9 ? 1 - (k - 0.9) / 0.1 : 1);
-  // 거둬 오는 카드는 앞면에서 뒷면으로 뒤집히며 와요
+  // 거둬 오는 카드(face)는 놓인 그대로 보이다 출발해요. 덱 둘레에서 날아오는 뒷면만 살짝 나타나요
+  g.globalAlpha = (c.face ? 1 : Math.min(1, Math.max(0, c.t) / 0.08)) * (k > 0.9 ? 1 - (k - 0.9) / 0.1 : 1);
+  // 거둬 오는 카드는 앞면에서 뒷면으로 뒤집히며 와요 (찢어진 카드는 조각째, 황금 카드는 금테째)
   const s0 = c.sc0 || ps * 0.75, sc = s0 + (ps - s0) * m, flip = c.face && k < 0.5 ? Math.abs(Math.cos(Math.PI * k / 0.5)) : 1;
   g.translate(x, y); g.rotate(c.r0 * (1 - m)); g.scale(sc * Math.max(0.08, flip), sc);
-  g.drawImage(c.face && k < 0.25 ? c.face : backSprite(false), -12.5, -17.5);
+  if (c.face && k < 0.25) {
+    if (c.gold) { g.fillStyle = '#ffe27e'; g.fillRect(-14.5, -19.5, 29, 39); g.fillStyle = '#ffb400'; g.fillRect(-13.5, -18.5, 27, 37); }
+    if (c.torn) { const parts = tornPieces(c.face, c.triple ? 3 : 2), mid = (parts.length - 1) / 2; parts.forEach((pc, i) => g.drawImage(pc, -12.5 + (i - mid) * 2 * (1 - 4 * k), -17.5)); }
+    else g.drawImage(c.face, -12.5, -17.5);
+  } else g.drawImage(backSprite(false), -12.5, -17.5);
   g.restore();
 }
 const FONT = px => `400 ${px}px "Jersey 10", Jua, "Apple SD Gothic Neo", sans-serif`;
@@ -1748,7 +1845,9 @@ const ease = {
 const T_LIFT = 0.1, T_FLY = 0.5;
 // 뽑은 카드는 떨어진 자리에 놓여 있어요(사라지지 않아요). REST_MAX장이 넘으면 가장 오래된 것부터 T_LEAVE초 동안 천천히 흐려지고,
 // 덱을 채울 때는 놓인 카드들을 덱으로 거둬 가요
-const T_LEAVE = 0.6, REST_MAX = 18;
+const T_LEAVE = 0.6, REST_MAX = 24;
+const lying = f => f.leave == null && f.t >= T_LIFT + T_FLY + 0.15;   // 다 내려앉아 테이블에 놓인 카드
+let leaveBudget = 0;
 // 찢어진 카드 조각들 (왼쪽부터). 지그재그 찢긴 선을 따라 나누고, 찢긴 가장자리는 누런 종이 결로 칠해요.
 // 두 조각은 가운데 한 줄, 세 조각(세 조각 업그레이드)은 두 줄로 찢어요
 const TEAR_ZIG = [0, 1, 2, 1, 0, -1, -2, -1], tornCache = new WeakMap();
@@ -1787,11 +1886,20 @@ function spawnCard(r, s, lines, delay = 0, gold = false, torn = false, triple = 
   let ang = rnd() * Math.PI * 2;
   if (land && Math.sin(ang) > 0.55) ang = -ang;
   const rx = land ? Math.min(W * 0.26, deckW * 3.2) : W * 0.34, ry = land ? H * 0.3 : Math.min(H * 0.24, deckH * 1.3);
-  const k = 0.75 + rnd() * 0.25;
-  flyers.push({ spr: faceSprite(r, s), x0, y0, x1: x0 + Math.cos(ang) * rx * k, y1: y0 + Math.sin(ang) * ry * k, t: -delay, r1: (rnd() - 0.5) * 0.9,
-    sc1: ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25), lines, gold, torn, triple, tape, tilt: (rnd() < 0.5 ? -1 : 1) });
+  const k = 0.75 + rnd() * 0.25, sc1 = ps * (land ? 0.8 + rnd() * 0.3 : 0.6 + rnd() * 0.25);
+  let x1 = x0 + Math.cos(ang) * rx * k, y1 = y0 + Math.sin(ang) * ry * k;
+  // 덱 위에 떨어지면 덱 바깥까지 밀어요 (화면 밖으로는 안 나가게)
+  const hw = deckW / 2 + 13 * sc1, hh = deckH / 2 + 18 * sc1, cx = deckX, cy = deckY, dx = x1 - cx, dy = y1 - cy;
+  if (Math.abs(dx) < hw && Math.abs(dy) < hh) {
+    const t = Math.min(Math.abs(dx) > 1e-6 ? hw / Math.abs(dx) : Infinity, Math.abs(dy) > 1e-6 ? hh / Math.abs(dy) : Infinity);
+    x1 = clamp(cx + dx * t, 13 * sc1, W - 13 * sc1); y1 = clamp(cy + dy * t, 18 * sc1, H - 18 * sc1);
+  }
+  flyers.push({ spr: faceSprite(r, s), x0, y0, x1, y1, t: -delay, r1: (rnd() - 0.5) * 0.9,
+    sc1, lines, gold, torn, triple, tape, tilt: (rnd() < 0.5 ? -1 : 1) });
 }
-// 들기(0.1초) → 휘어 날아가며 뒤집기(0.5초) → 머물기 → 천천히 사라지기
+// 놓인 카드가 덱과 겹치나 (겹치면 덱 위 캔버스에 그대로 그려요)
+const overDeck = f => Math.abs(f.x1 - deckX) < deckW / 2 + 12 * f.sc1 && Math.abs(f.y1 - deckY) < deckH / 2 + 17 * f.sc1;
+// 들기(0.1초) → 휘어 날아가며 뒤집기(0.5초) → 테이블에 놓이기 → (많으면) 천천히 흐려지기
 function drawFlyer(g, f) {
   const t = f.t;
   if (t < 0) return;
@@ -1801,6 +1909,7 @@ function drawFlyer(g, f) {
   else if (t < T_LIFT) {
     const k = ease.out(t / T_LIFT);
     x = f.x0; y = f.y0 + (ly - f.y0) * k; sc = ps * (1 + 0.06 * k); face = false; lift = 0.25 * k;
+    if (f.leave != null) alpha = Math.max(0, 1 - (t - f.leave) / T_LEAVE);
   } else {
     const u = Math.min(1, (t - T_LIFT) / T_FLY), m = ease.out(u), b = ease.back(u);
     // 위로 휘는 길 (2차 베지에)
@@ -1868,6 +1977,9 @@ function renderFx() {
     g.setTransform(DPR, 0, 0, DPR, 0, 0);
     g.clearRect(0, 0, W, H);
     g.imageSmoothingEnabled = false;
+    // 놓인 카드는 덱 · 고리 · 손가락 밑 테이블에 (덱에 걸친 카드는 덱 위에 그대로 둬서 갑자기 잘리지 않게)
+    const landed = f => f.t >= T_LIFT + T_FLY + 0.15 && !overDeck(f);
+    if (!front) for (const f of flyers) if (landed(f)) drawFlyer(g, f);
     if (!front) {
       const ringR = deckH * 0.68;
       g.globalAlpha = 0.2; g.strokeStyle = '#ffd84a'; g.lineWidth = Math.max(1.5, ps * 0.4);
@@ -1887,10 +1999,8 @@ function renderFx() {
       g.beginPath(); g.arc(deckX, deckY, R, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1;
       g.beginPath(); g.arc(deckX, deckY, R, a0, a1); g.stroke();
     }
-    const landed = f => f.t >= T_LIFT + T_FLY + 0.15;
-    if (!front) for (const f of flyers) if (landed(f)) drawFlyer(g, f);   // 놓인 카드는 덱 · 손가락 밑 테이블에
     if (!front) Auto.draw(g);
-    if (front) for (const f of flyers) if (!landed(f)) drawFlyer(g, f);
+    if (front) for (const f of flyers) if (!landed(f)) drawFlyer(g, f);   // 날고 있는 카드 · 덱에 걸친 카드
     if (front) for (const c of inbound) drawInbound(g, c);
   }
   const g = fctx;
@@ -1913,9 +2023,15 @@ function stepFx(dt) {
     }
     if (f.leave != null && f.t - f.leave >= T_LEAVE) flyers.splice(i, 1);
   }
-  // 너무 많이 놓이면 가장 오래된 카드부터 흐려지기 시작해요 (갑자기 없어지지 않게)
-  let stay = flyers.reduce((n, f) => n + (f.leave == null), 0);
-  for (const f of flyers) { if (stay <= REST_MAX) break; if (f.leave == null) { f.leave = f.t; stay--; } }
+  // 놓인 카드가 REST_MAX장보다 많으면 가장 오래된 카드부터 한 장씩 차례로 흐려져요 (날고 있는 카드는 건드리지 않아요).
+  // 넘친 만큼 빨리(1초에 넘친 장수 × 3장, 적어도 6장) 흐려서 카드가 아주 빨리 나와도 테이블이 너무 쌓이지 않아요
+  const over = flyers.reduce((n, f) => n + lying(f), 0) - REST_MAX;
+  if (over > 0) {
+    leaveBudget += dt * Math.max(6, over * 3);
+    for (let i = 0; i < over && leaveBudget >= 1; i++) { const f = flyers.find(lying); f.leave = f.t; leaveBudget--; }
+  } else leaveBudget = 0;
+  // 날고 있는 카드가 아주 많으면(한 번에 몇십 장) 가장 오래된 것부터 흐려져요 (안전장치)
+  if (flyers.length > 90) { const f = flyers.find(f => f.leave == null && f.t >= 0); if (f) f.leave = f.t; }
   for (let i = pops.length - 1; i >= 0; i--) { pops[i].t += dt; if (pops[i].t >= pops[i].life) pops.splice(i, 1); }
   for (let i = inbound.length - 1; i >= 0; i--) {
     const c = inbound[i]; c.t += dt;
@@ -1947,6 +2063,8 @@ let ST = equipStats([], 1);
 // soon: 저절로 바뀐 것(레벨업 · 자동으로 뜯기)이라 창은 조금 모아서 새로 그려요. 내가 누른 건 바로 그려요
 function refresh(soon) {
   ST = equipStats(equipped(), S.level, S.up, S.rb);
+  ST.book = dexMul(S.dex);   // 도감 보너스 (모든 카드에 똑같이 곱해서 카드 비교에는 안 써요)
+  $('dexDot').hidden = !dexClaimable();
   paintTop(); paintEquip(); paintXp(); paintPacks();
   if (Array.isArray(S.deck)) Deck.sync();
   if (Sheet.open) { if (soon) Sheet.renderSoon(); else Sheet.render(); }
@@ -2063,6 +2181,7 @@ const Deck = (() => {
   const progress = () => refillEnd ? clamp(1 - (refillEnd - performance.now()) / (refillLen * 1000), 0, 1) : 0;
   function finish() {
     refillEnd = 0; cap = deckOf(S.up); S.deck = newDeck(rnd, cap); shown = '';
+    if (!reduced()) flyers.filter(lying).forEach((f, i) => gather(f, i * 0.03));   // 못 거둔 카드도 마저 덱으로
     paint(); save();
     Sound.shuffle();
     deckBtn.classList.remove('refilled'); void deckBtn.offsetWidth; deckBtn.classList.add('refilled');   // 촤르륵 섞고 통 튀어요
@@ -2074,7 +2193,7 @@ const Deck = (() => {
     // 채우는 동안 카드 뒷면이 한 장씩 날아와 덱 위에 쌓여요 (채우는 시간에 맞춰 열 장쯤)
     if (refillEnd && !reduced() && refillEnd - performance.now() > 250) {
       spawnT += dt;
-      const every = clamp(refillLen / Math.max(10, flyers.length + 2), 0.08, 1.4);   // 놓인 카드가 많으면 더 자주 거둬요
+      const every = clamp((refillLen - 0.3) / Math.max(10, flyers.reduce((n, f) => n + lying(f), 0) + 1), 0.05, 1.4);   // 놓인 카드를 채우는 동안 다 거둘 만큼
       if (spawnT >= every) { spawnT -= every; dealIn(); }
     }
     paint();
@@ -2133,8 +2252,16 @@ function drawCards(auto) {
     all.push({ r, s, got: cardGain(r, s, ST, rnd) });
   }
   let xpSum = 0;
+  let dexNew = false;
   all.forEach(({ r, s, got }, i) => {
     S.draws++;
+    // 도감: 보통으로 · 황금으로 · 찢어진 채로 · 테이프 카드로 뽑아 본 칸을 채워요
+    const code = s * 13 + r;
+    let isNew = dexMark('n', code);
+    if (got.golden) isNew = dexMark('g', code) || isNew;
+    if (got.torn) isNew = dexMark('t', code) || isNew;
+    if (got.tape) isNew = dexMark('p', code) || isNew;
+    if (isNew) dexNew = true;
     S.coins += got.coins; xpSum += got.xp;
     if (got.jackpot || got.meteor) big = true;
     if (got.golden) gold = true;
@@ -2150,12 +2277,14 @@ function drawCards(auto) {
     if (got.torn && ST.torn < 100) lines.unshift([`찢어진 카드! 코인 ×${ST.tornMul}`, '#ffb36b', 0.8 * z]);   // 스테이지 2는 늘 찢어져서 안 띄워요
     if (got.triple) lines.unshift(['세 조각! 코인 ×2', '#ffb36b', 0.8 * z]);
     if (got.tape) lines.push([`테이프 카드! XP ×${TAPE_MUL}`, '#9fe8ff', 0.78 * z]);
+    if (isNew) lines.push(['도감 새 칸!', '#8fd8ff', 0.7 * z]);
     if (i === SHOW - 1 && n > SHOW) {
       const rest = all.slice(SHOW).reduce((a, x) => a + x.got.coins, 0);
       lines.push([`그리고 ${n - SHOW}장 더! +${fmt(rest)} 코인`, '#ffffff', 0.78 * z]);
     }
     spawnCard(r, s, lines, i * 0.14, got.golden, got.torn, got.triple, got.tape);
   });
+  if (dexNew) { ST.book = dexMul(S.dex); $('dexDot').hidden = !dexClaimable(); dexNews(); }
   addXp(xpSum);
   if (!S.deck.length) Deck.start();   // 다 썼으면 채우기 시작
   Deck.paint();
@@ -2207,7 +2336,7 @@ const Auto = (() => {
     for (const f of list) {
       if (f.tap > 0) { f.tap += dt; if (f.tap >= TAP) f.tap = 0; }
       if (LvOv.open) continue;
-      if (!S.deck.length) { f.t = Math.min(f.t + dt, every); continue; }   // 덱이 비면 채워질 때까지 기다려요
+      if (!S.deck.length) continue;   // 덱이 비면 채워질 때까지 멈춰요 (멈춘 자리에서 다시 가서 손가락끼리 엇갈려 눌러요)
       f.t += dt;
       if (f.t >= every) { f.t -= every; f.tap = 1e-4; tap(); }
     }
@@ -2254,9 +2383,11 @@ function rebirth() {
   S.rb++; S.level = 1; S.xp = 0; S.coins = 0; S.up = upFresh();
   while (S.equip.length < slotsFor(S.rb)) S.equip.push(null);   // 환생 10번: 낀 카드 칸 하나 더
   Deck.reset();
+  gatherAll();   // 테이블의 카드를 덱으로 거둬요
   if (S.autoEq) autoEquip(true);
   refresh(); save();
   Sound.rebirth();
+  if (S.rb === STAGE2_RB) Sheet.close();   // 스테이지 2로 넘어가는 글이 창에 가리지 않게
   RbFx.play(ST.mul, S.rb === STAGE2_RB);
   if (S.rb === STAGE2_RB) setTimeout(() => toast(`스테이지 2 · ${STAGES[2].name}에 왔어요! 카드가 늘 찢어지고(코인 ×${TORN_MUL}), 업그레이드가 모두 새것이에요`, '#3fd6c8'), 3000);
   else if (S.rb === NEW_GRADE_RB) setTimeout(() => toast(`새 등급 5개 · 낀 카드 4번째 칸 · 찢어진 카드가 열렸어요! 이제 뽑는 카드가 ${TORN_CHANCE}% 확률로 찢어져 나오고 코인 ×${TORN_MUL}`, GRADES[9].color), 1600);
@@ -2322,12 +2453,13 @@ function quickOpen(list) {
   for (const p of list) {
     const c = pickBest(rollOffer(rnd, p.g, cardLuck(S.up), S.rb), S.level, S.up, S.rb);
     const id = S.nextId++;
-    S.inv.push({ id, a: c.a, g: c.g });
+    S.inv.push({ id, a: c.a, g: c.g }); dexAbility(c);
     const free = S.equip.indexOf(null);
     if (!S.autoEq && free >= 0) S.equip[free] = id;
     got.push({ id, a: c.a, g: c.g, pack: p.g });
   }
   if (S.autoEq && got.length) autoEquip(true);
+  dexNews();
   return got;
 }
 // 모아 둔 팩을 한 번에 다 뜯어요
@@ -2339,9 +2471,39 @@ function openAllPacks() {
   toast(`카드 팩 ${got.length}개를 뜯어 카드 ${got.length}장을 받았어요`, GRADES[top].color);
   return got;
 }
+/* ---------- 도감 ---------- */
+// 칸 하나를 채워요. 새로 채웠으면 true. 그 칸 때문에 줄이 다 차면 dexDone에 모아 뒀다가 한 번에 알려요
+const dexDone = [];
+function dexMark(k, i) {
+  const str = S.dex[k];
+  if (str[i] === '1') return false;
+  S.dex[k] = str.slice(0, i) + '1' + str.slice(i + 1);
+  const key = k === 'a' ? 'a' + (i % 10) : k + Math.floor(i / 13), R = dexRows(S.dex).find(r => r.key === key);
+  if (R && R.done) dexDone.push(R);
+  return true;
+}
+const dexAbility = c => dexMark('a', ABILITIES.indexOf(ABILITY[c.a]) * 10 + c.g);
+const dexRowName = key => key[0] === 'a' ? `${GRADES[+key[1]].name} 능력 카드 줄` : `${DEX_KINDS.find(K => K.k === key[0]).name} ${SUITS[+key[1]].sym} 줄`;
+const dexClaimable = () => dexRows(S.dex).some(R => R.done && !S.dex.got.includes(R.key));
+// 줄이 다 찼으면 알려요 (보상은 도감 창에서 받아요)
+function dexNews() {
+  if (!dexDone.length) return;
+  const R = dexDone.splice(0).pop();
+  toast(`도감 ${dexRowName(R.key)} 완성! 도감에서 ${GRADES[R.pack].name} 팩을 받아요`, '#3fb9ff');
+  const b = $('dexBtn'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+}
+function dexClaim(key) {
+  const R = dexRows(S.dex).find(r => r.key === key);
+  if (!R || !R.done || S.dex.got.includes(key)) return false;
+  S.dex.got.push(key);
+  S.packs.push({ g: R.pack, lv: S.level });
+  Sound.level(); refresh(); save();
+  toast(`도감 ${dexRowName(key)} 보상으로 ${GRADES[R.pack].name} 팩을 받았어요! 카드 팩에서 뜯어요`, GRADES[R.pack].color);
+  return true;
+}
 function takeCard(c) {
   const item = { id: S.nextId++, a: c.a, g: c.g };
-  S.inv.push(item);
+  S.inv.push(item); dexAbility(item); dexNews();
   let free = S.equip.indexOf(null);
   if (S.autoEq) { autoEquip(true); free = S.equip.indexOf(item.id); }
   else if (free >= 0) S.equip[free] = item.id;
@@ -2430,6 +2592,7 @@ const Sheet = (() => {
     if (ST.twin) add('twin', '한 장 더 확률', `${fmt(ST.twin)}%`);
     for (const p of goldChances(ST)) add('jackpot', `황금 카드 ×${GOLD_MUL}`, `${p}%`, '#ffe27e');
     if (ST.pmul > 1) add('twin', '무한 덤 코인 · XP', `×${fmtX(ST.pmul)}`, '#ff8a8a');
+    if (ST.book > 1) add('book', '도감 보너스 코인 · XP', `×${fmtX(ST.book)}`, '#8fd8ff');
     if (ST.quick >= 1.005) add('quick', '쿨타임 덤 코인 · XP', `×${fmtX(ST.quick)}`, '#ffd84a');   // 빠른 손 · 천상 덤이 덜 빨라진 만큼
     if (ST.torn) add('rip', `찢어진 카드 코인 ×${ST.tornMul}`, `${ST.torn}%`, '#ffb36b');
     if (ST.triple) add('triple', '세 조각 코인 ×2', `${ST.triple}%`, '#ffb36b');
@@ -2492,6 +2655,93 @@ const Sheet = (() => {
       body.append(pre);
     }
     bumped = '';
+  }
+  // 도감: 위에 도감 보너스, 트럼프 카드(보통 · 황금 · 찢어진 · 테이프) / 능력 카드 탭, 줄 끝에 보상
+  let dexTab = 'card', dexKind = 'n';
+  function dexArt(have, paint) {
+    const cv = mk(27, 37); cv.className = 'dcv'; cv.setAttribute('aria-hidden', 'true');
+    const g = cv.getContext('2d');
+    if (have) paint(g); else g.drawImage(unknownSprite(), 1, 1);
+    return cv;
+  }
+  function dexPrize(R) {
+    const claimed = S.dex.got.includes(R.key), label = dexRowName(R.key);
+    if (R.done && !claimed) {
+      const b = h('button', 'dgo'); b.type = 'button'; b.dataset.k = 'dg' + R.key; b.append(pix('pack'));
+      b.style.setProperty('--gc', GRADES[R.pack].color);
+      b.title = `${label} 다 모았어요! ${GRADES[R.pack].name} 팩 받기`; b.setAttribute('aria-label', b.title);
+      b.addEventListener('click', () => { dexClaim(R.key); render(); });
+      return b;
+    }
+    const e = h('span', 'dgot num' + (claimed ? ' ok' : ''), claimed ? '✓' : `${R.have}/${R.need}`);
+    e.title = claimed ? `${label}: 보상을 받았어요` : `${label}: 다 모으면 ${GRADES[R.pack].name} 팩`;
+    return e;
+  }
+  function renderDex() {
+    const cards = dexCards(S.dex), abil = dexCount(S.dex.a);
+    title('book', '도감', cards + abil);
+    const hero = h('div', 'dexhero');
+    hero.append(h('small', null, '도감 보너스 · 모든 코인 · XP'), h('b', 'num', `×${fmtX(dexMul(S.dex))}`),
+      h('small', null, `트럼프 칸마다 +${DEX_CARD_PCT}% · 능력 칸마다 +${DEX_ABILITY_PCT}% · 환생해도 그대로`));
+    body.append(hero);
+    const tabs = h('div', 'dtabs');
+    for (const [id, label, n, max] of [['card', '트럼프 카드', cards, 52 * DEX_KINDS.length], ['ab', '능력 카드', abil, ABILITIES.length * GRADES.length]]) {
+      const b = h('button', 'dtab'); b.type = 'button'; b.dataset.k = 'dt' + id; b.setAttribute('aria-pressed', String(dexTab === id));
+      b.append(label, h('small', 'num', `${n}/${max}`));
+      b.addEventListener('click', () => { dexTab = id; render(); });
+      tabs.append(b);
+    }
+    body.append(tabs);
+    const rows = dexRows(S.dex), row = key => rows.find(r => r.key === key);
+    const grid = h('div', 'dgrid ' + dexTab);
+    if (dexTab === 'card') {
+      const kinds = h('div', 'dkinds');
+      for (const K of DEX_KINDS) {
+        const lock = S.rb < (K.rb || 0), b = h('button', 'dkind'); b.type = 'button'; b.dataset.k = 'dk' + K.k;
+        b.setAttribute('aria-pressed', String(dexKind === K.k)); b.disabled = lock;
+        if (K.color) b.style.setProperty('--kc', K.color);
+        if (lock) b.append(pix('lock'));
+        b.append(K.name, h('small', 'num', lock ? `환생 ${K.rb}번` : `${dexCount(S.dex[K.k])}/52`));
+        b.addEventListener('click', () => { dexKind = K.k; render(); });
+        kinds.append(b);
+      }
+      body.append(kinds);
+      const str = S.dex[dexKind];
+      for (let s = 0; s < 4; s++) {
+        grid.append(h('span', 'dlab' + (SUITS[s].red ? ' red' : ''), SUITS[s].sym));
+        for (let r = 0; r < 13; r++) {
+          const face = faceSprite(r, s), have = str[s * 13 + r] === '1';
+          const cv = dexArt(have, g => {
+            if (dexKind === 'g') { g.fillStyle = '#ffb400'; g.fillRect(0, 0, 27, 37); g.fillStyle = '#ffe27e'; g.fillRect(1, 1, 25, 35); }
+            if (dexKind === 't' || dexKind === 'p') {
+              const [a, b] = tornPieces(face, 2); g.drawImage(a, 0, 1); g.drawImage(b, 2, 1);
+              if (dexKind === 'p') { g.globalAlpha = 0.9; g.fillStyle = '#efe1b8'; g.fillRect(10, 3, 7, 31); g.globalAlpha = 1; }
+            } else g.drawImage(face, 1, 1);
+          });
+          cv.title = `${SUITS[s].name} ${RANKS[r]}${have ? '' : ' (아직)'}`;
+          grid.append(cv);
+        }
+        grid.append(dexPrize(row(dexKind + s)));
+      }
+    } else {
+      grid.append(h('span', 'dlab'));
+      GRADES.forEach(G => { const d = h('i', 'dgc'); d.style.setProperty('--gc', G.color); d.title = G.name; grid.append(d); });
+      grid.append(h('span'));
+      ABILITIES.forEach((A, i) => {
+        const lab = h('span', 'dlab'); lab.append(pix(A.id)); lab.title = A.name; grid.append(lab);
+        GRADES.forEach((G, g) => {
+          const have = S.dex.a[i * 10 + g] === '1', cv = dexArt(have, c => c.drawImage(abilitySprite(g, A.id), 1, 1));
+          cv.title = `${G.name} ${A.name}${have ? '' : ' (아직)'}`;
+          grid.append(cv);
+        });
+        grid.append(h('span'));
+      });
+      grid.append(h('span', 'dlab', '보상'));
+      GRADES.forEach((G, g) => grid.append(dexPrize(row('a' + g))));
+      grid.append(h('span'));
+    }
+    body.append(grid, h('p', 'foot', dexTab === 'card' ? '덱에서 뽑아 본 카드가 칸에 채워져요 · 무늬 한 줄을 다 채우면 카드 팩을 받아요'
+      : '가져 본 능력 카드가 칸에 채워져요 · 한 등급의 능력 10가지를 다 모으면 그 등급 팩을 받아요'));
   }
   // 환생 10번 전에는 새 등급 팩 5개를 자물쇠와 함께 미리 보여 줘요
   function lockedPacks() {
@@ -2609,6 +2859,7 @@ const Sheet = (() => {
     if (mode === 'up') { renderUp(); return; }
     if (mode === 'rb') { renderRb(); return; }
     if (mode === 'pk') { renderPk(); return; }
+    if (mode === 'dex') { renderDex(); return; }
     title('bag', '인벤토리', S.inv.length);
     // 낀 카드 소켓 (환생 10번 전에는 잠긴 칸을 하나 더 보여 줘요)
     body.append(sec('낀 카드', `${S.equip.filter(Boolean).length} / ${S.equip.length}`, true));
@@ -2697,6 +2948,7 @@ const Sheet = (() => {
     $('invBtn').setAttribute('aria-pressed', String(open && mode === 'inv'));
     $('rbBtn').setAttribute('aria-pressed', String(open && mode === 'rb'));
     $('pkBtn').setAttribute('aria-pressed', String(open && mode === 'pk'));
+    $('dexBtn').setAttribute('aria-pressed', String(open && mode === 'dex'));
   }
   function show(m = 'inv', keep) {
     if (LvOv.open) return;
@@ -2704,10 +2956,11 @@ const Sheet = (() => {
     if (mode !== m) haul = [];
     mode = m; open = true; armed = 0; rbArm = false;
     wrap.classList.toggle('side', isSide(m));
-    wrap.classList.toggle('wide', m === 'inv');
+    wrap.classList.toggle('wide', m === 'inv' || m === 'dex');
     wrap.querySelector('.sheet').classList.toggle('up', m === 'up');
     wrap.querySelector('.sheet').classList.toggle('rb', m === 'rb');
     wrap.querySelector('.sheet').classList.toggle('pk', m === 'pk');
+    wrap.querySelector('.sheet').classList.toggle('dx', m === 'dex');
     wrap.querySelector('.sheet').setAttribute('aria-modal', String(!isSide(m)));
     wrap.hidden = false; render(); aimDeck(); pressed();
     $('sheetClose').focus({ preventScroll: true, focusVisible: false });
@@ -2719,6 +2972,7 @@ const Sheet = (() => {
   $('invBtn').addEventListener('click', () => show('inv'));
   $('rbBtn').addEventListener('click', () => show('rb'));
   $('pkBtn').addEventListener('click', () => show('pk'));
+  $('dexBtn').addEventListener('click', () => show('dex'));
   return { show, close, render, renderSoon, get open() { return open; }, get mode() { return mode; }, get side() { return open && isSide(mode); } };
 })();
 
@@ -3004,7 +3258,7 @@ function start(data) {
   document.documentElement.style.setProperty('--ico-coin', `url(${coinURL()})`);
   layout();
   Deck.init();
-  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('rbBtn').prepend(pix('rebirth')); $('pkBtn').prepend(pix('pack')); $('sheetClose').replaceChildren(pix('close'));
+  $('upBtn').prepend(pix('up')); $('invBtn').prepend(pix('bag')); $('rbBtn').prepend(pix('rebirth')); $('pkBtn').prepend(pix('pack')); $('dexBtn').prepend(pix('book')); $('sheetClose').replaceChildren(pix('close'));
   document.documentElement.style.setProperty('--ico-rb', `url(${iconSprite('rebirth').toDataURL()})`);
   $('tapHint').hidden = S.draws >= 3;
   refresh();
