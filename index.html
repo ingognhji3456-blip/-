@@ -326,7 +326,9 @@ button[disabled]{cursor:default}
 .rv .lbl .perk{font-size:.62rem}
 
 /* 낀 카드 소켓 3칸 */
-.eqrow{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:.45rem}
+.eqrow{display:grid; grid-template-columns:repeat(var(--n,3),minmax(0,1fr)); gap:.45rem}
+.eq.locked{gap:.25rem; font-size:.58rem; text-align:center; color:var(--dim)}
+.eq.locked .pix{width:1.3rem; height:1.3rem; opacity:.8}
 .eq{position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.2rem; min-height:5.9rem; padding:.55rem .25rem .45rem; border-radius:.75rem; text-align:center;
   background:radial-gradient(120% 75% at 50% 22%, color-mix(in srgb,var(--gc) 36%, transparent), transparent 70%), linear-gradient(180deg,#3a2780,#2a1a60);
   border:.15rem solid var(--ink); box-shadow:inset 0 0 0 .13rem color-mix(in srgb,var(--gc) 85%, transparent), inset 0 .25rem 0 rgba(255,255,255,.08), 0 .16rem 0 var(--ink); transition:transform .08s}
@@ -580,6 +582,9 @@ const DRAW_COOLDOWN = 5;
 const MIN_COOLDOWN = 0.5;
 // 레벨이 오르면 서로 다른 능력 카드 3장 중에 1장을 골라요. 낄 수 있는 칸은 3개예요
 const EQUIP_SLOTS = 3;
+// 환생을 SLOT_RB번 하면 낀 카드 칸이 하나 더 생겨요 (3 → 4칸)
+const SLOT_RB = 10;
+const slotsFor = rebirths => EQUIP_SLOTS + (rebirths >= SLOT_RB ? 1 : 0);
 const GRADES = [
   { name:'일반', chance:55, color:'#dfe2f5' },
   { name:'희귀', chance:28, color:'#4fc3ff' },
@@ -756,7 +761,7 @@ function loadoutRate(cards, level, up = {}, rebirths = 0) {
   return { coin: coin / n * (1 + 4 * st.jackpot / 100) * per, xp: xp / n * (1 + 4 * st.meteor / 100) * per };
 }
 // 가진 카드 중 코인 · XP를 가장 많이 주는 조합 (둘을 똑같이 쳐요). 능력마다 등급 높은 3장만 따져서 빨라요
-function bestLoadout(inv, level, up = {}, rebirths = 0, slots = EQUIP_SLOTS) {
+function bestLoadout(inv, level, up = {}, rebirths = 0, slots = slotsFor(rebirths)) {
   const pool = [];
   for (const A of ABILITIES) pool.push(...inv.filter(c => c.a === A.id).sort((a, b) => b.g - a.g).slice(0, slots));
   const score = cs => { const q = loadoutRate(cs, level, up, rebirths); return Math.log(q.coin) + Math.log(q.xp); };
@@ -834,8 +839,9 @@ function revive(raw) {
   let next = Math.max(0, ...S.inv.map(c => c.id)) + 1;
   for (const c of S.inv) if (!c.id) c.id = next++;
   S.nextId = Math.max(next, raw.nextId | 0);
-  if (Array.isArray(raw.equip)) raw.equip.slice(0, EQUIP_SLOTS).forEach((id, i) => { if (S.inv.some(c => c.id === id) && !S.equip.includes(id)) S.equip[i] = id; });
-  else [...S.inv].sort((a, b) => b.g - a.g).slice(0, EQUIP_SLOTS).forEach((c, i) => { S.equip[i] = c.id; });
+  S.equip = Array(slotsFor(S.rb)).fill(null);   // 환생 10번이면 4칸
+  if (Array.isArray(raw.equip)) raw.equip.slice(0, S.equip.length).forEach((id, i) => { if (S.inv.some(c => c.id === id) && !S.equip.includes(id)) S.equip[i] = id; });
+  else [...S.inv].sort((a, b) => b.g - a.g).slice(0, S.equip.length).forEach((c, i) => { S.equip[i] = c.id; });
   return S;
 }
 function load() { try { const raw = localStorage.getItem(SAVE_KEY); return raw ? revive(JSON.parse(raw)) : null; } catch (e) { return null; } }
@@ -1685,7 +1691,7 @@ function paintXp() {
 }
 function paintEquip() {
   const box = $('equip'); box.replaceChildren();
-  for (let i = 0; i < EQUIP_SLOTS; i++) {
+  for (let i = 0; i < S.equip.length; i++) {
     const c = cardById(S.equip[i]), b = h('button', 'slot' + (c ? '' : ' empty'));
     b.type = 'button';
     if (c) {
@@ -1934,12 +1940,14 @@ const Auto = (() => {
 function rebirth() {
   if (!canRebirth() || LvOv.open) return false;
   S.rb++; S.level = 1; S.xp = 0; S.coins = 0; S.up = upFresh();
+  while (S.equip.length < slotsFor(S.rb)) S.equip.push(null);   // 환생 10번: 낀 카드 칸 하나 더
   Deck.reset();
   if (S.autoEq) autoEquip(true);
   refresh(); save();
   Sound.rebirth();
   RbFx.play(ST.mul);
-  if (S.rb === NEW_GRADE_RB) setTimeout(() => toast('새 등급 5개가 열렸어요! 고대 · 천상 · 우주 · 초월 · 무한 카드와 팩이 나와요', GRADES[9].color), 1600);
+  if (S.rb === NEW_GRADE_RB) setTimeout(() => toast('새 등급 5개와 낀 카드 4번째 칸이 열렸어요! 고대 · 천상 · 우주 · 초월 · 무한 카드와 팩이 나와요', GRADES[9].color), 1600);
+  else if (S.rb === SLOT_RB) setTimeout(() => toast('낀 카드 칸이 하나 더 생겼어요!', '#ffc83d'), 1600);
   return true;
 }
 const RbFx = (() => {
@@ -1957,7 +1965,7 @@ const RbFx = (() => {
 /* ---------- 끼기 · 빼기 · 버리기 ---------- */
 // 자동 장착: 가진 카드 중 코인 · XP를 가장 많이 주는 조합을 껴요. 이미 낀 카드는 제자리에 두고 빈자리만 채워요
 function autoEquip(quiet) {
-  const best = bestLoadout(S.inv, S.level, S.up, S.rb).map(c => c.id);
+  const best = bestLoadout(S.inv, S.level, S.up, S.rb, S.equip.length).map(c => c.id);
   const same = best.length === S.equip.filter(Boolean).length && best.every(id => S.equip.includes(id));
   if (same) { if (!quiet) toast('이미 가장 좋은 카드를 끼고 있어요'); return false; }
   const next = S.equip.map(id => best.includes(id) ? id : null);
@@ -2027,7 +2035,7 @@ function toggleEquip(id) {
   if (at >= 0) S.equip[at] = null;
   else {
     const free = S.equip.indexOf(null);
-    if (free < 0) { Sound.nope(); toast(`칸이 ${EQUIP_SLOTS}개 다 찼어요. 낀 카드를 먼저 빼세요`); return; }
+    if (free < 0) { Sound.nope(); toast(`칸이 ${S.equip.length}개 다 찼어요. 낀 카드를 먼저 빼세요`); return; }
     S.equip[free] = id;
   }
   Sound.equip(); refresh(); save();
@@ -2239,7 +2247,7 @@ const Sheet = (() => {
       if (rebirth()) render();
     });
     body.append(go, h('p', 'note', `그다음 환생은 레벨 ${rebirthNeed(n + 1)}부터예요`));
-    if (n < NEW_GRADE_RB) body.append(h('p', 'note rbnew', `환생 ${NEW_GRADE_RB}번 하면 새 등급(고대 · 천상 · 우주 · 초월 · 무한) 카드와 팩이 열려요 · 지금 ${n}/${NEW_GRADE_RB}`));
+    if (n < NEW_GRADE_RB) body.append(h('p', 'note rbnew', `환생 ${NEW_GRADE_RB}번 하면 새 등급(고대 · 천상 · 우주 · 초월 · 무한) 카드와 팩, 낀 카드 4번째 칸이 열려요 · 지금 ${n}/${NEW_GRADE_RB}`));
   }
   // 창을 다시 그려도 키보드 초점은 같은 단추에 남아요 (그 단추가 없어지면 닫기 단추로)
   function render() {
@@ -2255,10 +2263,11 @@ const Sheet = (() => {
     if (mode === 'rb') { renderRb(); return; }
     if (mode === 'pk') { renderPk(); return; }
     title('bag', '인벤토리', S.inv.length);
-    // 낀 카드 소켓 3칸
-    body.append(sec('낀 카드', `${S.equip.filter(Boolean).length} / ${EQUIP_SLOTS}`, true));
-    const row = h('div', 'eqrow');
-    for (let i = 0; i < EQUIP_SLOTS; i++) {
+    // 낀 카드 소켓 (환생 10번 전에는 잠긴 칸을 하나 더 보여 줘요)
+    body.append(sec('낀 카드', `${S.equip.filter(Boolean).length} / ${S.equip.length}`, true));
+    const row = h('div', 'eqrow'), locked = S.rb < SLOT_RB;
+    row.style.setProperty('--n', S.equip.length + (locked ? 1 : 0));
+    for (let i = 0; i < S.equip.length; i++) {
       const c = cardById(S.equip[i]);
       if (!c) { const e = h('div', 'eq empty'); e.append(h('em', 'sn num', String(i + 1)), h('i', null, '+'), '빈 칸'); row.append(e); continue; }
       const b = h('button', 'eq'); b.type = 'button'; b.dataset.k = 'e' + c.id; b.style.setProperty('--gc', GRADES[c.g].color);
@@ -2267,6 +2276,11 @@ const Sheet = (() => {
       b.setAttribute('aria-label', `${i + 1}번 칸: ${GRADES[c.g].name} ${ABILITY[c.a].name}, ${b.title}. 누르면 빼요`);
       b.addEventListener('click', () => toggleEquip(c.id));
       row.append(b);
+    }
+    if (locked) {
+      const e = h('div', 'eq empty locked'); e.append(h('em', 'sn num', String(S.equip.length + 1)), pix('lock'), `환생 ${SLOT_RB}번`);
+      e.title = `환생 ${SLOT_RB}번 하면 칸이 하나 더 생겨요 (지금 ${S.rb}/${SLOT_RB})`;
+      row.append(e);
     }
     body.append(row);
     // 자동 장착: 지금 바로 / 받을 때마다
