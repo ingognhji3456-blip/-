@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>벽 부수기</title>
+<meta name="description" content="1인칭 픽셀 게임. 맨주먹으로 벽을 때려 조금씩 금이 가게 하고, 끝내 부숴 다음 벽으로 나아가요.">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@2.40.3/dist/galmuri.css">
+<style>
+/* 화면 전체가 낮은 해상도 캔버스(픽셀을 정수배로 키움). 그 위에 계기판만 HTML로 얹는다. */
+:root{
+  --ink:#f4ead8; --ink-dim:#b9ab95; --panel:rgba(12,9,16,.78); --edge:#000; --edge-hi:rgba(255,255,255,.14);
+  --hp:#e8473b; --hp-hi:#ff8a6a; --hp-lag:#f6e7c8; --hp-bg:#2a1210; --accent:#ffd36b;
+  --f:"Galmuri11","Galmuri9",ui-monospace,"Apple SD Gothic Neo","Malgun Gothic",monospace;
+  --u:12px; --px:1px;
+}
+@media (min-width:900px) and (min-height:560px){ :root{ --u:24px; --px:2px } }
+*{box-sizing:border-box}
+html,body{margin:0; height:100%; overflow:hidden; background:#000}
+body{color:var(--ink); font-family:var(--f); font-size:var(--u); line-height:1.25; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent; touch-action:none}
+#screen{position:fixed; display:block; image-rendering:pixelated; cursor:none}
+
+.hud{position:fixed; inset:0; pointer-events:none; display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+  padding:max(8px,env(safe-area-inset-top)) max(8px,env(safe-area-inset-right)) 8px max(8px,env(safe-area-inset-left))}
+.box{background:var(--panel); border:var(--px) solid var(--edge); box-shadow:0 0 0 var(--px) var(--edge), inset 0 0 0 var(--px) var(--edge-hi);
+  padding:calc(var(--u)*.4) calc(var(--u)*.6); text-shadow:var(--px) var(--px) 0 #000}
+.wall-name{display:flex; gap:.5em; align-items:baseline; white-space:nowrap}
+.tag{color:var(--accent)}
+.bar{position:relative; margin-top:calc(var(--u)*.4); width:calc(var(--u)*14); max-width:52vw; height:calc(var(--u)*.84); background:var(--hp-bg); box-shadow:0 0 0 var(--px) #000}
+.bar i,.bar b{position:absolute; left:0; top:0; bottom:0; display:block}
+.bar i{background:var(--hp-lag); transition:width .4s steps(5) .2s}
+.bar b{background:linear-gradient(var(--hp-hi) 0 34%,var(--hp) 34%)}
+.sub{margin-top:calc(var(--u)*.3); color:var(--ink-dim)}
+.right{display:flex; flex-direction:column; align-items:flex-end; gap:calc(var(--u)*.5)}
+.right strong{color:var(--accent); font-weight:inherit}
+.btn{pointer-events:auto; font:inherit; color:inherit; cursor:pointer}
+.btn:active{transform:translate(var(--px),var(--px))}
+.btn:focus-visible{outline:var(--px) solid var(--accent); outline-offset:calc(var(--px)*2)}
+.pop{animation:pop .3s steps(3)}
+@keyframes pop{0%{transform:scale(1.4)}100%{transform:scale(1)}}
+
+#hint{position:fixed; left:50%; top:36%; transform:translateX(-50%); white-space:nowrap; pointer-events:none; text-align:center; transition:opacity .5s steps(4)}
+#hint.gone{opacity:0}
+#banner{position:fixed; left:50%; top:24%; transform:translateX(-50%); pointer-events:none; white-space:nowrap; opacity:0; color:#fff;
+  text-shadow:calc(var(--px)*2) calc(var(--px)*2) 0 #000, calc(var(--px)*-1) calc(var(--px)*-1) 0 #000}
+#banner.show{animation:banner 1.3s steps(12) forwards}
+#banner.big{font-size:calc(var(--u)*2); color:var(--accent)}
+@keyframes banner{0%{opacity:0; transform:translate(-50%,8px) scale(.6)} 12%{opacity:1; transform:translate(-50%,0) scale(1.15)} 22%{transform:translate(-50%,0) scale(1)} 75%{opacity:1} 100%{opacity:0; transform:translate(-50%,-10px)}}
+@media (prefers-reduced-motion:reduce){ #banner.show{animation-duration:1.6s} .pop{animation:none} }
+</style>
+</head>
+<body>
+<canvas id="screen" aria-label="벽 부수기 게임 화면"></canvas>
+
+<div class="hud">
+  <div class="box">
+    <div class="wall-name"><span class="tag" id="wallNo">벽 1</span><span id="wallName">나무 판자벽</span></div>
+    <div class="bar" aria-hidden="true"><i id="hpLag"></i><b id="hpFill"></b></div>
+    <div class="sub" id="hpText">내구도 12 / 12</div>
+  </div>
+  <div class="right">
+    <div class="box" id="brokenBox">부순 벽 <strong id="broken">0</strong></div>
+    <button class="box btn" id="soundBtn" type="button" aria-pressed="true">소리 켬</button>
+  </div>
+</div>
+<div class="box" id="hint">왼쪽 클릭으로 벽을 때려요<br>왼손, 오른손이 번갈아 나가요</div>
+<div id="banner" aria-live="polite"></div>
+
+<script>
+'use strict';
+(() => {
+/* ───────── 기본 도구 ───────── */
+const TW = 480, TH = 480;                 // 벽 텍스처 크기(화면보다 크게, 가운데를 잘라 씀)
+const $ = id => document.getElementById(id);
+const cvs = $('screen'), ctx = cvs.getContext('2d', { alpha: false });
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const easeOut = t => 1 - (1 - t) * (1 - t);
+const easeInOut = t => t < .5 ? 2 * t * t : 1 - 2 * (1 - t) * (1 - t);
+const R = Math.random;
+const pick = a => a[(R() * a.length) | 0];
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+const pack = c => ((255 << 24) | (c[2] << 16) | (c[1] << 8) | c[0]) >>> 0;
+const angDiff = (a, b) => { let d = a - b; while (d > Math.PI) d -= Math.PI * 2; while (d < -Math.PI) d += Math.PI * 2; return d; };
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + .5) / 16);
+const REDUCE = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function mulberry(a) {
+  return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+}
+function makeNoise(rnd, cell) {   // 부드러운 값 노이즈(0..1). x, y는 0 이상
+  const gw = Math.ceil(TW / cell) + 2, gh = Math.ceil(TH / cell) + 2, g = new Float32Array(gw * gh);
+  for (let i = 0; i < g.length; i++) g[i] = rnd();
+  return (x, y) => {
+    const fx = x / cell, fy = y / cell, ix = fx | 0, iy = fy | 0;
+    let tx = fx - ix, ty = fy - iy; tx = tx * tx * (3 - 2 * tx); ty = ty * ty * (3 - 2 * ty);
+    const i = iy * gw + ix, a = g[i], b = g[i + 1], c = g[i + gw], d = g[i + gw + 1];
+    const top = a + (b - a) * tx; return top + (c + (d - c) * tx - top) * ty;
+  };
+}
+
+/* ───────── 벽 재료 ─────────
+   텍스처는 밝기 값(V)과 팔레트 번호(P)로 만든 뒤, 정해진 색 몇 개로만 칠한다(바이어 디더링). */
+function genWood(V, P, rnd) {
+  const nz = makeNoise(rnd, 3);
+  let x0 = -((rnd() * 18) | 0);
+  const nails = [];
+  while (x0 < TW) {
+    const w = 20 + ((rnd() * 9) | 0), base = .34 + rnd() * .28, p1 = rnd() * 6.3, p2 = rnd() * 6.3, fr = .85 + rnd() * .5;
+    const joint = 40 + ((rnd() * (TH - 80)) | 0);
+    const knots = [];
+    if (rnd() < .65) knots.push({ x: x0 + 6 + rnd() * (w - 12), y: 10 + rnd() * (TH - 20), r: 2.2 + rnd() * 2.2 });
+    for (let x = Math.max(0, x0); x < Math.min(TW, x0 + w); x++) {
+      const lx = x - x0;
+      for (let y = 0; y < TH; y++) {
+        const i = y * TW + x; P[i] = 0;
+        if (lx === w - 1) { V[i] = 0; continue; }
+        let warp = 2.4 * Math.sin(y * .019 + p1) + 1.1 * Math.sin(y * .071 + p2), kd = -1, kr = 0;
+        for (const k of knots) {
+          const dx = x - k.x, d = Math.hypot(dx, (y - k.y) * .55);
+          if (d < k.r * 3.2) warp += (k.r * 3.2 - d) * .5 * (dx < 0 ? -1 : 1);
+          const dk = Math.hypot(dx, (y - k.y) * .75); if (dk < k.r + 1) { kd = dk; kr = k.r; }
+        }
+        const g = Math.sin((lx + warp) * fr);
+        let v = base + g * .08 + (nz(x, y) - .5) * .14 + (rnd() - .5) * .1;
+        if (g > .88) v -= .2;
+        if (lx === 0) v += .16; else if (lx === w - 2) v -= .2;
+        if (kd >= 0) v = kd < kr ? .1 + .1 * Math.cos(kd * 2.4) : v - .18;
+        if (y === joint) v = 0; else if (y === joint + 1) v += .22; else if (y === joint - 1) v -= .1;
+        V[i] = v;
+      }
+    }
+    for (let k = -3; k <= 3; k++) { const ny = TH / 2 + 72 * k - 36; nails.push([x0 + 4, ny], [x0 + w - 6, ny]); }
+    x0 += w;
+  }
+  for (const [x, y] of nails) {   // 못 머리(금속 팔레트) + 나무에 진 그림자
+    const set = (dx, dy, v, p) => { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= TW || yy >= TH) return; const i = yy * TW + xx; if (p === undefined) V[i] -= v; else { P[i] = p; V[i] = v; } };
+    set(0, 0, .95, 1); set(1, 0, .6, 1); set(0, 1, .6, 1); set(1, 1, .25, 1);
+    set(2, 1, .3); set(1, 2, .3); set(2, 2, .3);
+  }
+}
+function genBrick(V, P, rnd) {
+  const nz = makeNoise(rnd, 4), big = makeNoise(rnd, 36);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) { const i = y * TW + x; P[i] = 1; V[i] = .5 + (nz(x, y) - .5) * .5 + (rnd() - .5) * .3; }
+  const bw = 26, bh = 10, pw = 28, ph = 12;
+  for (let r = 0; r * ph < TH; r++) {
+    const y0 = r * ph + 1, off = r % 2 ? 14 : 0;
+    for (let x0 = 1 - off; x0 < TW; x0 += pw) {
+      const base = .4 + rnd() * .26 + (big(Math.max(0, x0) + 5, y0) - .5) * .25 - (rnd() < .07 ? .2 : 0);
+      const chip = rnd() < .22 ? (rnd() * 4) | 0 : -1;
+      for (let yy = 0; yy < bh; yy++) for (let xx = 0; xx < bw; xx++) {
+        const x = x0 + xx, y = y0 + yy; if (x < 0 || x >= TW || y >= TH) continue;
+        if (chip >= 0) { const cx = chip & 1 ? bw - 1 - xx : xx, cy = chip & 2 ? bh - 1 - yy : yy; if (cx + cy < 2) continue; }
+        let v = base + (nz(x, y) - .5) * .25 + (rnd() - .5) * .16;
+        if (yy === 0) v += .24; else if (yy === 1) v += .07;
+        if (xx === 0) v += .1;
+        if (yy === bh - 1) v -= .3;
+        if (xx === bw - 1) v -= .16;
+        if (rnd() < .03) v -= .28;
+        const i = y * TW + x; P[i] = 0; V[i] = v;
+      }
+      const ys = y0 + bh;   // 벽돌 아래 줄눈에 드리운 그림자
+      if (ys < TH) for (let xx = 1; xx <= bw; xx++) { const x = x0 + xx; if (x >= 0 && x < TW && P[ys * TW + x] === 1) V[ys * TW + x] -= .35; }
+    }
+  }
+}
+function genStone(V, P, rnd) {
+  const nz = makeNoise(rnd, 3), big = makeNoise(rnd, 14);
+  for (let i = 0; i < TW * TH; i++) { P[i] = 1; V[i] = .5 + (rnd() - .5) * .6; }
+  const block = (bx, by, w, h) => {
+    const base = .4 + rnd() * .22;
+    for (let yy = 0; yy < h; yy++) for (let xx = 0; xx < w; xx++) {
+      const x = bx + xx, y = by + yy; if (x < 0 || y < 0 || x >= TW || y >= TH) continue;
+      if (Math.min(xx, w - 1 - xx) + Math.min(yy, h - 1 - yy) < 1) continue;
+      let v = base + (big(x, y) - .5) * .3 + (nz(x, y) - .5) * .16 + (rnd() - .5) * .1;
+      if (yy < 2) v += yy ? .1 : .25;
+      if (xx < 2) v += xx ? .05 : .12;
+      if (yy >= h - 2) v -= yy === h - 1 ? .32 : .14;
+      if (xx >= w - 2) v -= xx === w - 1 ? .22 : .08;
+      const r = rnd(); if (r < .012) v -= .35; else if (r < .02) v += .22;
+      const i = y * TW + x; P[i] = 0; V[i] = v;
+    }
+  };
+  for (let y0 = -((rnd() * 10) | 0); y0 < TH;) {
+    const h = 24 + ((rnd() * 10) | 0);
+    for (let x0 = -((rnd() * 40) | 0); x0 < TW;) { const w = 30 + ((rnd() * 36) | 0); block(x0 + 1, y0 + 1, w - 2, h - 2); x0 += w; }
+    y0 += h;
+  }
+}
+function genConcrete(V, P, rnd) {
+  const big = makeNoise(rnd, 26), mid = makeNoise(rnd, 6);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+    let v = .56 + (big(x, y) - .5) * .28 + (mid(x, y) - .5) * .12 + (rnd() - .5) * .12;
+    const lx = ((x - 48) % 128 + 128) % 128, ly = y % 96;   // 거푸집 판 이음매(판 하나가 화면 가운데에 오게)
+    if (lx === 0 || ly === 0) v = .14; else if (lx === 1 || ly === 1) v += .2; else if (lx === 127 || ly === 95) v -= .12;
+    const dx = lx - (lx < 64 ? 32 : 96), dy = ly - (ly < 48 ? 24 : 72), d = Math.hypot(dx, dy);   // 폼타이 구멍
+    if (d < 2.3) v = .04; else if (d < 3.4) v += dx + dy > 0 ? .18 : -.1;
+    if (Math.abs(dx) <= 1 && dy > 3 && dy < 22) v -= .13 * (1 - dy / 22);   // 구멍 아래 물때
+    if (rnd() < .012) v -= .3;
+    const i = y * TW + x; P[i] = 0; V[i] = v;
+  }
+}
+function genSteel(V, P, rnd) {
+  const PW = 84, PH = 64, ox = ((TW / 2 - PW / 2) % PW + PW) % PW, oy = ((TH / 2 - PH / 2) % PH + PH) % PH;
+  const rowN = new Float32Array(TH).map(() => rnd()), nz = makeNoise(rnd, 5);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+    const lx = ((x - ox) % PW + PW) % PW, ly = ((y - oy) % PH + PH) % PH;
+    const pid = (Math.floor((x - ox) / PW) * 31 + Math.floor((y - oy) / PH) * 17 + 999) >>> 0;
+    let v = .46 + ((Math.imul(pid, 2654435761) >>> 0) % 1000) / 1000 * .12 + .1 * Math.sin((x + y * .6) * .045) + (rowN[y] - .5) * .07 + (nz(x, y) - .5) * .06;
+    if (lx === 0 || ly === 0) v = .02; else if (lx === 1 || ly === 1) v += .26; else if (lx === PW - 1 || ly === PH - 1) v -= .24;
+    const i = y * TW + x; P[i] = 0; V[i] = v;
+  }
+  const rivet = (x, y) => {
+    const set = (dx, dy, v, add) => { const xx = x + dx, yy = y + dy; if (xx < 0 || yy < 0 || xx >= TW || yy >= TH) return; const i = yy * TW + xx; V[i] = add ? V[i] + v : v; };
+    set(0, -1, .75); set(-1, 0, .75); set(0, 0, .95); set(1, 0, .35); set(0, 1, .35); set(1, 1, .12);
+    set(2, 1, -.2, 1); set(1, 2, -.2, 1); set(2, 2, -.2, 1);
+  };
+  for (let py = oy - PH; py < TH; py += PH) for (let px = ox - PW; px < TW; px += PW) {
+    for (let k = 6; k <= PW - 7; k += 12) { rivet(px + k, py + 5); rivet(px + k, py + PH - 6); }
+    for (let k = 17; k <= PH - 18; k += 12) { rivet(px + 5, py + k); rivet(px + PW - 6, py + k); }
+  }
+  for (let n = 0; n < 80; n++) {   // 긁힌 자국
+    let x = rnd() * TW, y = rnd() * TH; const a = rnd() * Math.PI * 2, len = 4 + rnd() * 10;
+    for (let t = 0; t < len; t++) { x += Math.cos(a); y += Math.sin(a); const xi = x | 0, yi = y | 0; if (xi >= 0 && yi >= 0 && xi < TW && yi < TH) V[yi * TW + xi] += .16; }
+  }
+}
+function genObsidian(V, P, rnd) {
+  const cell = 40, gw = Math.ceil(TW / cell) + 1, gh = Math.ceil(TH / cell) + 1, n = gw * gh;
+  const sx = new Float32Array(n), sy = new Float32Array(n), sa = new Float32Array(n), sb = new Float32Array(n), sc = new Float32Array(n), gl = new Float32Array(n);
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) {
+    const k = gy * gw + gx, a = rnd() * Math.PI * 2;
+    sx[k] = (gx + .15 + rnd() * .7) * cell; sy[k] = (gy + .15 + rnd() * .7) * cell;
+    sa[k] = Math.cos(a) * .012; sb[k] = Math.sin(a) * .012; sc[k] = .22 + rnd() * .26; gl[k] = rnd();
+  }
+  const nz = makeNoise(rnd, 7);
+  for (let y = 0; y < TH; y++) for (let x = 0; x < TW; x++) {
+    const cx = (x / cell) | 0, cy = (y / cell) | 0; let d1 = 1e9, d2 = 1e9, n1 = 0;
+    for (let yy = cy - 1; yy <= cy + 1; yy++) { if (yy < 0 || yy >= gh) continue;
+      for (let xx = cx - 1; xx <= cx + 1; xx++) { if (xx < 0 || xx >= gw) continue;
+        const k = yy * gw + xx, d = Math.hypot(sx[k] - x, sy[k] - y);
+        if (d < d1) { d2 = d1; d1 = d; n1 = k; } else if (d < d2) d2 = d;
+      } }
+    let v = sc[n1] + (x - sx[n1]) * sa[n1] + (y - sy[n1]) * sb[n1] + (nz(x, y) - .5) * .1 + (rnd() - .5) * .05;
+    if (d2 - d1 < 1.1) v = gl[n1] > .55 ? .8 : .02;
+    else if (d2 - d1 < 2.4 && gl[n1] > .55) v += .18;
+    if (rnd() < .0015) v = 1;
+    const i = y * TW + x; P[i] = 0; V[i] = v;
+  }
+}
+
+const pal = list => list.map(hex);
+const METAL = pal(['#2b2b30', '#55565c', '#85868c', '#b9bac0', '#e4e5ea']);
+// hp: 부수는 데 필요한 주먹 수. cd/cl: 금의 어두운 선과 그 아래 밝은 모서리. jag: 금이 얼마나 구불구불한지
+const MATS = [
+  { name: '나무 판자벽', hp: 12, gen: genWood, pals: [pal(['#2e1a0c', '#4f2e15', '#70441f', '#8c5a2a', '#a87137', '#c08a4a']), METAL],
+    cd: '#1e0f05', cl: '#b98552', jag: .7, vertical: true, chips: ['#70441f', '#a87137', '#c08a4a', '#4f2e15'], dust: '#b79470', snd: 'wood' },
+  { name: '벽돌벽', hp: 18, gen: genBrick, pals: [pal(['#3e1712', '#5f241a', '#7f3222', '#9a412c', '#b4553a', '#c96f50']), pal(['#4f4942', '#6d665d', '#8a8277', '#a69e92'])],
+    cd: '#200a07', cl: '#e39a7c', jag: .8, chips: ['#7f3222', '#9a412c', '#b4553a', '#8a8277'], dust: '#b0857a', snd: 'brick' },
+  { name: '돌벽', hp: 24, gen: genStone, pals: [pal(['#2b2d34', '#40434c', '#585c66', '#71757f', '#8c909a', '#a8acb4']), pal(['#141418', '#1f2025', '#2c2d33'])],
+    cd: '#0e0f12', cl: '#c3c6cd', jag: .75, chips: ['#585c66', '#71757f', '#8c909a', '#40434c'], dust: '#9a9ca4', snd: 'stone' },
+  { name: '콘크리트벽', hp: 30, gen: genConcrete, pals: [pal(['#4d4f53', '#64676b', '#7c7f83', '#93969a', '#aaadb1'])],
+    cd: '#1f2023', cl: '#c9cbcf', jag: .8, chips: ['#7c7f83', '#93969a', '#aaadb1', '#64676b'], dust: '#b4b6ba', snd: 'concrete' },
+  { name: '강철벽', hp: 38, gen: genSteel, pals: [pal(['#161b21', '#232b34', '#33404c', '#475766', '#5f7181', '#7f92a2', '#a9bac7'])],
+    cd: '#07090c', cl: '#dfe8ef', jag: .45, chips: ['#5f7181', '#7f92a2', '#a9bac7', '#e4ecf2'], dust: '#8d9aa6', snd: 'steel' },
+  { name: '흑요석벽', hp: 46, gen: genObsidian, pals: [pal(['#050308', '#0f0a17', '#1a1226', '#271b38', '#3a2a52', '#56407a', '#8f72c4', '#d2bfff'])],
+    cd: '#000000', cl: '#d39cff', jag: .28, chips: ['#271b38', '#3a2a52', '#8f72c4', '#d2bfff'], dust: '#6c5a8a', snd: 'glass' },
+];
+
+function makeWall(index) {
+  const mat = MATS[index % MATS.length], round = Math.floor(index / MATS.length);
+  const c = document.createElement('canvas'); c.width = TW; c.height = TH;
+  const x = c.getContext('2d'), img = x.createImageData(TW, TH), d = img.data;
+  const V = new Float32Array(TW * TH), P = new Uint8Array(TW * TH);
+  mat.gen(V, P, mulberry(index * 9973 + 17));
+  for (let y = 0, i = 0; y < TH; y++) for (let xx = 0; xx < TW; xx++, i++) {
+    const tones = mat.pals[P[i]], n = tones.length;
+    const f = V[i] * (n - 1) + (BAYER[(y & 3) * 4 + (xx & 3)] - .5) * .6;
+    const col = tones[clamp(Math.round(f), 0, n - 1)], o = i * 4;
+    d[o] = col[0]; d[o + 1] = col[1]; d[o + 2] = col[2]; d[o + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  const maxHp = Math.round(mat.hp * (1 + .5 * round));
+  return { index, mat, c, x, grid: new Uint8Array(TW * TH), hp: maxHp, maxHp, hits: [], name: mat.name + (round ? ' +' + round : '') };
+}
+
+/* ───────── 금 가기 ─────────
+   grid: 0 = 멀쩡, 1 = 밝은 모서리, 2 = 금(어두움). 어두운 금이 밝은 모서리를 덮는다. */
+const CD = [], CL = [];
+function cpx(w, x, y) {
+  x = Math.round(x); y = Math.round(y);
+  if (x < 1 || y < 1 || x >= TW - 1 || y >= TH - 1) return false;
+  const i = y * TW + x;
+  if (w.grid[i] !== 2) { w.grid[i] = 2; CD.push(x, y); }
+  const j = i + TW + 1;
+  if (w.grid[j] === 0) { w.grid[j] = 1; CL.push(x + 1, y + 1); }
+  return true;
+}
+function flushCracks(w) {
+  w.x.fillStyle = w.mat.cl;
+  for (let i = 0; i < CL.length; i += 2) if (w.grid[CL[i + 1] * TW + CL[i]] === 1) w.x.fillRect(CL[i], CL[i + 1], 1, 1);
+  w.x.fillStyle = w.mat.cd;
+  for (let i = 0; i < CD.length; i += 2) w.x.fillRect(CD[i], CD[i + 1], 1, 1);
+  CD.length = 0; CL.length = 0;
+}
+function crackWalk(w, x, y, a, len, depth, wide, tx, ty) {
+  const steer = tx !== undefined;
+  for (let i = 0; i < len; i++) {
+    if (steer) { if (Math.hypot(tx - x, ty - y) < 2) return; a += angDiff(Math.atan2(ty - y, tx - x), a) * .22; }
+    else if (w.mat.vertical) a += angDiff(Math.sin(a) >= 0 ? Math.PI / 2 : -Math.PI / 2, a) * .25;   // 나무는 결을 따라 갈라짐
+    a += (R() - .5) * w.mat.jag;
+    x += Math.cos(a); y += Math.sin(a);
+    if (!cpx(w, x, y)) return;
+    if (wide && i < len * .45) { const vert = Math.abs(Math.sin(a)) > .7; cpx(w, x + (vert ? 1 : 0), y + (vert ? 0 : 1)); }
+    if (depth < 2 && R() < .07 + .03 * depth)
+      crackWalk(w, x, y, a + (R() < .5 ? -1 : 1) * (.5 + R() * .7), (len - i) * (.3 + R() * .35), depth + 1, false);
+  }
+}
+// 한 대 맞을 때마다: 맞은 곳이 조금 패이고, 금이 뻗는다. 많이 맞을수록 금이 길고 굵어지고, 예전 자국과 이어진다.
+function damage(w, sx, sy) {
+  w.hp = Math.max(0, w.hp - 1);
+  const f = 1 - w.hp / w.maxHp, x = sx + cropX, y = sy + cropY;
+  const rc = .6 + f * 2.2;
+  for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) if (Math.hypot(dx, dy) < rc + (R() - .5) * .8) cpx(w, x + dx, y + dy);
+  const n = 2 + (f > .3) + (f > .6) + (R() < .5), len = 2.5 + 36 * f * f + R() * 4, a0 = R() * Math.PI * 2;
+  for (let k = 0; k < n; k++) crackWalk(w, x, y, a0 + k * Math.PI * 2 / n + (R() - .5) * .9, len * (.6 + R() * .6), 0, f > .55);
+  if (f > .35 && w.hits.length) {
+    let best = null, bd = 1e9;
+    for (const h of w.hits) { const d = Math.hypot(h.x - x, h.y - y); if (d > 6 && d < 110 && d < bd) { bd = d; best = h; } }
+    if (best && R() < .35 + f * .6) crackWalk(w, x, y, Math.atan2(best.y - y, best.x - x), bd * 1.6, 1, false, best.x, best.y);
+  }
+  w.hits.push({ x, y });
+  flushCracks(w);
+  return f;
+}
+
+/* ───────── 화면 크기 ───────── */
+let vw = 320, vh = 180, cropX = 80, cropY = 150, S0 = 1.5, cssScale = 4, cssLeft = 0, cssTop = 0;
+const armCvs = document.createElement('canvas'), armCtx = armCvs.getContext('2d');
+let armImg, armU32, vig;
+function resize() {
+  const dpr = window.devicePixelRatio || 1, dw = Math.round(innerWidth * dpr), dh = Math.round(innerHeight * dpr);
+  let s = Math.max(1, Math.round(Math.min(dw, dh) / 180));   // 짧은 쪽이 180픽셀쯤 되게, 정수배로 키움
+  while (Math.ceil(dw / s) > TW - 16 || Math.ceil(dh / s) > TH - 16) s++;
+  vw = Math.ceil(dw / s); vh = Math.ceil(dh / s);
+  cropX = (TW - vw) >> 1; cropY = (TH - vh) >> 1;
+  cvs.width = vw; cvs.height = vh; ctx.imageSmoothingEnabled = false;
+  cssScale = s / dpr; cssLeft = (innerWidth - vw * cssScale) / 2; cssTop = (innerHeight - vh * cssScale) / 2;
+  Object.assign(cvs.style, { width: vw * cssScale + 'px', height: vh * cssScale + 'px', left: cssLeft + 'px', top: cssTop + 'px' });
+  armCvs.width = vw; armCvs.height = vh; armImg = armCtx.createImageData(vw, vh); armU32 = new Uint32Array(armImg.data.buffer);
+  S0 = 1.5 * clamp(Math.min(vw, vh * 1.78) / 320, .9, 1.2);
+  vig = document.createElement('canvas'); vig.width = vw; vig.height = vh;   // 가장자리를 계단식으로 어둡게
+  const vx = vig.getContext('2d'), vi = vx.createImageData(vw, vh), vu = new Uint32Array(vi.data.buffer);
+  for (let y = 0; y < vh; y++) for (let x = 0; x < vw; x++) {
+    const dx = (x - vw / 2) / (vw * .6), dy = (y - vh * .45) / (vh * .65), r = Math.sqrt(dx * dx + dy * dy);
+    const lvl = Math.min(4, Math.floor(clamp((r - .62) / .55, 0, 1) * 4 + BAYER[(y & 3) * 4 + (x & 3)]));
+    if (lvl > 0) vu[y * vw + x] = (Math.round(lvl * .12 * 255) << 24) >>> 0;
+  }
+  vx.putImageData(vi, 0, 0);
+  if (!aimSet) { aim.x = vw / 2; aim.y = vh * .42; }
+}
+
+/* ───────── 팔(픽셀 단위로 직접 그림) ───────── */
+const SKIN = pal(['#3b1d12', '#8a4f33', '#b8734e', '#d9966a', '#eeb789', '#fbd6ad']).map(pack);
+const CLOTH = pal(['#0d0f1a', '#1b2340', '#27325a', '#344479', '#4a5d9c', '#6278be']).map(pack);
+const LX = -.55, LY = -.83;   // 빛은 왼쪽 위에서
+const KN = [[-6.3, -5.2], [-1.7, -6.1], [2.9, -5.8], [7.3, -4.6]];   // 접힌 손가락 네 개(검지→새끼)
+const GAPS = [-4.0, 0.6, 5.1];
+const TH_ = [-11, 8.6, -6.9, -.4, 3.4];                              // 엄지(안쪽)
+function sdBox(x, y, bx, by, r) { const qx = Math.abs(x) - bx + r, qy = Math.abs(y) - by + r; return Math.hypot(Math.max(qx, 0), Math.max(qy, 0)) + Math.min(Math.max(qx, qy), 0) - r; }
+function sdCap(x, y, ax, ay, bx, by, r) { const pax = x - ax, pay = y - ay, bax = bx - ax, bay = by - ay, h = clamp((pax * bax + pay * bay) / (bax * bax + bay * bay), 0, 1); return Math.hypot(pax - bax * h, pay - bay * h) - r; }
+function smin(a, b, k) { const h = clamp(.5 + .5 * (b - a) / k, 0, 1); return b + (a - b) * h - k * h * (1 - h); }
+const handD = (x, y) => sdBox(x - .8, y - 2.6, 10.2, 9.4, 5);
+function fistLocal(x, y) {
+  let d = handD(x, y);
+  for (let k = 0; k < 4; k++) d = smin(d, Math.hypot(x - KN[k][0], y - KN[k][1]) - 3.3, 1.6);
+  return smin(d, sdCap(x, y, TH_[0], TH_[1], TH_[2], TH_[3], TH_[4]), 1.1);
+}
+let FX = 0, FY = 0, FS = 1, FSIDE = 1;
+const fW = (px, py) => fistLocal((px - FX) / FS * FSIDE, (py - FY) / FS) * FS;
+function fistColor(px, py, d) {
+  const gx = fW(px + .5, py) - fW(px - .5, py), gy = fW(px, py + .5) - fW(px, py - .5), gl = Math.hypot(gx, gy) || 1;
+  let b = .16 + clamp(1 + d / (3.4 * FS), 0, 1) * (gx * LX + gy * LY) / gl;
+  const lx = (px - FX) / FS * FSIDE, ly = (py - FY) / FS;
+  if (ly < -2.6) for (const g of GAPS) if (Math.abs(lx - g) * FS < .62) { b -= .6; break; }
+  for (const k of KN) if (Math.hypot(lx - k[0] + .9, ly - k[1] + 1.1) * FS < .9 + FS * .25) { b += .45; break; }
+  if (ly > -3.3 && ly < -2.3 && lx > -8 && lx < 9.5) b -= .22;
+  const dT = sdCap(lx, ly, TH_[0], TH_[1], TH_[2], TH_[3], TH_[4]) * FS;
+  if (dT > -.7 && dT < .2 && handD(lx, ly) < 0) b -= .55;
+  return SKIN[b < -.42 ? 1 : b < -.04 ? 2 : b < .34 ? 3 : b < .62 ? 4 : 5];
+}
+let tcT = 0, tcNX = 0, tcNY = 0;
+function taper(px, py, ax, ay, bx, by, ra, rb) {   // 굵기가 변하는 막대. 법선(tcNX, tcNY)과 위치(tcT)도 남김
+  const bax = bx - ax, bay = by - ay, h = clamp(((px - ax) * bax + (py - ay) * bay) / (bax * bax + bay * bay), 0, 1);
+  const r = ra + (rb - ra) * h, vx = px - ax - bax * h, vy = py - ay - bay * h;
+  tcT = h; tcNX = vx / r; tcNY = vy / r;
+  return Math.hypot(vx, vy) - r;
+}
+const tone = (P, b) => P[b < -.42 ? 1 : b < -.04 ? 2 : b < .34 ? 3 : b < .62 ? 4 : 5];
+
+const EXT = .085, HOLD = .05, RET = .17, HIT_S = .55;   // 뻗기 · 멈춤 · 거두기(초), 벽에 닿을 때 주먹 크기
+const arms = [{ side: -1 }, { side: 1 }].map(a => Object.assign(a, { active: false, t: 0, from: null, tx: 0, ty: 0, aimX: 0, aimY: 0, hitDone: false, queued: null }));
+function guard(side) {
+  const gd = Math.min(vw * .26, 62 * S0);
+  return { x: vw / 2 + side * gd + (aim.x - vw / 2) * .04,
+           y: vh - 24 * S0 + Math.sin(time * 2.2 + (side > 0 ? 1.7 : 0)) * 1.1 * S0 + walkBob * (side > 0 ? 1 : .8), s: S0 };
+}
+function pose(a) {
+  const g = guard(a.side); let { x, y, s } = g;
+  if (a.active) {
+    const t = a.t, hs = S0 * HIT_S;
+    if (t < EXT) { const k = easeOut(t / EXT); x = lerp(a.from.x, a.tx, k); y = lerp(a.from.y, a.ty, k); s = lerp(a.from.s, hs, k); }
+    else if (t < EXT + HOLD) { const k = (t - EXT) / HOLD; x = a.tx; y = a.ty + k * .8 * S0; s = hs * (1 + .05 * k); }
+    else { const k = easeInOut(clamp((t - EXT - HOLD) / RET, 0, 1)); x = lerp(a.tx, g.x, k); y = lerp(a.ty + .8 * S0, g.y, k); s = lerp(hs * 1.05, g.s, k); }
+  }
+  const e = clamp((S0 - s) / (S0 * (1 - HIT_S)), 0, 1), egx = g.x + a.side * 21 * S0, egy = vh + 15 * S0;
+  return { x, y, s, e, ex: lerp(egx, lerp(egx, x, .5), e), ey: lerp(egy, vh + 1 * S0, e) };
+}
+function drawArm(p, side) {
+  FX = p.x; FY = p.y; FS = p.s; FSIDE = side;
+  const wx = FX + side * .4 * FS, wy = FY + 10.5 * FS, ex = p.ex, ey = p.ey;
+  const rE = 12 * S0, rW = 6.8 * FS, ax = wx - ex, ay = wy - ey, al = Math.hypot(ax, ay) || 1;
+  const sl = Math.min(al * .55, 24 * S0), sx = ex + ax / al * sl, sy = ey + ay / al * sl;   // 소매 끝
+  const rS0 = rE + 2 * S0, rS1 = rE + (rW - rE) * (sl / al) + 1.8 * S0;
+  const fx0 = FX - 15.5 * FS - 1, fx1 = FX + 15.5 * FS + 1, fy0 = FY - 10.5 * FS - 1, fy1 = FY + 13 * FS + 1;
+  const x0 = Math.max(0, Math.floor(Math.min(fx0, ex - rS0, wx - rW) - 1)), x1 = Math.min(vw - 1, Math.ceil(Math.max(fx1, ex + rS0, wx + rW) + 1));
+  const y0 = Math.max(0, Math.floor(Math.min(fy0, wy - rW, ey - rS0) - 1)), y1 = Math.min(vh - 1, Math.ceil(Math.max(fy1, ey + rS0) + 1));
+  for (let y = y0; y <= y1; y++) {
+    const py = y + .5, row = y * vw;
+    for (let x = x0; x <= x1; x++) {
+      const px = x + .5;
+      const dS = taper(px, py, ex, ey, sx, sy, rS0, rS1);
+      if (dS < 0) { armU32[row + x] = tcT > .77 && tcT < .82 ? CLOTH[1] : tone(CLOTH, .05 + (tcNX * LX + tcNY * LY) * .85 - (tcT > .8 ? .18 : 0)); continue; }
+      if (dS < 1) { armU32[row + x] = CLOTH[0]; continue; }
+      const dF = px > fx0 && px < fx1 && py > fy0 && py < fy1 ? fW(px, py) : 1e9;
+      if (dF < 0) { armU32[row + x] = fistColor(px, py, dF); continue; }
+      const dA = taper(px, py, ex, ey, wx, wy, rE, rW);
+      if (dA < 0) { armU32[row + x] = dF < 1 ? SKIN[2] : tone(SKIN, .06 + (tcNX * LX + tcNY * LY) * .9); continue; }
+      if (dF < 1 || dA < 1) armU32[row + x] = SKIN[0];
+    }
+  }
+}
+function renderArms() {
+  armU32.fill(0);
+  const ps = arms.map(a => ({ a, p: pose(a) })).sort((u, v) => v.p.e - u.p.e);   // 멀리 뻗은 팔부터
+  for (const { a, p } of ps) drawArm(p, a.side);
+  armCtx.putImageData(armImg, 0, 0);
+}
+
+/* ───────── 소리(Web Audio로 합성) ───────── */
+let AC = null, out = null, noiseBuf = null;
+let muted = false; try { muted = localStorage.getItem('wall.mute') === '1'; } catch (e) {}
+function audio() {
+  if (AC) { if (AC.state === 'suspended') AC.resume(); return AC; }
+  try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; }
+  out = AC.createGain(); out.gain.value = muted ? 0 : .55;
+  const comp = AC.createDynamicsCompressor(); out.connect(comp); comp.connect(AC.destination);
+  noiseBuf = AC.createBuffer(1, AC.sampleRate, AC.sampleRate);
+  const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = R() * 2 - 1;
+  return AC;
+}
+function osc({ type = 'sine', f0, f1, dur, gain, at = 0 }) {
+  if (!AC) return;
+  const t = AC.currentTime + at, o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.setValueAtTime(f0, t); if (f1) o.frequency.exponentialRampToValueAtTime(f1, t + dur);
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .02);
+}
+function hiss({ dur, type = 'bandpass', f = 1000, f1, q = 1, gain, at = 0 }) {
+  if (!AC) return;
+  const t = AC.currentTime + at, s = AC.createBufferSource(), fl = AC.createBiquadFilter(), g = AC.createGain();
+  s.buffer = noiseBuf; fl.type = type; fl.frequency.setValueAtTime(f, t); if (f1) fl.frequency.exponentialRampToValueAtTime(f1, t + dur); fl.Q.value = q;
+  g.gain.setValueAtTime(gain, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  s.connect(fl); fl.connect(g); g.connect(out); s.start(t, R() * .5); s.stop(t + dur + .02);
+}
+const sfxSwish = () => hiss({ dur: .09, f: 1800, f1: 600, q: .8, gain: .1 });
+function sfxHit(mat, f) {
+  osc({ f0: 170, f1: 52, dur: .13, gain: .7 });
+  switch (mat.snd) {
+    case 'wood': hiss({ dur: .07, f: 650, q: 3, gain: .55 }); osc({ type: 'triangle', f0: 250, f1: 180, dur: .06, gain: .18 }); break;
+    case 'steel': hiss({ dur: .05, f: 3200, q: 1, gain: .25 }); osc({ f0: 420, dur: .4, gain: .1 }); osc({ f0: 1063, dur: .28, gain: .06 }); osc({ f0: 2210, dur: .18, gain: .035 }); break;
+    case 'glass': hiss({ dur: .05, type: 'highpass', f: 4000, gain: .25 }); osc({ f0: 1500 + R() * 300, dur: .2, gain: .06 }); osc({ f0: 2350 + R() * 400, dur: .16, gain: .04 }); break;
+    default: hiss({ dur: .07, f: mat.snd === 'concrete' ? 520 : 850, q: 1, gain: .5 });
+  }
+  if (f > .3) hiss({ dur: .03 + .06 * f, type: 'highpass', f: 2600, gain: .1 + .3 * f, at: .01 });   // 금 가는 소리
+}
+function sfxBreak(mat) {
+  osc({ f0: 110, f1: 28, dur: .7, gain: .9 });
+  hiss({ dur: 1, type: 'lowpass', f: 2600, f1: 140, q: .7, gain: .9 });
+  for (let i = 0; i < 7; i++) hiss({ dur: .04, type: 'highpass', f: 2000 + R() * 3000, gain: .25, at: i * .05 + R() * .05 });
+  if (mat.snd === 'steel') { osc({ f0: 300, dur: 1, gain: .14 }); osc({ f0: 757, dur: .8, gain: .08 }); }
+  if (mat.snd === 'glass') for (let i = 0; i < 6; i++) osc({ f0: 1800 + R() * 2400, dur: .3, gain: .04, at: i * .06 });
+}
+const sfxStep = at => osc({ f0: 90, f1: 50, dur: .08, gain: .22, at });
+
+/* ───────── 게임 상태 ───────── */
+const G = { wall: makeWall(0), next: null, phase: 'stand', pt: 0, sN: 1, dark: 0, broken: 0, punches: 0 };
+let nextHand = 0, time = 0, walkBob = 0, shake = 0, hitStop = 0, flash = 0;
+const aim = { x: 160, y: 76 }; let aimSet = false, showCross = false;
+const parts = [], sparks = []; let chunks = [];
+const prepNext = () => setTimeout(() => { if (!G.next) G.next = makeWall(G.wall.index + 1); }, 60);
+
+function punch() {
+  const a = arms[nextHand]; nextHand ^= 1;   // 왼손 → 오른손 → 왼손 …
+  const ax = clamp(aim.x + a.side * 1.6 * S0, 6, vw - 6), ay = clamp(aim.y, 6, Math.min(vh * .8, vh - 18 * S0));
+  if (a.active && a.t < EXT + HOLD) { a.queued = { x: ax, y: ay }; return; }
+  begin(a, ax, ay);
+}
+function begin(a, ax, ay) {
+  const p = pose(a);
+  a.from = { x: p.x, y: p.y, s: p.s };
+  a.aimX = ax; a.aimY = ay; a.tx = ax; a.ty = ay + 3 * S0 * HIT_S;
+  a.t = 0; a.active = true; a.hitDone = false; a.queued = null;
+  sfxSwish();
+}
+function impact(a) {
+  if (G.phase !== 'stand') return;   // 벽이 무너지는 동안에는 허공을 친다
+  const w = G.wall, x = a.aimX, y = a.aimY, f = damage(w, x, y);
+  G.punches++;
+  burst(x, y, w.mat, f);
+  sparks.push({ x, y, t: 0 });
+  shake = Math.max(shake, 1.2 + f * 2.4); hitStop = .035 + f * .02;
+  sfxHit(w.mat, f);
+  if (G.punches === 3) $('hint').classList.add('gone');
+  if (w.hp <= 0) startBreak(x, y);
+  hud();
+}
+function burst(x, y, mat, f) {
+  for (let i = 0, n = 6 + (f * 10 | 0); i < n; i++)
+    parts.push({ k: 0, x, y, vx: (R() - .5) * 130, vy: -30 - R() * 110, g: 430, t: 0, life: .5 + R() * .5, c: pick(mat.chips), s: R() < .3 ? 2 : 1 });
+  for (let i = 0, n = 3 + (f * 4 | 0); i < n; i++)
+    parts.push({ k: 1, x: x + (R() - .5) * 6, y: y + (R() - .5) * 6, vx: (R() - .5) * 30, vy: -8 - R() * 18, g: -6, t: 0, life: .5 + R() * .4, c: mat.dust, s: 3 + (R() * 3 | 0) });
+}
+
+// 벽을 조각(보로노이)으로 나눠 날려 보낸다. 맞은 곳 근처는 잘게, 카메라 쪽으로 튀어나온다.
+function shatter(w, hx, hy) {
+  const snap = document.createElement('canvas'); snap.width = vw; snap.height = vh;
+  const sc = snap.getContext('2d'); sc.drawImage(w.c, cropX, cropY, vw, vh, 0, 0, vw, vh);
+  const src = new Uint32Array(sc.getImageData(0, 0, vw, vh).data.buffer);
+  const cell = Math.max(16, Math.round(Math.min(vw, vh) / 7)), gw = Math.ceil(vw / cell), gh = Math.ceil(vh / cell);
+  const S = [];
+  for (let gy = 0; gy < gh; gy++) for (let gx = 0; gx < gw; gx++) S.push((gx + .1 + R() * .8) * cell, (gy + .1 + R() * .8) * cell);
+  const nG = S.length / 2;
+  for (let i = 0; i < 10; i++) { const a = R() * Math.PI * 2, r = 4 + R() * cell * 1.2; S.push(hx + Math.cos(a) * r, hy + Math.sin(a) * r); }
+  const nAll = S.length / 2, own = new Int32Array(vw * vh);
+  const bx0 = new Float32Array(nAll).fill(1e9), by0 = new Float32Array(nAll).fill(1e9), bx1 = new Float32Array(nAll).fill(-1), by1 = new Float32Array(nAll).fill(-1);
+  for (let y = 0; y < vh; y++) for (let x = 0; x < vw; x++) {
+    const cx = (x / cell) | 0, cy = (y / cell) | 0; let best = 0, bd = 1e18;
+    for (let yy = cy - 1; yy <= cy + 1; yy++) { if (yy < 0 || yy >= gh) continue;
+      for (let xx = cx - 1; xx <= cx + 1; xx++) { if (xx < 0 || xx >= gw) continue;
+        const k = yy * gw + xx, dx = S[2 * k] - x, dy = S[2 * k + 1] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = k; } } }
+    for (let k = nG; k < nAll; k++) { const dx = S[2 * k] - x, dy = S[2 * k + 1] - y, d = dx * dx + dy * dy; if (d < bd) { bd = d; best = k; } }
+    own[y * vw + x] = best;
+    if (x < bx0[best]) bx0[best] = x; if (x > bx1[best]) bx1[best] = x; if (y < by0[best]) by0[best] = y; if (y > by1[best]) by1[best] = y;
+  }
+  const list = [], span = Math.min(vw, vh);
+  for (let k = 0; k < nAll; k++) {
+    if (bx1[k] < 0) continue;
+    const x0 = bx0[k], y0 = by0[k], cw = bx1[k] - x0 + 1, ch = by1[k] - y0 + 1;
+    const c = document.createElement('canvas'); c.width = cw; c.height = ch;
+    const cc = c.getContext('2d'), im = cc.createImageData(cw, ch), u = new Uint32Array(im.data.buffer);
+    for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) {
+      const X = x0 + x, Y = y0 + y, i = Y * vw + X; if (own[i] !== k) continue;
+      let col = src[i];
+      const edge = (X > 0 && own[i - 1] !== k) || (X < vw - 1 && own[i + 1] !== k) || (Y > 0 && own[i - vw] !== k) || (Y < vh - 1 && own[i + vw] !== k);
+      if (edge) col = ((255 << 24) | (((col >> 16 & 255) * .5) << 16) | (((col >> 8 & 255) * .5) << 8) | ((col & 255) * .5)) >>> 0;
+      u[y * cw + x] = col;
+    }
+    cc.putImageData(im, 0, 0);
+    const mx = x0 + cw / 2, my = y0 + ch / 2, dx = mx - hx, dy = my - hy, d = Math.hypot(dx, dy) + .001, near = Math.exp(-d / (span * .45));
+    list.push({ c, w: cw, h: ch, x: mx, y: my, s: 1, delay: d / 700,
+      vx: dx / d * (30 + 170 * near) + (R() - .5) * 40, vy: dy / d * (20 + 110 * near) - 40 - 90 * near * R(),
+      vs: R() < .6 ? (.3 + 1.2 * near) * R() * 2 : -.25 * R() });
+  }
+  return list;
+}
+function startBreak(x, y) {
+  if (!G.next) G.next = makeWall(G.wall.index + 1);
+  chunks = shatter(G.wall, x, y);
+  G.phase = 'break'; G.pt = 0; G.sN = .42; G.dark = .55; G.broken++;
+  shake = 7; hitStop = .09; flash = .06;
+  for (let i = 0; i < 40; i++) parts.push({ k: 1, x: R() * vw, y: R() * vh, vx: (R() - .5) * 40, vy: -5 - R() * 20, g: -4, t: 0, life: .8 + R() * .8, c: G.wall.mat.dust, s: 4 + (R() * 5 | 0) });
+  sfxBreak(G.wall.mat);
+  banner('와장창!', true);
+  const b = $('brokenBox'); b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop');
+}
+
+/* ───────── 계기판 ───────── */
+function hud() {
+  const w = G.phase === 'stand' ? G.wall : null, cur = G.wall;
+  $('wallNo').textContent = '벽 ' + (cur.index + 1);
+  $('wallName').textContent = cur.name;
+  const hp = w ? w.hp : 0, pct = hp / cur.maxHp * 100 + '%';
+  $('hpFill').style.width = pct; $('hpLag').style.width = pct;
+  $('hpText').textContent = '내구도 ' + hp + ' / ' + cur.maxHp;
+  $('broken').textContent = G.broken;
+}
+function banner(text, big) {
+  const b = $('banner'); b.textContent = text; b.className = ''; void b.offsetWidth; b.className = 'show' + (big ? ' big' : '');
+}
+function setMuted(m) {
+  muted = m; if (out) out.gain.value = m ? 0 : .55;
+  const btn = $('soundBtn'); btn.textContent = m ? '소리 끔' : '소리 켬'; btn.setAttribute('aria-pressed', String(!m));
+  try { localStorage.setItem('wall.mute', m ? '1' : '0'); } catch (e) {}
+}
+
+/* ───────── 움직임 ───────── */
+function update(dt, rdt) {
+  time += dt;
+  for (const a of arms) {
+    if (!a.active) continue;
+    a.t += dt;
+    if (!a.hitDone && a.t >= EXT) { a.hitDone = true; impact(a); }
+    if (a.queued && a.t >= EXT + HOLD) { const q = a.queued; begin(a, q.x, q.y); }
+    else if (a.t >= EXT + HOLD + RET) a.active = false;
+  }
+  for (let i = parts.length - 1; i >= 0; i--) {
+    const p = parts[i]; p.t += dt;
+    if (p.t >= p.life) { parts.splice(i, 1); continue; }
+    p.vy += p.g * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+  }
+  for (let i = sparks.length - 1; i >= 0; i--) if ((sparks[i].t += dt) > .1) sparks.splice(i, 1);
+  for (let i = chunks.length - 1; i >= 0; i--) {
+    const c = chunks[i];
+    if (c.delay > 0) { c.delay -= dt; continue; }
+    c.vy += 520 * dt; c.x += c.vx * dt; c.y += c.vy * dt; c.s = Math.max(.4, c.s + c.vs * dt);
+    if (c.y - c.h * c.s / 2 > vh + 4 || c.s > 3.4 || c.x + c.w * c.s < -20 || c.x - c.w * c.s > vw + 20) chunks.splice(i, 1);
+  }
+  walkBob = 0;
+  if (G.phase === 'break') {
+    G.pt += dt;
+    if (G.pt > 1.05) { G.phase = 'walk'; G.pt = 0; sfxStep(0); sfxStep(.32); sfxStep(.64); }
+  } else if (G.phase === 'walk') {
+    G.pt += dt;
+    const k = easeInOut(clamp(G.pt / .85, 0, 1));
+    G.sN = lerp(.42, 1, k); G.dark = lerp(.55, 0, k);
+    walkBob = Math.abs(Math.sin(G.pt * Math.PI * 3.7)) * 2.5 * S0;
+    if (G.pt >= .85) {
+      G.wall = G.next; G.next = null; G.phase = 'stand'; G.sN = 1; G.dark = 0;
+      prepNext(); hud(); banner('벽 ' + (G.wall.index + 1) + ' · ' + G.wall.name);
+    }
+  }
+  shake = Math.max(0, shake - rdt * (8 + shake * 10));
+  flash = Math.max(0, flash - rdt);
+}
+
+/* ───────── 그리기 ───────── */
+const CEIL = ['#0f0e12', '#141218', '#19171e'], FLOOR = ['#3a3532', '#2f2b29', '#25221f', '#1b1917'];
+function pline(x0, y0, x1, y1) {
+  x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+  const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+  for (let err = dx + dy, n = 0; n < 2000; n++) {
+    ctx.fillRect(x0, y0, 1, 1);
+    if (x0 === x1 && y0 === y1) break;
+    const e2 = 2 * err; if (e2 >= dy) { err += dy; x0 += sx; } if (e2 <= dx) { err += dx; y0 += sy; }
+  }
+}
+function drawCorridor(s, ox, oy) {   // 부서진 벽 너머: 다음 벽까지 이어진 통로
+  const w = vw * s, h = vh * s, x0 = (vw - w) / 2 + ox, y0 = (vh - h) / 2 + oy, x1 = x0 + w, y1 = y0 + h;
+  ctx.fillStyle = '#17151b'; ctx.fillRect(0, 0, vw, vh);
+  for (let y = 0; y < vh; y++) {
+    let t, c;
+    if (y < y0) { t = y / y0; c = CEIL[Math.min(2, t * 3 | 0)]; }
+    else if (y >= y1) { t = (vh - 1 - y) / Math.max(1, vh - 1 - y1); c = FLOOR[Math.min(3, t * 4 | 0)]; }
+    else continue;
+    const a = Math.round(x0 * t), b = Math.round(vw - (vw - x1) * t);
+    ctx.fillStyle = c; ctx.fillRect(a, y, b - a, 1);
+  }
+  ctx.fillStyle = '#0d0c10';
+  for (let k = 1; k < 5; k++) { pline(0, vh * k / 5, x0, y0 + h * k / 5); pline(vw - 1, vh * k / 5, x1 - 1, y0 + h * k / 5); }
+  for (let k = 1; k < 6; k++) pline(vw * k / 6, vh - 1, x0 + w * k / 6, y1);
+}
+function render() {
+  const sh = REDUCE ? shake * .3 : shake, ox = Math.round((R() * 2 - 1) * sh), oy = Math.round((R() * 2 - 1) * sh);
+  if (G.phase === 'stand') ctx.drawImage(G.wall.c, cropX - ox, cropY - oy, vw, vh, 0, 0, vw, vh);
+  else {
+    drawCorridor(G.sN, ox, oy);
+    const w = Math.round(vw * G.sN), h = Math.round(vh * G.sN), x0 = ((vw - w) >> 1) + ox, y0 = ((vh - h) >> 1) + oy;
+    ctx.drawImage(G.next.c, cropX, cropY, vw, vh, x0, y0, w, h);
+    if (G.dark > 0) { ctx.fillStyle = `rgba(6,4,10,${G.dark})`; ctx.fillRect(x0, y0, w, h); }
+  }
+  ctx.drawImage(vig, 0, 0);
+  if (chunks.length) {
+    chunks.sort((a, b) => a.s - b.s);
+    for (const c of chunks) { const w = Math.round(c.w * c.s), h = Math.round(c.h * c.s); ctx.drawImage(c.c, Math.round(c.x - w / 2) + ox, Math.round(c.y - h / 2) + oy, w, h); }
+  }
+  for (const p of parts) {
+    if (p.k === 0) { ctx.fillStyle = p.c; ctx.fillRect(Math.round(p.x) + ox, Math.round(p.y) + oy, p.s, p.s); continue; }
+    const s = Math.round(p.s + p.t * 6);
+    ctx.globalAlpha = (1 - p.t / p.life) * .5; ctx.fillStyle = p.c;
+    ctx.fillRect(Math.round(p.x - s / 2) + ox, Math.round(p.y - s / 2) + oy, s, s);
+  }
+  ctx.globalAlpha = 1;
+  renderArms(); ctx.drawImage(armCvs, ox, oy);
+  for (const sp of sparks) {   // 주먹이 닿는 순간의 번쩍임
+    const k = sp.t / .1, r0 = 4 + k * 6, r1 = r0 + 4 - k * 3, x = Math.round(sp.x) + ox, y = Math.round(sp.y) + oy;
+    ctx.fillStyle = k < .5 ? '#ffffff' : '#ffe9a0';
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1], [.7, .7], [-.7, .7], [.7, -.7], [-.7, -.7]])
+      for (let r = r0; r < r1; r++) ctx.fillRect(Math.round(x + dx * r), Math.round(y + dy * r), 1, 1);
+    if (k < .4) ctx.fillRect(x - 1, y - 1, 3, 3);
+  }
+  if (showCross) {
+    const x = Math.round(aim.x), y = Math.round(aim.y);
+    ctx.fillStyle = 'rgba(0,0,0,.6)';
+    ctx.fillRect(x - 5, y - 1, 4, 3); ctx.fillRect(x + 2, y - 1, 4, 3); ctx.fillRect(x - 1, y - 5, 3, 4); ctx.fillRect(x - 1, y + 2, 3, 4);
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(x - 4, y, 2, 1); ctx.fillRect(x + 3, y, 2, 1); ctx.fillRect(x, y - 4, 1, 2); ctx.fillRect(x, y + 3, 1, 2);
+  }
+  if (flash > 0) { ctx.fillStyle = `rgba(255,248,230,${Math.min(.7, flash * 12)})`; ctx.fillRect(0, 0, vw, vh); }
+}
+
+let last = 0;
+function frame(now) {
+  const rdt = Math.min(.05, (now - last) / 1000 || 0); last = now;
+  let dt = rdt;
+  if (hitStop > 0) { hitStop -= rdt; dt = 0; }   // 맞는 순간 아주 잠깐 멈춰 손맛을 준다
+  update(dt, rdt);
+  render();
+  requestAnimationFrame(frame);
+}
+
+/* ───────── 입력 ───────── */
+function setAim(e) {
+  aim.x = clamp((e.clientX - cssLeft) / cssScale, 0, vw - 1);
+  aim.y = clamp((e.clientY - cssTop) / cssScale, 0, vh - 1);
+  aimSet = true;
+}
+addEventListener('pointermove', e => { setAim(e); showCross = e.pointerType === 'mouse'; });
+addEventListener('pointerdown', e => {
+  if (e.target.closest('button')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;   // 왼쪽 클릭만
+  e.preventDefault();
+  audio(); setAim(e); showCross = e.pointerType === 'mouse';
+  punch();
+});
+addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('pointerout', e => { if (!e.relatedTarget) showCross = false; });
+addEventListener('touchend', () => { if (AC) audio(); });   // iOS는 손을 뗄 때 소리를 깨워야 하는 경우가 있다
+addEventListener('keydown', e => { if (e.key === 'm' || e.key === 'M') setMuted(!muted); });
+$('soundBtn').addEventListener('click', () => { audio(); setMuted(!muted); });
+addEventListener('resize', resize);
+if (matchMedia('(pointer: coarse)').matches) $('hint').innerHTML = '화면을 눌러 벽을 때려요<br>왼손, 오른손이 번갈아 나가요';
+
+resize(); setMuted(muted); hud(); prepNext();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
