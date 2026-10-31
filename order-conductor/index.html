@@ -1,0 +1,1121 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>순서 지휘자</title>
+<meta name="description" content="아군도 적도 알아서 싸워요. 내가 할 수 있는 건 누가 먼저 움직일지 차례를 바꾸는 것뿐인 턴 순서 퍼즐.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<style>
+/* 화면: 어두운 연주회장. 위쪽에 한 줄 전장, 아래쪽에 순서표(악보)와 단추. 금빛은 지휘자, 파랑은 아군, 빨강은 적. */
+:root{
+  color-scheme:dark;
+  --bg:#0a0f1e; --bg2:#121a33; --panel:#141d38; --panel2:#1b2648; --line:#2a3762; --line2:#3b4b80;
+  --text:#eef1fb; --muted:#a3acc9; --dim:#69739a;
+  --gold:#ffd27a; --gold2:#ffb84d; --ally:#7fb2ff; --ally-bg:#16264d; --enemy:#ff8a7a; --enemy-bg:#3a1a24;
+  --good:#8ff0b5; --bad:#ff6b6b; --heal:#8ff0b5;
+  --font:"Noto Sans KR",system-ui,-apple-system,"Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:radial-gradient(120% 80% at 50% -10%,#1d2a55 0%,var(--bg) 60%) fixed;color:var(--text);font-family:var(--font);-webkit-text-size-adjust:100%}
+body{overscroll-behavior:none}
+button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.noselect,button,.tok,.tile{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#app{max-width:600px;margin:0 auto;min-height:100%;display:flex;flex-direction:column}
+.screen{display:none;flex:1;flex-direction:column;min-height:100dvh}
+.screen.on{display:flex}
+.hidden{display:none!important}
+
+/* ---------- 공통 단추 ---------- */
+.btn{border:1px solid var(--line2);background:var(--panel2);border-radius:12px;padding:12px 16px;font-weight:700;font-size:15px;cursor:pointer;min-height:46px;transition:transform .08s,background .15s,border-color .15s}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.4;cursor:default;transform:none}
+.btn.primary{background:linear-gradient(180deg,var(--gold),var(--gold2));color:#2a1a00;border-color:#ffe2a6}
+.btn.ghost{background:transparent}
+.btn.small{min-height:38px;padding:8px 12px;font-size:13px;border-radius:10px}
+.icon-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--line2);background:var(--panel);font-size:18px;cursor:pointer;display:grid;place-items:center;flex:none}
+
+/* ---------- 첫 화면 ---------- */
+#scr-title{padding:28px 16px calc(24px + var(--safe-b));gap:18px}
+.logo{text-align:center;margin-top:8px}
+.logo h1{margin:0;font-size:34px;font-weight:900;letter-spacing:-.5px;background:linear-gradient(180deg,#fff2cf,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.logo .baton{font-size:40px;display:block;margin-bottom:6px;filter:drop-shadow(0 0 14px rgba(255,210,122,.45))}
+.logo p{margin:8px 0 0;color:var(--muted);font-size:14px;line-height:1.6}
+.stages{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stage-card{position:relative;text-align:left;border:1px solid var(--line);background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:14px;padding:12px 12px 10px;cursor:pointer;min-height:84px}
+.stage-card .no{font-size:12px;color:var(--gold);font-weight:700}
+.stage-card .nm{font-size:16px;font-weight:700;margin-top:2px}
+.stage-card .foes{font-size:15px;margin-top:6px;letter-spacing:1px}
+.stage-card .st{position:absolute;right:10px;top:10px;font-size:13px;color:var(--gold);letter-spacing:1px}
+.stage-card .st .off{color:var(--dim)}
+.stage-card.locked{opacity:.45;cursor:default}
+.stage-card.locked .nm::after{content:" 🔒"}
+.stage-card.next{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,210,122,.25),0 0 18px rgba(255,210,122,.15)}
+.title-foot{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.total{text-align:center;color:var(--gold);font-weight:700}
+
+/* ---------- 전투 화면 ---------- */
+#scr-battle{padding-bottom:var(--safe-b)}
+.topbar{display:flex;align-items:center;gap:8px;padding:10px 10px 4px}
+.topbar .ttl{flex:1;min-width:0;text-align:center}
+.topbar .ttl b{font-size:16px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meters{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:4px 10px}
+.meter{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:5px 4px;text-align:center;min-width:0}
+.meter span{display:block;font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meter b{font-size:15px}
+.meter i{font-style:normal}
+@media (max-width:360px){.wide-only{display:none}}
+.nm .short,.tn .short{display:none}
+@media (max-width:380px){.nm .full,.tn .full{display:none}.nm .short,.tn .short{display:inline}}
+@media (max-height:640px){.topbar{padding-top:6px}.icon-btn{width:34px;height:34px;font-size:15px}.meter{padding:3px}.meter b{font-size:14px}.stage{padding-top:48px;min-height:0}.info{min-height:0;font-size:12.5px;padding:7px 10px}.tile{min-height:54px;padding-top:11px}.actions{padding-top:8px}}
+.meter.star span::before{content:"★ ";color:var(--gold)}
+.meter.ok b{color:var(--good)}
+.meter.over b{color:var(--bad)}
+.meter.swaps.full b{color:var(--gold)}
+
+.stage{position:relative;margin:6px 8px 0;padding:58px 4px 8px;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:200px;max-height:46vh;border-radius:16px;background:radial-gradient(60% 55% at 22% 0%,rgba(127,178,255,.13),transparent 70%),radial-gradient(60% 55% at 78% 0%,rgba(255,138,122,.11),transparent 70%),radial-gradient(80% 30% at 50% 92%,rgba(255,210,122,.09),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--line);overflow:hidden}
+.stage.shake{animation:shake .38s}
+@keyframes shake{0%,100%{transform:none}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,0)}}
+#arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
+.field{display:flex;align-items:flex-end;gap:3px;position:relative;z-index:2}
+.clash{flex:0 0 10px;align-self:stretch;display:flex;align-items:center;justify-content:center}
+.clash::before{content:"";width:2px;height:80%;background:linear-gradient(180deg,transparent,var(--gold),transparent);opacity:.6}
+.tok{flex:1 1 0;min-width:0;max-width:76px;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 1px 5px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:opacity .35s,transform .2s,filter .35s}
+.tok.ally{background:linear-gradient(180deg,rgba(127,178,255,.10),rgba(127,178,255,.02))}
+.tok.enemy{background:linear-gradient(180deg,rgba(255,138,122,.10),rgba(255,138,122,.02))}
+.tok.focus{border-color:var(--gold)}
+.tok.acting{transform:translateY(-8px)}
+.tok.done{filter:saturate(.35) brightness(.75)}
+.tok.gone{opacity:0;transform:translateY(10px) scale(.8);pointer-events:none}
+.tok.hitfx{animation:hitfx .35s}
+@keyframes hitfx{0%,100%{transform:none}30%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
+.tok.boomfx .face{animation:boomfx .5s forwards}
+@keyframes boomfx{0%{transform:scale(1)}40%{transform:scale(1.9);filter:brightness(2.2)}100%{transform:scale(2.4);opacity:0}}
+.tok .ord{position:absolute;top:-9px;left:50%;transform:translateX(-50%);min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:12px;font-weight:900;line-height:20px;text-align:center;background:var(--gold);color:#2a1a00;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+.tok.done .ord{background:#555c74;color:#c9cde0}
+.tok .face{font-size:clamp(24px,5vh,46px);line-height:1.15;position:relative;margin-top:6px}
+.tok .tag,.tile .tag{position:absolute;right:-8px;bottom:-2px;font-size:10px;font-weight:900;background:#0008;border-radius:6px;padding:0 3px;line-height:14px;color:#fff}
+.tok .nm{font-size:clamp(9.5px,3vw,12.5px);letter-spacing:-.3px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tok.ally .nm{color:var(--ally)}
+.tok.enemy .nm{color:var(--enemy)}
+.hpbar{width:86%;height:5px;border-radius:3px;background:#0006;overflow:hidden}
+.hpbar i{display:block;height:100%;border-radius:3px;transition:width .3s}
+.tok.ally .hpbar i{background:var(--ally)}
+.tok.enemy .hpbar i{background:var(--enemy)}
+.hpn{font-size:clamp(11px,1.4vh,13px);color:var(--muted);font-variant-numeric:tabular-nums}
+.intent{font-size:clamp(10.5px,1.35vh,12.5px);min-height:16px;line-height:1.5;padding:0 3px;border-radius:6px;background:#0005;white-space:nowrap;max-width:100%;overflow:hidden}
+.intent.ally-hit{color:#ffb3a8}
+.intent.heal{color:var(--heal)}
+.intent.guard{color:var(--gold)}
+.tok .shield-on{position:absolute;inset:-2px;border-radius:12px;box-shadow:0 0 0 2px var(--gold) inset,0 0 12px rgba(255,210,122,.5);pointer-events:none}
+.float{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-weight:900;font-size:18px;pointer-events:none;z-index:5;text-shadow:0 2px 4px #000;animation:floatup .9s forwards}
+.float.dmg{color:#ff8080}.float.heal{color:var(--heal)}.float.info{color:var(--gold);font-size:13px}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-26px)}}
+.msg{margin-top:8px;min-height:22px;text-align:center;font-size:14px;color:var(--gold);font-weight:700;position:relative;z-index:2}
+.msg.fail{color:var(--bad)}
+
+.info{margin:8px 8px 0;padding:9px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:13px;line-height:1.55;min-height:62px;color:var(--muted)}
+.info b{color:var(--text)}
+.info .who{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.info .sidep{font-size:11px;padding:1px 6px;border-radius:6px}
+.info .sidep.A{background:var(--ally-bg);color:var(--ally)}
+.info .sidep.E{background:var(--enemy-bg);color:var(--enemy)}
+.info .now{color:var(--gold)}
+
+.orderbar{margin:8px 8px 0;padding:8px 6px 10px;border-radius:14px;background:linear-gradient(180deg,#1a2347,#131b38);border:1px solid var(--line2)}
+.ob-head{display:flex;justify-content:space-between;align-items:center;padding:0 4px 6px;font-size:12px;color:var(--muted)}
+.ob-head b{color:var(--text);font-size:13px}
+.ob-dir{letter-spacing:.5px}
+.tiles{display:grid;gap:5px;justify-content:center;grid-template-columns:repeat(var(--n,7),minmax(0,70px))}
+.tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:clamp(60px,8.5vh,78px);padding:12px 1px 4px;border-radius:12px;border:2px solid var(--line2);background:var(--panel2);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s,opacity .2s}
+.tile.ally{border-color:#35558f;background:linear-gradient(180deg,#1d3263,#162447)}
+.tile.enemy{border-color:#7a3a44;background:linear-gradient(180deg,#4a2030,#2d1622)}
+.tile .no{position:absolute;top:2px;left:5px;font-size:11px;font-weight:900;color:var(--gold)}
+.tile .ic{font-size:clamp(22px,3.2vh,30px);line-height:1;position:relative}
+.tile .tn{font-size:clamp(10.5px,1.35vh,12.5px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.tile.sel{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 6px 16px rgba(255,210,122,.25)}
+.tile.moved{box-shadow:0 0 0 2px rgba(255,210,122,.35) inset}
+.tile.now{border-color:var(--gold);box-shadow:0 0 14px rgba(255,210,122,.55)}
+.tile.done{opacity:.45}
+.tile.dead{opacity:.25}
+.tile.dead .ic::after{content:"✕";position:absolute;inset:0;color:var(--bad);font-size:20px;display:grid;place-items:center}
+.tile.nope{animation:hitfx .35s}
+
+.actions{display:flex;gap:8px;padding:10px 8px calc(10px + var(--safe-b))}
+.actions .btn{flex:1}
+.actions .btn.primary{flex:1.4}
+
+/* ---------- 모달, 안내 ---------- */
+.modal{position:fixed;inset:0;background:rgba(4,7,16,.72);display:flex;align-items:flex-end;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+.sheet{width:100%;max-width:600px;max-height:92dvh;overflow:auto;background:linear-gradient(180deg,#1b2650,#121a35);border:1px solid var(--line2);border-bottom:none;border-radius:20px 20px 0 0;padding:18px 16px calc(16px + var(--safe-b));animation:up .22s ease-out}
+@media (min-width:640px){.modal{align-items:center}.sheet{border-radius:20px;border-bottom:1px solid var(--line2)}}
+@keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+.sheet h2{margin:0 0 4px;font-size:21px}
+.sheet h3{margin:16px 0 6px;font-size:15px;color:var(--gold)}
+.sheet p{margin:6px 0;color:var(--muted);font-size:14px;line-height:1.6}
+.sheet .row{display:flex;gap:8px;margin-top:14px}
+.sheet .row{flex-wrap:wrap}
+.sheet .row .btn{flex:1}
+.sheet .row .btn.wide{flex-basis:100%}
+.lineup{display:flex;align-items:center;justify-content:center;gap:4px;font-size:24px;margin:10px 0 2px;flex-wrap:wrap}
+.lineup .vs{font-size:13px;color:var(--gold);margin:0 6px}
+.cards{display:flex;flex-direction:column;gap:6px}
+.ucard{display:flex;gap:10px;align-items:flex-start;background:#0003;border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.ucard .ic{font-size:26px;line-height:1.1}
+.ucard b{font-size:14px}
+.ucard small{display:block;color:var(--muted);font-size:12.5px;line-height:1.5}
+.ucard .stat{color:var(--dim);font-size:11.5px}
+.goals{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+.goals li{background:#0003;border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:14px;display:flex;gap:8px;align-items:center}
+.goals li .s{color:var(--gold);font-size:16px}
+.goals li.no .s{color:var(--dim)}
+.goals li.yes{border-color:#3d7a5c}
+.goals li .v{margin-left:auto;color:var(--muted);font-size:13px}
+.party{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pcard{text-align:left;border:2px solid var(--line2);background:#0003;border-radius:12px;padding:10px;cursor:pointer}
+.pcard.on{border-color:var(--gold);background:rgba(255,210,122,.08)}
+.pcard .ic{font-size:24px}
+.pcard b{display:block;font-size:14px;margin-top:2px}
+.pcard small{display:block;color:var(--muted);font-size:12px;line-height:1.5;margin-top:2px}
+.bigstars{font-size:40px;text-align:center;letter-spacing:6px;color:var(--gold);margin:6px 0}
+.bigstars .off{color:#3a4466}
+.reason{background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.35);border-radius:12px;padding:10px 12px;color:#ffd0d0!important}
+.hint{background:rgba(255,210,122,.08);border:1px solid rgba(255,210,122,.35);border-radius:12px;padding:10px 12px;color:#ffe6b5!important}
+.rules li{margin:4px 0;color:var(--muted);font-size:14px;line-height:1.6}
+.rules b{color:var(--text)}
+
+#toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translate(-50%,24px);opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility .25s;background:#1f2b57;border:1px solid var(--gold);color:var(--text);padding:10px 16px;border-radius:12px;font-size:14px;font-weight:700;z-index:60;transition:transform .25s;max-width:92vw;text-align:center;pointer-events:none}
+#toast.on{transform:translate(-50%,0);opacity:1;visibility:visible}
+.coach{position:fixed;z-index:40;pointer-events:none;max-width:280px;background:#fff6dd;color:#2a1a00;border-radius:14px;padding:10px 12px;font-size:14px;line-height:1.5;font-weight:500;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+.coach::after{content:"";position:absolute;left:var(--ax,50%);width:12px;height:12px;background:#fff6dd;transform:translateX(-50%) rotate(45deg)}
+.coach.below::after{top:-6px}
+.coach.above::after{bottom:-6px}
+.coach.dismiss{pointer-events:auto;cursor:pointer}
+.coach .tap{display:block;margin-top:4px;font-size:12px;color:#8a6a20}
+</style>
+</head>
+<body>
+<div id="app">
+  <section id="scr-title" class="screen on">
+    <div class="logo">
+      <span class="baton">🎼</span>
+      <h1>순서 지휘자</h1>
+      <p>아군도 적도 알아서 싸워요.<br>내가 할 수 있는 건 <b>누가 먼저 움직일지 차례를 바꾸는 것</b>뿐이에요.</p>
+    </div>
+    <div class="stages" id="stages"></div>
+    <div class="total" id="total"></div>
+    <div class="title-foot">
+      <button class="btn small" id="t-rules">규칙 보기</button>
+      <button class="btn small ghost" id="t-reset">기록 지우기</button>
+    </div>
+  </section>
+
+  <section id="scr-battle" class="screen">
+    <div class="topbar">
+      <button class="icon-btn" id="b-back" aria-label="판 목록으로">←</button>
+      <div class="ttl"><b id="b-title"></b></div>
+      <button class="icon-btn" id="b-help" aria-label="규칙 보기">?</button>
+    </div>
+    <div class="meters">
+      <div class="meter" id="m-round"><span>마디</span><b>1/3</b></div>
+      <div class="meter swaps" id="m-swaps"><span>이번<i class="wide-only"> 마디</i> 바꾸기</span><b>0/1</b></div>
+      <div class="meter star" id="m-edits"><span>지휘</span><b>0/1</b></div>
+      <div class="meter star" id="m-lost"><span>잃은 체력</span><b>0/5</b></div>
+    </div>
+    <div class="stage" id="stage">
+      <svg id="arrows" aria-hidden="true"></svg>
+      <div class="field" id="field"></div>
+      <div class="msg" id="msg"></div>
+    </div>
+    <div class="info" id="info"></div>
+    <div class="orderbar">
+      <div class="ob-head"><b>차례</b><span class="ob-dir">먼저 ───▶ 나중</span></div>
+      <div class="tiles" id="tiles"></div>
+    </div>
+    <div class="actions" id="act-plan">
+      <button class="btn small" id="a-undo" aria-label="지난 마디로 되돌리기">↶ 지난 마디</button>
+      <button class="btn small" id="a-reset" aria-label="차례를 처음 순서대로">↺ 처음대로</button>
+      <button class="btn primary" id="a-go">시작 ▶</button>
+    </div>
+    <div class="actions hidden" id="act-play">
+      <button class="btn" id="a-speed">2배속</button>
+      <button class="btn" id="a-skip">건너뛰기 ⏭</button>
+    </div>
+  </section>
+</div>
+<div id="modal" class="modal hidden"><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="coach" class="coach hidden"></div>
+
+<script>
+'use strict';
+/* ENGINE:BEGIN — tools/solver.py 와 똑같이 움직여야 해요. tools/parity_test.mjs 가 둘을 대조해요. */
+const UNITS = {
+  '기사':     { side: 'A', hp: 9,  pow: 3, habit: 'front',   spd: 3, icon: '⚔️' },
+  '궁수':     { side: 'A', hp: 5,  pow: 2, habit: 'back',    spd: 5, icon: '🏹' },
+  '사제':     { side: 'A', hp: 5,  pow: 2, habit: 'heal',    spd: 2, icon: '✨' },
+  '방패병':   { side: 'A', hp: 10, pow: 0, habit: 'shield',  spd: 1, icon: '🛡️' },
+  '고블린':   { side: 'E', hp: 6,  pow: 3, habit: 'front',   spd: 3, icon: '👺' },
+  '해골궁수': { side: 'E', hp: 3,  pow: 3, habit: 'weakest', spd: 4, icon: '💀' },
+  '폭탄벌레': { side: 'E', hp: 3,  pow: 4, habit: 'bomb',    spd: 1, icon: '🐞' },
+  '주술사':   { side: 'E', hp: 4,  pow: 3, habit: 'heal',    spd: 2, icon: '🧙' },
+  '트롤':     { side: 'E', hp: 14, pow: 5, habit: 'front',   spd: 1, icon: '👹' },
+  '도둑쥐':   { side: 'E', hp: 2,  pow: 0, habit: 'thief',   spd: 6, icon: '🐀' },
+};
+
+/* 상태 = { A: 아군 id (뒤→앞), E: 적 id (앞→뒤), hp: {id: 체력}, names: {id: 이름} }.
+   아군 id = 'a' + 처음 줄 위치, 적 id = 'e' + 처음 줄 위치. */
+function makeState(allies, enemies) {
+  const names = {}, hp = {};
+  const A = allies.map((n, i) => { const id = 'a' + i; names[id] = n; return id; });
+  const E = enemies.map((n, i) => { const id = 'e' + i; names[id] = n; return id; });
+  for (const id of A.concat(E)) hp[id] = UNITS[names[id]].hp;
+  return { A, E, hp, names };
+}
+function cloneState(s) { return { A: s.A.slice(), E: s.E.slice(), hp: Object.assign({}, s.hp), names: s.names }; }
+function unitOf(s, id) { return UNITS[s.names[id]]; }
+
+/* 마디마다 새로 짜는 기본 순서표: 빠른 순 → 지금 줄에서 더 앞 → 아군 먼저. */
+function baseOrder(s) {
+  const af = s.A.slice().reverse(), ef = s.E.slice(), key = {};
+  af.forEach((u, i) => { key[u] = [-unitOf(s, u).spd, i, 0]; });
+  ef.forEach((u, i) => { key[u] = [-unitOf(s, u).spd, i, 1]; });
+  return af.concat(ef).sort((x, y) => {
+    const a = key[x], b = key[y];
+    for (let k = 0; k < 3; k++) if (a[k] !== b[k]) return a[k] - b[k];
+    return 0;
+  });
+}
+
+/* 기본 순서에서 이 순서표를 만드는 데 필요한 최소 바꾸기 횟수 (= 사람 수 − 순환 수). */
+function swapDistance(base, order) {
+  const pos = {}; base.forEach((id, i) => { pos[id] = i; });
+  const seen = new Array(order.length).fill(false);
+  let cycles = 0;
+  for (let i = 0; i < order.length; i++) {
+    if (seen[i]) continue;
+    cycles++;
+    let j = i;
+    while (!seen[j]) { seen[j] = true; j = pos[order[j]]; }
+  }
+  return order.length - cycles;
+}
+
+/* 한 마디 실행. 반환 { state, result: 'win'|'lose'|null, log: [...], frames: [...] }.
+   승패는 한 유닛의 행동(연쇄 폭발 포함)이 모두 끝난 뒤에 판정하고, 실패를 먼저 봐요. */
+function runRound(s0, order, wantFrames) {
+  const s = cloneState(s0);
+  const A = s.A, E = s.E, hp = s.hp;
+  const bar = order.slice();
+  const nAllies = A.length;
+  const shields = [];
+  const log = [];
+  const frames = wantFrames ? [] : null;
+  let ptr = -1;
+  const U = id => unitOf(s, id);
+  const N = id => s.names[id];
+  const alive = id => (hp[id] || 0) > 0;
+  const line = () => A.concat(E);
+  const foes = u => (U(u).side === 'A' ? E : A.slice().reverse());   // 맨 앞부터
+  const mates = u => (U(u).side === 'A' ? A.slice().reverse() : E);  // 맨 앞부터
+  const say = t => { log.push(t); };
+  const frame = (kind, data) => {
+    if (!frames) return;
+    frames.push(Object.assign({ kind, ptr, bar: bar.slice(), snap: { A: A.slice(), E: E.slice(), hp: Object.assign({}, hp) } }, data));
+  };
+  const remove = u => {
+    let k = A.indexOf(u); if (k >= 0) A.splice(k, 1);
+    k = E.indexOf(u); if (k >= 0) E.splice(k, 1);
+  };
+  function boom(u) {
+    // 폭탄은 먼저 줄에서 빠지고, 그 순간의 양옆이 왼쪽→오른쪽 순으로 맞아요.
+    const L = line(), p = L.indexOf(u);
+    const near = [p - 1, p + 1].filter(j => j >= 0 && j < L.length).map(j => L[j]);
+    hp[u] = 0; remove(u);
+    say(`${N(u)} 펑! → ${near.map(N).join(', ') || '없음'}`);
+    frame('boom', { actor: u, targets: near.slice() });
+    for (const t of near) if (alive(t)) hit(t, U(u).pow, u);
+  }
+  function hit(t, dmg, src) {
+    hp[t] -= dmg;
+    frame('hit', { actor: src, target: t, amount: dmg });
+    if (hp[t] <= 0) {
+      if (U(t).habit === 'bomb') { hp[t] = 1; boom(t); }   // 쓰러져도 그 자리에서 터져요
+      else { hp[t] = 0; remove(t); say(`  ${N(t)} 쓰러짐`); frame('down', { target: t }); }
+    }
+  }
+  let result = null;
+  let i = 0;
+  while (i < bar.length) {
+    const u = bar[i]; i++;
+    if (!alive(u)) continue;                               // 쓰러진 유닛은 건너뛰어요
+    ptr = i - 1;
+    const d = U(u), f = foes(u);
+    frame('turn', { actor: u });
+    if (d.habit === 'front' || d.habit === 'back' || d.habit === 'weakest') {
+      if (!f.length) continue;
+      const guard = shields.filter(x => alive(x) && U(x).side !== d.side);
+      let t;
+      if (guard.length) t = guard[0];
+      else if (d.habit === 'front') t = f[0];
+      else if (d.habit === 'back') t = f[f.length - 1];
+      else { t = f[0]; for (const x of f) if (hp[x] < hp[t]) t = x; }
+      say(`${N(u)} → ${N(t)} ${d.pow}`);
+      hit(t, d.pow, u);
+    } else if (d.habit === 'heal') {
+      const m = mates(u);
+      const hurt = m.filter(x => hp[x] < U(x).hp);
+      if (hurt.length) {
+        let t = hurt[0];
+        for (const x of hurt) if (U(x).hp - hp[x] > U(t).hp - hp[t]) t = x;
+        const gain = Math.min(U(t).hp, hp[t] + d.pow) - hp[t];
+        hp[t] += gain;
+        say(`${N(u)} → ${N(t)} +${gain}`);
+        frame('heal', { actor: u, target: t, amount: gain });
+      } else {
+        say(`${N(u)} 쉼 (다친 편이 없어요)`);
+        frame('rest', { actor: u });
+      }
+    } else if (d.habit === 'bomb') {
+      boom(u);
+    } else if (d.habit === 'shield') {
+      if (shields.indexOf(u) < 0) shields.push(u);
+      say(`${N(u)} 방패!`);
+      frame('shield', { actor: u });
+    } else if (d.habit === 'thief') {
+      for (let j = i; j < bar.length; j++) {
+        if (alive(bar[j])) {
+          const v = bar.splice(j, 1)[0]; bar.push(v);
+          say(`${N(u)}: ${N(v)} 맨 뒤로`);
+          frame('thief', { actor: u, target: v });
+          break;
+        }
+      }
+    }
+    if (A.length < nAllies) { result = 'lose'; break; }
+    if (!E.length) { result = 'win'; break; }
+  }
+  for (const id of Object.keys(hp)) if (hp[id] <= 0) delete hp[id];
+  return { state: s, result, log, frames };
+}
+/* ENGINE:END */
+
+/* DATA:BEGIN — 별 기준값은 tools/solver.py 로 계산한 값이에요. parity_test 가 다시 확인해요. */
+const TRIO = ['사제', '궁수', '기사'];
+const SHIELD = ['방패병', '궁수', '기사'];
+const BATTLES = [
+  { title: '첫 마디', enemies: ['해골궁수', '해골궁수'], rounds: 3, swaps: 1,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 1, clash: false }],
+    fresh: ['기사', '궁수', '사제', '해골궁수'],
+    hint: '그대로 두면 해골궁수 둘이 궁수를 쏴요. 기사가 해골궁수보다 먼저 움직이게 해 보세요.' },
+  { title: '약한 놈부터', enemies: ['해골궁수', '고블린', '해골궁수'], rounds: 3, swaps: 1,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 3, clash: true }],
+    fresh: ['고블린'],
+    hint: '위험한 적 하나를 내 기사보다 뒤 차례로 보내 보세요. 기사가 먼저 잡을 수 있어요.' },
+  { title: '폭탄벌레', enemies: ['폭탄벌레', '해골궁수', '해골궁수'], rounds: 3, swaps: 1,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 5, clash: false }],
+    fresh: ['폭탄벌레'],
+    hint: '기사가 폭탄벌레를 치면 어떻게 될까요? 폭탄은 쓰러져도 그 자리에서 터져요.' },
+  { title: '주술사', enemies: ['해골궁수', '고블린', '주술사'], rounds: 3, swaps: 2,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 0, clash: true }],
+    fresh: ['주술사'],
+    hint: '주술사는 다친 편이 없으면 쉬어요. 적이 다치기 전에 주술사를 먼저 움직이게 해 보세요.' },
+  { title: '방패병', enemies: ['해골궁수', '해골궁수', '해골궁수'], rounds: 3, swaps: 1,
+    parties: [{ key: '방패병', allies: SHIELD, s2: 1, s3: 6, clash: true }],
+    fresh: ['방패병'],
+    hint: '방패병은 느려서 그대로 두면 다 맞은 뒤에 방패를 들어요. 적 궁수보다 먼저 방패를 들게 해 보세요.' },
+  { title: '트롤', enemies: ['트롤', '폭탄벌레', '고블린'], rounds: 4, swaps: 2,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 4, clash: true },
+              { key: '방패병', allies: SHIELD, s2: 1, s3: 10, clash: false }],
+    fresh: ['트롤'],
+    hint: '폭탄벌레가 고블린보다 먼저 터지게 해 보세요. 트롤과 고블린이 함께 맞아요.' },
+  { title: '지휘봉 하나', enemies: ['폭탄벌레', '고블린', '고블린'], rounds: 3, swaps: 1,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 5, clash: false },
+              { key: '방패병', allies: SHIELD, s2: 1, s3: 7, clash: false }],
+    fresh: [],
+    hint: '폭탄벌레를 맨 앞 차례로 보내 보세요. 적끼리 맞게 할 수 있어요.' },
+  { title: '마지막 곡', enemies: ['트롤', '폭탄벌레', '해골궁수', '주술사'], rounds: 4, swaps: 2,
+    parties: [{ key: '사제', allies: TRIO, s2: 1, s3: 6, clash: true },
+              { key: '방패병', allies: SHIELD, s2: 2, s3: 10, clash: false }],
+    fresh: [],
+    hint: '주술사를 헛손질시키고, 폭탄벌레가 트롤 옆에서 터지게 해 보세요.' },
+];
+/* DATA:END */
+
+/* 좁은 화면에서 쓰는 짧은 이름 */
+const SHORT = { '방패병': '방패', '해골궁수': '해골', '폭탄벌레': '폭탄', '도둑쥐': '쥐' };
+const nameHtml = n => SHORT[n] ? `<span class="full">${esc(n)}</span><span class="short">${esc(SHORT[n])}</span>` : esc(n);
+
+const HABIT_TEXT = {
+  '기사': '맨 앞 적에게 3',
+  '궁수': '맨 뒤 적에게 2',
+  '사제': '가장 많이 다친 아군을 2 회복 (자기 포함)',
+  '방패병': '방패를 들어요. 그 뒤로 이 마디 끝까지, 적이 한 명을 노리는 공격을 대신 맞아요. 폭발은 못 막아요.',
+  '고블린': '맨 앞 아군에게 3',
+  '해골궁수': '체력 숫자가 가장 낮은 아군에게 3',
+  '폭탄벌레': '차례가 오면 터져서 바로 양옆(편 안 가림)에 4. 쓰러져도 그 자리에서 터져요.',
+  '주술사': '가장 많이 다친 적을 3 회복 (자기 포함)',
+  '트롤': '맨 앞 아군에게 5',
+  '도둑쥐': '순서표에서 다음 유닛을 맨 뒤로 보내요',
+};
+
+/* ---------- 작은 도구 ---------- */
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hasBatchim = w => { const c = w.charCodeAt(w.length - 1); return c >= 0xAC00 && c <= 0xD7A3 && (c - 0xAC00) % 28 !== 0; };
+const iga = w => (hasBatchim(w) ? '이' : '가');
+const eulreul = w => (hasBatchim(w) ? '을' : '를');
+const TAGS = ['가', '나', '다', '라'];
+const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- 저장 ---------- */
+const SAVE_KEY = 'order-conductor-v1';
+let save = { best: {}, party: {} };
+try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(save, JSON.parse(raw)); } catch (e) { /* 저장 못 해도 게임은 돼요 */ }
+function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* 무시 */ } }
+const bestOf = n => save.best[n] || { clear: false, s2: false, s3: false };
+const starCount = n => { const b = bestOf(n); return (b.clear ? 1 : 0) + (b.s2 ? 1 : 0) + (b.s3 ? 1 : 0); };
+const unlocked = n => n === 1 || bestOf(n - 1).clear;
+
+/* ---------- 화면 전환 ---------- */
+function show(id) {
+  hideToast();
+  for (const el of document.querySelectorAll('.screen')) el.classList.toggle('on', el.id === id);
+  hideCoach();
+}
+
+/* ---------- 첫 화면 ---------- */
+function renderTitle() {
+  const box = $('stages');
+  box.innerHTML = '';
+  let total = 0, nextMarked = false;
+  BATTLES.forEach((b, k) => {
+    const n = k + 1, st = starCount(n), open = unlocked(n);
+    total += st;
+    const card = document.createElement('button');
+    card.className = 'stage-card' + (open ? '' : ' locked');
+    if (open && !bestOf(n).clear && !nextMarked) { card.classList.add('next'); nextMarked = true; }
+    const stars = [0, 1, 2].map(i => `<span class="${i < st ? '' : 'off'}">★</span>`).join('');
+    card.innerHTML = `<span class="st">${stars}</span><div class="no">${n}번째 판</div><div class="nm">${esc(b.title)}</div>` +
+      `<div class="foes">${b.enemies.map(e => UNITS[e].icon).join('')}</div>`;
+    card.setAttribute('aria-label', `${n}번째 판 ${b.title}, 별 ${st}개${open ? '' : ', 잠김'}`);
+    card.addEventListener('click', () => {
+      if (!open) { toast('앞 판을 먼저 깨야 열려요'); return; }
+      openIntro(n);
+    });
+    box.appendChild(card);
+  });
+  $('total').textContent = `★ ${total} / ${BATTLES.length * 3}`;
+}
+
+/* ---------- 모달 ---------- */
+function openModal(html, mount) {
+  hideCoach(); hideToast();
+  $('sheet').innerHTML = html;
+  $('modal').classList.remove('hidden');
+  if (mount) mount($('sheet'));
+  const first = $('sheet').querySelector('.btn.primary') || $('sheet').querySelector('button');
+  if (first) first.focus({ preventScroll: true });
+}
+function closeModal() { $('modal').classList.add('hidden'); $('sheet').innerHTML = ''; }
+
+function unitCard(name) {
+  const u = UNITS[name];
+  return `<div class="ucard"><div class="ic">${u.icon}</div><div><b>${esc(name)}</b> <span class="stat">${u.side === 'A' ? '아군' : '적'} · 체력 ${u.hp} · 빠르기 ${u.spd}</span>` +
+    `<small>${esc(HABIT_TEXT[name])}</small></div></div>`;
+}
+
+function rulesHtml() {
+  return `<h2>규칙</h2>
+  <ul class="rules">
+    <li>아군과 적이 <b>한 줄</b>로 서요. 양쪽 <b>맨 앞</b>끼리 맞닿아 있고, 누가 쓰러지면 줄이 당겨져요.</li>
+    <li>모두가 한 번씩 움직이는 단위가 <b>마디</b>예요. 마디마다 순서표가 <b>빠른 순</b>으로 새로 짜여요. 빠르기가 같으면 줄에서 더 앞에 선 쪽, 그래도 같으면 아군이 먼저예요.</li>
+    <li>시작 전에 순서표에서 <b>두 명을 차례로 탭</b>하면 둘의 차례가 바뀌어요. 적끼리도, 아군과 적도 바꿀 수 있어요. 바꾸기 횟수는 <b>마디마다 다시 채워져요.</b> 바꾼 둘을 다시 바꾸면 횟수를 돌려받아요.</li>
+    <li>모두 자기 <b>습관</b>대로만 움직여요. 유닛이나 초상화를 탭하면 지금 차례가 오면 무엇을 할지 보여요.</li>
+    <li>"체력이 가장 낮은"은 지금 체력 숫자로, "가장 많이 다친"은 잃은 체력으로 비교해요(자기 자신 포함). 동률이면 줄에서 더 앞에 있는 쪽이에요.</li>
+    <li><b>적을 모두 쓰러뜨리면 승리</b>, <b>아군이 한 명이라도 쓰러지면 실패</b>예요. 정해진 마디 안에 못 이겨도 실패예요.</li>
+    <li>별: ★ 클리어 · ★ 지휘(바꾼 횟수 합)를 목표 이하로 · ★ 잃은 체력을 목표 이하로. 둘을 한 번에 받기 어려운 판도 있어요.</li>
+  </ul>
+  <h3>유닛</h3>
+  <div class="cards">${Object.keys(UNITS).filter(n => n !== '도둑쥐').map(unitCard).join('')}</div>
+  <div class="row"><button class="btn primary" data-close>알겠어요</button></div>`;
+}
+function openRules() {
+  openModal(rulesHtml(), sheet => sheet.querySelector('[data-close]').addEventListener('click', closeModal));
+}
+
+/* ---------- 판 시작 카드 ---------- */
+function partyOptions(n) { return BATTLES[n - 1].parties; }
+function chosenParty(n) {
+  const opts = partyOptions(n);
+  const key = save.party[n] || opts[0].key;
+  return opts.find(p => p.key === key) || opts[0];
+}
+function goalsHtml(p, b) {
+  return `<ul class="goals">
+    <li><span class="s">★</span>클리어 (아군 한 명도 잃지 않고 ${b.rounds}마디 안에)</li>
+    <li><span class="s">★</span>지휘 ${p.s2}번 이하로 이기기</li>
+    <li><span class="s">★</span>잃은 체력 ${p.s3} 이하로 이기기</li>
+  </ul>`;
+}
+function openIntro(n) {
+  const b = BATTLES[n - 1];
+  let party = chosenParty(n);
+  const render = () => {
+    const allies = party.allies.map(a => UNITS[a].icon).join('');
+    const foes = b.enemies.map(e => UNITS[e].icon).join('');
+    const partyPick = b.parties.length > 1 ? `<h3>맨 뒤 동료 고르기</h3><div class="party">${b.parties.map(p => {
+      const lead = p.allies[0];
+      return `<button class="pcard ${p.key === party.key ? 'on' : ''}" data-party="${esc(p.key)}"><span class="ic">${UNITS[lead].icon}</span><b>${esc(lead)}</b><small>${esc(HABIT_TEXT[lead])}</small><small>★ 지휘 ${p.s2} · 잃은 체력 ${p.s3}</small></button>`;
+    }).join('')}</div>` : '';
+    const fresh = b.fresh.length ? `<h3>새 얼굴</h3><div class="cards">${b.fresh.map(unitCard).join('')}</div>` : '';
+    openModal(`<h2>${n}. ${esc(b.title)}</h2>
+      <div class="lineup"><span>${allies}</span><span class="vs">VS</span><span>${foes}</span></div>
+      <p style="text-align:center">${b.rounds}마디 · 마디마다 바꾸기 ${b.swaps}번</p>
+      ${partyPick}${fresh}
+      <h3>별 조건</h3>${goalsHtml(party, b)}
+      <div class="row"><button class="btn" data-close>닫기</button><button class="btn primary" data-go>시작</button></div>`, sheet => {
+      sheet.querySelector('[data-close]').addEventListener('click', closeModal);
+      sheet.querySelector('[data-go]').addEventListener('click', () => { closeModal(); startBattle(n, party.key); });
+      for (const el of sheet.querySelectorAll('[data-party]')) {
+        el.addEventListener('click', () => { party = b.parties.find(p => p.key === el.dataset.party); save.party[n] = party.key; persist(); render(); });
+      }
+    });
+  };
+  render();
+}
+
+/* ---------- 전투 상태 ---------- */
+let G = null;           // 지금 판
+let speed = 1, skipping = false, skipWake = null;
+
+function startBattle(n, partyKey) {
+  const b = BATTLES[n - 1];
+  const party = b.parties.find(p => p.key === partyKey) || b.parties[0];
+  const s = makeState(party.allies, b.enemies);
+  // 같은 이름이 둘 이상이면 처음 줄 순서(앞→뒤)로 가·나·다 표시를 붙여요.
+  const tags = {};
+  for (const ids of [s.A.slice().reverse(), s.E]) {
+    const byName = {};
+    for (const id of ids) (byName[s.names[id]] = byName[s.names[id]] || []).push(id);
+    for (const nm of Object.keys(byName)) if (byName[nm].length > 1) byName[nm].forEach((id, i) => { tags[id] = TAGS[i]; });
+  }
+  G = {
+    n, b, party, tags,
+    full: party.allies.reduce((t, a) => t + UNITS[a].hp, 0),
+    state: s, round: 1, editsBefore: 0,
+    base: null, order: null, sel: null, focus: null,
+    history: [], playing: false, fails: 0, bombTold: false,
+  };
+  $('tiles').innerHTML = '';
+  clearArrows();
+  newRound(null);
+  show('scr-battle');
+  $('b-title').textContent = `${n}. ${b.title}`;
+  buildField(G.state);
+  renderAll();
+  tutorial('start');
+}
+
+function newRound(keepOrder) {
+  G.base = baseOrder(G.state);
+  G.order = keepOrder ? keepOrder.slice() : G.base.slice();
+  G.sel = null;
+}
+
+const dn = id => G.state.names[id] + (G.tags[id] ? `(${G.tags[id]})` : '');
+const nameOf = id => G.state.names[id];
+const lostOf = st => G.party.allies.reduce((t, a, i) => t + UNITS[a].hp - (st.hp['a' + i] || 0), 0);
+const usedNow = () => swapDistance(G.base, G.order);
+
+/* 지금 차례가 오면 무엇을 할지 (방패는 순서표에서 앞에 있는 방패병만 미리 반영). */
+function intentOf(s, order, u) {
+  const d = unitOf(s, u);
+  const foes = d.side === 'A' ? s.E : s.A.slice().reverse();
+  const mates = d.side === 'A' ? s.A.slice().reverse() : s.E;
+  if (d.habit === 'front' || d.habit === 'back' || d.habit === 'weakest') {
+    if (!foes.length) return null;
+    const myPos = order.indexOf(u);
+    const guard = order.slice(0, myPos).find(x => s.hp[x] > 0 && unitOf(s, x).habit === 'shield' && unitOf(s, x).side !== d.side);
+    let t;
+    if (guard) t = guard;
+    else if (d.habit === 'front') t = foes[0];
+    else if (d.habit === 'back') t = foes[foes.length - 1];
+    else { t = foes[0]; for (const x of foes) if (s.hp[x] < s.hp[t]) t = x; }
+    return { kind: 'attack', targets: [t], amount: d.pow, guarded: !!guard };
+  }
+  if (d.habit === 'heal') {
+    const hurt = mates.filter(x => s.hp[x] < unitOf(s, x).hp);
+    if (!hurt.length) return { kind: 'rest', targets: [], amount: d.pow };
+    let t = hurt[0];
+    for (const x of hurt) if (unitOf(s, x).hp - s.hp[x] > unitOf(s, t).hp - s.hp[t]) t = x;
+    return { kind: 'heal', targets: [t], amount: Math.min(unitOf(s, t).hp - s.hp[t], d.pow) };
+  }
+  if (d.habit === 'bomb') {
+    const L = s.A.concat(s.E), p = L.indexOf(u);
+    return { kind: 'bomb', targets: [p - 1, p + 1].filter(j => j >= 0 && j < L.length).map(j => L[j]), amount: d.pow };
+  }
+  if (d.habit === 'shield') return { kind: 'shield', targets: [u], amount: 0 };
+  return null;
+}
+function intentChip(it) {
+  if (!it) return { text: '', cls: '' };
+  const ic = id => UNITS[nameOf(id)].icon + (G.tags[id] || '');
+  if (it.kind === 'attack') return { text: `→${ic(it.targets[0])}${it.amount}`, cls: it.guarded ? 'guard' : (unitOf(G.state, it.targets[0]).side === 'A' ? 'ally-hit' : '') };
+  if (it.kind === 'heal') return { text: `+${it.amount}${ic(it.targets[0])}`, cls: 'heal' };
+  if (it.kind === 'rest') return { text: '💤 쉼', cls: 'heal' };
+  if (it.kind === 'bomb') return { text: `💥양옆${it.amount}`, cls: it.targets.some(t => unitOf(G.state, t).side === 'A') ? 'ally-hit' : '' };
+  if (it.kind === 'shield') return { text: '🛡방패', cls: 'guard' };
+  return { text: '', cls: '' };
+}
+function intentText(it, u) {
+  if (!it) return '할 일이 없어요';
+  if (it.kind === 'attack') return `${dn(it.targets[0])}에게 ${it.amount}` + (it.guarded ? ' (방패병이 먼저 방패를 들어서 방패병이 대신 맞아요)' : '');
+  if (it.kind === 'heal') return `${dn(it.targets[0])}${eulreul(nameOf(it.targets[0]))} ${it.amount} 회복`;
+  if (it.kind === 'rest') return '다친 편이 없어서 쉬어요 (다치면 회복)';
+  if (it.kind === 'bomb') return `터져서 ${it.targets.map(dn).join(', ')}에게 ${it.amount}씩` + (it.targets.some(t => unitOf(G.state, t).side === 'A') ? ' — 아군도 맞아요!' : '');
+  if (it.kind === 'shield') return '방패를 들어요. 그 뒤로 이 마디 끝까지 적의 한 명 노리기 공격을 대신 맞아요';
+  return '';
+}
+
+/* ---------- 전장 그리기 ---------- */
+function tokEl(id) { return $('field').querySelector(`.tok[data-id="${id}"]`); }
+function buildField(s) {
+  const f = $('field');
+  f.innerHTML = '';
+  for (const id of s.A) f.appendChild(makeTok(id));
+  const c = document.createElement('div'); c.className = 'clash'; c.dataset.id = 'clash'; f.appendChild(c);
+  for (const id of s.E) f.appendChild(makeTok(id));
+}
+function makeTok(id) {
+  const u = UNITS[nameOf(id)];
+  const el = document.createElement('div');
+  el.className = 'tok ' + (u.side === 'A' ? 'ally' : 'enemy');
+  el.dataset.id = id;
+  el.setAttribute('role', 'button');
+  el.setAttribute('tabindex', '0');
+  el.innerHTML = `<div class="ord"></div><div class="face">${u.icon}${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</div>` +
+    `<div class="nm">${nameHtml(nameOf(id))}</div><div class="hpbar"><i></i></div><div class="hpn"></div><div class="intent"></div>`;
+  el.addEventListener('click', () => { if (G.playing) return; G.focus = G.focus === id ? null : id; renderPlan(); });
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
+  return el;
+}
+/* snap: 지금 보여 줄 상태, order: 순서표, ptr: 지금 행동 중인 칸 (재생 중), plan: 계획 중인지 */
+function updateField(snap, order, ptr, plan) {
+  const live = new Set(snap.A.concat(snap.E));
+  for (const el of $('field').querySelectorAll('.tok')) {
+    const id = el.dataset.id;
+    if (!live.has(id)) {
+      if (!el.classList.contains('gone')) {
+        el.classList.add('gone');
+        setTimeout(() => { if (el.isConnected && el.classList.contains('gone')) flip($('field'), () => el.remove()); }, 420);
+      }
+      continue;
+    }
+    const max = UNITS[nameOf(id)].hp, hp = Math.max(0, snap.hp[id] || 0);
+    el.querySelector('.hpbar i').style.width = (100 * hp / max) + '%';
+    el.querySelector('.hpn').textContent = `${hp}/${max}`;
+    const k = order.indexOf(id);
+    const ord = el.querySelector('.ord');
+    ord.textContent = k >= 0 ? String(k + 1) : '';
+    ord.style.visibility = k >= 0 ? 'visible' : 'hidden';
+    el.classList.toggle('done', !plan && ptr >= 0 && k >= 0 && k < ptr);
+    el.classList.toggle('focus', plan && G.focus === id);
+    const chip = el.querySelector('.intent');
+    if (plan) {
+      const c = intentChip(intentOf(G.state, order, id));
+      chip.textContent = c.text; chip.className = 'intent ' + c.cls; chip.style.visibility = c.text ? 'visible' : 'hidden';
+    } else {
+      chip.style.visibility = 'hidden';
+    }
+  }
+}
+
+/* ---------- 순서표 그리기 ---------- */
+function flip(container, mutate) {
+  const before = new Map();
+  for (const el of container.children) if (el.dataset.id) before.set(el.dataset.id, el.getBoundingClientRect());
+  mutate();
+  if (reduceMotion) return;
+  for (const el of container.children) {
+    const b = before.get(el.dataset.id); if (!b) continue;
+    const a = el.getBoundingClientRect();
+    const dx = b.left - a.left, dy = b.top - a.top;
+    if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'translate(0,0)' }], { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+  }
+}
+function renderTiles(order, opts) {
+  const box = $('tiles');
+  box.style.setProperty('--n', String(Math.max(order.length, 5)));
+  const have = new Map();
+  for (const el of box.children) have.set(el.dataset.id, el);
+  flip(box, () => {
+    for (const [id, el] of have) if (order.indexOf(id) < 0) el.remove();
+    order.forEach((id, k) => {
+      let el = have.get(id);
+      if (!el) {
+        const u = UNITS[nameOf(id)];
+        el = document.createElement('button');
+        el.className = 'tile ' + (u.side === 'A' ? 'ally' : 'enemy');
+        el.dataset.id = id;
+        el.innerHTML = `<span class="no"></span><span class="ic">${u.icon}${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</span><span class="tn">${nameHtml(nameOf(id))}</span>`;
+        el.addEventListener('click', () => onTile(id));
+      }
+      el.querySelector('.no').textContent = String(k + 1);
+      el.classList.toggle('sel', !!opts.plan && G.sel === id);
+      el.classList.toggle('moved', !!opts.plan && G.base[k] !== id);
+      el.classList.toggle('now', !opts.plan && opts.ptr === k);
+      el.classList.toggle('done', !opts.plan && opts.ptr > k);
+      el.classList.toggle('dead', !opts.plan && !!opts.dead && opts.dead.has(id));
+      el.setAttribute('aria-label', `${k + 1}번째 차례 ${dn(id)}${G.sel === id ? ', 골라짐' : ''}`);
+      box.appendChild(el);
+    });
+  });
+}
+
+/* ---------- 화살표 ---------- */
+function clearArrows() { $('arrows').innerHTML = ''; }
+function drawArrows(list) {
+  const svg = $('arrows'), stage = $('stage');
+  const R = stage.getBoundingClientRect();
+  let html = `<defs><marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="context-stroke"/></marker></defs>`;
+  for (const a of list) {
+    const fe = tokEl(a.from), te = tokEl(a.to);
+    if (!fe || !te) continue;
+    const fr = fe.getBoundingClientRect(), tr = te.getBoundingClientRect();
+    const x1 = fr.left + fr.width / 2 - R.left, y1 = fr.top - R.top - 13;
+    const x2 = tr.left + tr.width / 2 - R.left, y2 = tr.top - R.top - 13;
+    const color = a.color || '#ffd27a';
+    if (a.from === a.to) {
+      html += `<circle cx="${x1}" cy="${y1 - 6}" r="9" fill="none" stroke="${color}" stroke-width="2.5"/>` +
+        (a.label ? `<text x="${x1}" y="${y1 - 20}" text-anchor="middle" fill="${color}" font-size="13" font-weight="900">${esc(a.label)}</text>` : '');
+      continue;
+    }
+    const cy = Math.min(y1, y2) - 20 - Math.min(14, Math.abs(x2 - x1) * 0.1);
+    const mx = (x1 + x2) / 2;
+    html += `<path d="M${x1},${y1} Q${mx},${cy} ${x2},${y2}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" marker-end="url(#ah)" ${a.dash ? 'stroke-dasharray="5 4"' : ''}/>`;
+    if (a.label) html += `<text x="${mx}" y="${(y1 + y2) / 4 + cy / 2 - 4}" text-anchor="middle" fill="${color}" font-size="13" font-weight="900" stroke="#0a0f1e" stroke-width="3" paint-order="stroke">${esc(a.label)}</text>`;
+  }
+  svg.innerHTML = html;
+}
+function arrowsFor(id) {
+  const it = intentOf(G.state, G.order, id);
+  if (!it) return [];
+  if (it.kind === 'attack') return [{ from: id, to: it.targets[0], label: String(it.amount), color: unitOf(G.state, it.targets[0]).side === 'A' ? '#ff8a7a' : '#ffd27a' }];
+  if (it.kind === 'heal') return [{ from: id, to: it.targets[0], label: '+' + it.amount, color: '#8ff0b5' }];
+  if (it.kind === 'bomb') return it.targets.map(t => ({ from: id, to: t, label: String(it.amount), color: unitOf(G.state, t).side === 'A' ? '#ff6b6b' : '#ffb84d' }));
+  if (it.kind === 'shield') return [{ from: id, to: id, label: '🛡', color: '#ffd27a' }];
+  return [];
+}
+
+/* ---------- 계획 화면 ---------- */
+function renderMeters() {
+  const b = G.b, p = G.party;
+  const used = usedNow();
+  const edits = G.editsBefore + used;
+  const lost = lostOf(G.state);
+  $('m-round').querySelector('b').textContent = `${G.round}/${b.rounds}`;
+  $('m-swaps').querySelector('b').textContent = `${used}/${b.swaps}`;
+  $('m-swaps').classList.toggle('full', used >= b.swaps);
+  const me = $('m-edits'); me.querySelector('b').textContent = `${edits}/${p.s2}`;
+  me.classList.toggle('ok', edits <= p.s2); me.classList.toggle('over', edits > p.s2);
+  const ml = $('m-lost'); ml.querySelector('b').textContent = `${lost}/${p.s3}`;
+  ml.classList.toggle('ok', lost <= p.s3); ml.classList.toggle('over', lost > p.s3);
+}
+function renderInfo() {
+  const box = $('info');
+  const id = G.focus;
+  if (!id || !G.state.hp[id]) {
+    box.innerHTML = G.sel
+      ? `<b>${esc(dn(G.sel))}</b>${iga(nameOf(G.sel))} 골라졌어요. <b>누구와 차례를 바꿀까요?</b> 다른 초상화를 탭해요. 같은 초상화를 다시 탭하면 취소돼요.`
+      : '유닛이나 초상화를 탭하면 <b>지금 차례가 오면 무엇을 할지</b> 보여요. 순서표에서 두 명을 차례로 탭하면 차례가 바뀌어요.';
+    return;
+  }
+  const u = unitOf(G.state, id);
+  const it = intentOf(G.state, G.order, id);
+  const k = G.order.indexOf(id) + 1;
+  box.innerHTML = `<div class="who"><b>${u.icon} ${esc(dn(id))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span>` +
+    `<span>체력 ${G.state.hp[id]}/${u.hp} · 빠르기 ${u.spd} · <b>${k}번째</b> 차례</span></div>` +
+    `<div>습관: ${esc(HABIT_TEXT[nameOf(id)])}</div><div class="now">지금 차례가 오면: ${esc(intentText(it, id))}</div>` +
+    (G.sel ? `<div><b>${esc(dn(G.sel))}</b>${iga(nameOf(G.sel))} 골라져 있어요. 바꿀 상대를 순서표에서 탭해요.</div>` : '');
+}
+function renderPlan() {
+  updateField(G.state, G.order, -1, true);
+  renderTiles(G.order, { plan: true });
+  renderMeters();
+  renderInfo();
+  $('a-undo').disabled = !G.history.length;
+  $('a-reset').disabled = usedNow() === 0;
+  if (G.focus && G.state.hp[G.focus]) drawArrows(arrowsFor(G.focus)); else clearArrows();
+}
+function renderAll() {
+  $('act-plan').classList.toggle('hidden', G.playing);
+  $('act-play').classList.toggle('hidden', !G.playing);
+  if (!G.playing) {
+    $('msg').className = 'msg';
+    $('msg').textContent = `${G.round}마디 · 차례를 바꾸고 시작 ▶`;
+    renderPlan();
+  }
+}
+
+function onTile(id) {
+  if (G.playing) return;
+  if (!G.sel) { G.sel = id; G.focus = id; renderPlan(); tutorial('selected'); return; }
+  if (G.sel === id) { G.sel = null; renderPlan(); return; }
+  const i = G.order.indexOf(G.sel), j = G.order.indexOf(id);
+  const next = G.order.slice(); next[i] = id; next[j] = G.sel;
+  if (swapDistance(G.base, next) > G.b.swaps) {
+    const el = $('tiles').querySelector(`.tile[data-id="${id}"]`);
+    if (el) { el.classList.remove('nope'); void el.offsetWidth; el.classList.add('nope'); }
+    toast(`이번 마디 바꾸기를 다 썼어요 (${G.b.swaps}번). 바꾼 둘을 다시 바꾸면 돌려받아요`);
+    return;
+  }
+  G.order = next; G.sel = null; G.focus = id;
+  renderPlan();
+  tutorial('swapped');
+}
+
+/* ---------- 재생 ---------- */
+function sleep(ms) {
+  if (skipping) return Promise.resolve();
+  return new Promise(res => { const t = setTimeout(() => { skipWake = null; res(); }, ms / speed); skipWake = () => { clearTimeout(t); skipWake = null; res(); }; });
+}
+function floatText(id, text, cls) {
+  const el = tokEl(id);
+  if (!el || skipping) return;
+  const f = document.createElement('div');
+  f.className = 'float ' + cls; f.textContent = text;
+  el.appendChild(f);
+  setTimeout(() => f.remove(), 950);
+}
+function bump(id, cls) {
+  const el = tokEl(id);
+  if (!el || skipping) return;
+  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+}
+const DUR = { turn: 260, hit: 480, down: 300, boom: 560, heal: 440, rest: 340, shield: 440, thief: 440 };
+function frameMsg(f) {
+  if (f.kind === 'turn') return `${f.ptr + 1}번째 · ${dn(f.actor)} 차례`;
+  if (f.kind === 'hit') return `${dn(f.actor)}${nameOf(f.actor) === '폭탄벌레' ? ' 폭발' : ''} → ${dn(f.target)} ${f.amount}`;
+  if (f.kind === 'down') return `${dn(f.target)} 쓰러짐`;
+  if (f.kind === 'boom') return `${dn(f.actor)} 펑!`;
+  if (f.kind === 'heal') return `${dn(f.actor)} → ${dn(f.target)} +${f.amount}`;
+  if (f.kind === 'rest') return `${dn(f.actor)} 쉼 (다친 편이 없어요)`;
+  if (f.kind === 'shield') return `${dn(f.actor)} 방패! 이 마디 끝까지 대신 맞아요`;
+  if (f.kind === 'thief') return `${dn(f.actor)}: ${dn(f.target)} 맨 뒤로`;
+  return '';
+}
+async function playRound() {
+  if (G.playing) return;
+  hideCoach();
+  tutorial('started');
+  const g = G;
+  const before = G.state, order = G.order.slice(), used = usedNow();
+  const r = runRound(before, order, true);
+  G.playing = true; G.sel = null; G.focus = null; skipping = false;
+  clearArrows();
+  renderAll();
+  renderMeters();
+  const dead = new Set();
+  const shielded = new Set();
+  $('info').innerHTML = '재생 중이에요. <b>건너뛰기</b>를 누르면 마디 끝으로 바로 가요.';
+  for (const f of r.frames) {
+    if (skipping || G !== g) break;
+    $('msg').textContent = frameMsg(f);
+    if (f.kind === 'turn') {
+      const u = UNITS[nameOf(f.actor)];
+      $('info').innerHTML = `<div class="who"><b>${f.ptr + 1}번째 · ${u.icon} ${esc(dn(f.actor))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span></div><div>습관: ${esc(HABIT_TEXT[nameOf(f.actor)])}</div>`;
+    }
+    for (const el of $('field').querySelectorAll('.tok.acting')) el.classList.remove('acting');
+    if (f.kind === 'down') dead.add(f.target);
+    if (f.kind === 'boom') dead.add(f.actor);
+    updateField(f.snap, f.bar, f.ptr, false);
+    renderTiles(f.bar, { plan: false, ptr: f.ptr, dead });
+    if (f.actor && tokEl(f.actor) && f.kind !== 'hit') tokEl(f.actor).classList.add('acting');
+    if (f.kind === 'hit') {
+      if (tokEl(f.actor) && !tokEl(f.actor).classList.contains('gone')) drawArrows([{ from: f.actor, to: f.target, label: String(f.amount), color: '#ff8a7a' }]);
+      floatText(f.target, '-' + f.amount, 'dmg'); bump(f.target, 'hitfx');
+    } else if (f.kind === 'heal') {
+      drawArrows([{ from: f.actor, to: f.target, label: '+' + f.amount, color: '#8ff0b5' }]);
+      floatText(f.target, '+' + f.amount, 'heal');
+    } else if (f.kind === 'boom') {
+      clearArrows();
+      const el = tokEl(f.actor); if (el) el.classList.add('boomfx');
+      if (!reduceMotion) { $('stage').classList.remove('shake'); void $('stage').offsetWidth; $('stage').classList.add('shake'); }
+    } else if (f.kind === 'rest') {
+      floatText(f.actor, '쉼', 'info'); clearArrows();
+    } else if (f.kind === 'shield') {
+      floatText(f.actor, '방패!', 'info'); clearArrows();
+      shielded.add(f.actor);
+      const el = tokEl(f.actor); if (el && !el.querySelector('.shield-on')) el.insertAdjacentHTML('beforeend', '<div class="shield-on"></div>');
+    } else if (f.kind === 'turn') {
+      clearArrows();
+    }
+    await sleep(DUR[f.kind] || 300);
+  }
+  if (G !== g) { skipping = false; return; }
+  // 끝난 모습 (건너뛰기 했으면 여기서 한 번에)
+  for (const el of $('field').querySelectorAll('.tok.acting')) el.classList.remove('acting');
+  for (const el of $('field').querySelectorAll('.shield-on')) el.remove();
+  clearArrows();
+  const last = r.frames.length ? r.frames[r.frames.length - 1] : null;
+  updateField({ A: r.state.A, E: r.state.E, hp: r.state.hp }, last ? last.bar : order, last ? last.bar.length : -1, false);
+  await sleep(250);
+  if (G !== g) { skipping = false; return; }
+  G.playing = false; skipping = false;
+  $('act-play').classList.add('hidden');
+
+  const record = { state: before, order, editsBefore: G.editsBefore };
+  if (r.result === 'win') {
+    G.history.push(record);
+    G.state = r.state; G.editsBefore += used;
+    showWin();
+    return;
+  }
+  if (r.result === 'lose') { showFail(record, r, 'lose'); return; }
+  if (G.n === 3 && !G.bombTold && r.log.some(l => l.indexOf('펑!') >= 0)) G.bombTold = true;
+  if (G.round >= G.b.rounds) { showFail(record, r, 'timeout'); return; }
+  G.history.push(record);
+  G.state = r.state; G.editsBefore += used; G.round++;
+  buildField(G.state);
+  newRound(null);
+  renderAll();
+  toast(`${G.round}마디! 차례가 빠른 순으로 돌아오고, 바꾸기도 다시 채워졌어요`);
+  if (G.bombTold === true && G.n === 3) { G.bombTold = 'done'; setTimeout(() => coachAt($('stage'), '폭탄벌레가 터졌죠? <b>폭탄은 쓰러져도 그 자리에서 터져요.</b> 양옆은 편을 가리지 않고 맞아요.', { dismiss: true }), 400); }
+}
+
+/* ---------- 이기고 지기 ---------- */
+function restore(record, keepOrder) {
+  G.state = record.state; G.editsBefore = record.editsBefore;
+  G.round = G.history.length + 1;
+  buildField(G.state);
+  newRound(keepOrder ? record.order : null);
+  G.focus = null;
+  renderAll();
+}
+function undoRound() {
+  if (G.playing || !G.history.length) return;
+  const rec = G.history.pop();
+  restore(rec, true);
+  toast(`${G.round}마디로 되돌렸어요`);
+}
+function showWin() {
+  const p = G.party, edits = G.editsBefore, lost = lostOf(G.state);
+  const got = { clear: true, s2: edits <= p.s2, s3: lost <= p.s3 };
+  const prev = bestOf(G.n);
+  save.best[G.n] = { clear: true, s2: prev.s2 || got.s2, s3: prev.s3 || got.s3 };
+  persist();
+  const n = (got.s2 ? 1 : 0) + (got.s3 ? 1 : 0) + 1;
+  const stars = [0, 1, 2].map(i => `<span class="${i < n ? '' : 'off'}">★</span>`).join('');
+  const hasNext = G.n < BATTLES.length;
+  const clashTip = p.clash && !(got.s2 && got.s3)
+    ? `<p class="hint">이 판은 별 2(지휘)와 별 3(체력)을 <b>한 번에 받기 어려워요.</b> 하나씩 따로 노려 보세요.</p>` : '';
+  $('msg').textContent = '승리!';
+  openModal(`<h2>승리! 🎉</h2><div class="bigstars">${stars}</div>
+    <ul class="goals">
+      <li class="yes"><span class="s">★</span>클리어<span class="v">${G.round}마디</span></li>
+      <li class="${got.s2 ? 'yes' : 'no'}"><span class="s">★</span>지휘 ${p.s2}번 이하<span class="v">${edits}번 썼어요</span></li>
+      <li class="${got.s3 ? 'yes' : 'no'}"><span class="s">★</span>잃은 체력 ${p.s3} 이하<span class="v">${lost} 잃었어요</span></li>
+    </ul>${clashTip}
+    ${hasNext ? '<div class="row"><button class="btn primary wide" data-next>다음 판 ▶</button></div>' : ''}
+    <div class="row"><button class="btn" data-list>목록</button><button class="btn" data-again>다시 하기</button></div>
+    ${hasNext ? '' : '<p style="text-align:center">마지막 판까지 깼어요! 별을 다 모아 보세요.</p>'}`, sheet => {
+    sheet.querySelector('[data-list]').addEventListener('click', () => { closeModal(); goTitle(); });
+    sheet.querySelector('[data-again]').addEventListener('click', () => { closeModal(); startBattle(G.n, G.party.key); });
+    const nx = sheet.querySelector('[data-next]');
+    if (nx) nx.addEventListener('click', () => { closeModal(); openIntro(G.n + 1); });
+  });
+}
+function failReason(record, r, why) {
+  if (why === 'timeout') return `${G.b.rounds}마디 안에 적을 다 쓰러뜨리지 못했어요.`;
+  const down = record.state.A.find(id => r.state.A.indexOf(id) < 0);
+  if (!down) return '아군이 쓰러졌어요.';
+  const hits = r.frames.filter(f => f.kind === 'hit' && f.target === down)
+    .map(f => `${dn(f.actor)}${nameOf(f.actor) === '폭탄벌레' ? ' 폭발' : ''} ${f.amount}`);
+  return `${dn(down)}${iga(nameOf(down))} 쓰러졌어요.` + (hits.length ? ` 이번 마디에 맞은 것: ${hits.join(', ')}` : '');
+}
+function showFail(record, r, why) {
+  G.fails++;
+  const reason = failReason(record, r, why);
+  $('msg').className = 'msg fail';
+  $('msg').textContent = why === 'timeout' ? '시간 초과' : '실패';
+  const hint = G.fails >= 2 ? `<p class="hint">💡 ${esc(G.b.hint)}</p>` : '';
+  openModal(`<h2>${why === 'timeout' ? '시간이 다 됐어요' : '아군이 쓰러졌어요'}</h2>
+    <p class="reason">${esc(reason)}</p>${hint}
+    <p>되돌리기는 마음껏 써도 돼요.</p>
+    <div class="row"><button class="btn primary wide" data-retry>↶ 이 마디 다시 (같은 차례에서)</button></div>
+    <div class="row"><button class="btn" data-list>목록</button><button class="btn" data-restart>처음부터</button></div>`, sheet => {
+    sheet.querySelector('[data-list]').addEventListener('click', () => { closeModal(); goTitle(); });
+    sheet.querySelector('[data-restart]').addEventListener('click', () => { closeModal(); const f = G.fails; startBattle(G.n, G.party.key); G.fails = f; });
+    sheet.querySelector('[data-retry]').addEventListener('click', () => { closeModal(); restore(record, true); });
+  });
+}
+function goTitle() { G = null; clearArrows(); renderTitle(); show('scr-title'); }
+
+/* ---------- 알림, 안내 말풍선 ---------- */
+let toastTimer = null;
+function hideToast() { clearTimeout(toastTimer); $('toast').classList.remove('on'); }
+function toast(text, ms) {
+  const t = $('toast');
+  t.textContent = text; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), ms || 2200);
+}
+let coachDismiss = null;
+function coachAt(anchor, html, opts) {
+  const c = $('coach');
+  c.innerHTML = html + (opts && opts.dismiss ? '<span class="tap">탭해서 닫기</span>' : '');
+  c.classList.remove('hidden', 'above', 'below', 'dismiss');
+  if (opts && opts.dismiss) c.classList.add('dismiss');
+  const r = anchor.getBoundingClientRect();
+  const w = Math.min(280, window.innerWidth - 24);
+  c.style.width = w + 'px';
+  const left = Math.max(12, Math.min(window.innerWidth - w - 12, r.left + r.width / 2 - w / 2));
+  c.style.left = left + 'px';
+  c.style.setProperty('--ax', Math.max(16, Math.min(w - 16, r.left + r.width / 2 - left)) + 'px');
+  const h = c.offsetHeight;
+  if (r.top - h - 14 > 8) { c.style.top = (r.top - h - 12) + 'px'; c.classList.add('above'); }
+  else { c.style.top = (r.bottom + 12) + 'px'; c.classList.add('below'); }
+  coachDismiss = opts && opts.dismiss;
+}
+function hideCoach() { $('coach').classList.add('hidden'); coachDismiss = null; }
+$('coach').addEventListener('click', () => { if (coachDismiss) hideCoach(); });
+
+function tutorial(ev) {
+  if (!G || G.playing) return;
+  if (G.n === 1 && G.round === 1) {
+    if (ev === 'start') setTimeout(() => G && !G.sel && coachAt($('tiles'), '아래 <b>순서표</b>의 왼쪽부터 차례대로 움직여요. 그대로 시작하면 궁수가 해골궁수 둘에게 맞아 쓰러져요.<br><b>기사</b> 초상화를 탭해 보세요.'), 350);
+    else if (ev === 'selected') coachAt($('tiles'), '이제 <b>해골궁수</b> 하나를 탭하면 둘의 차례가 바뀌어요. 기사가 먼저 쏘게!');
+    else if (ev === 'swapped') coachAt($('a-go'), '좋아요! 준비됐으면 <b>시작 ▶</b>');
+    else if (ev === 'started') hideCoach();
+  } else if (G.n === 2 && G.round === 1 && ev === 'start') {
+    setTimeout(() => G && coachAt($('m-swaps'), '마디가 바뀌면 순서표는 다시 <b>빠른 순</b>으로 돌아가고, <b>바꾸기도 다시 채워져요.</b> 유닛을 탭하면 무엇을 할지 보여요.', { dismiss: true }), 350);
+  }
+}
+
+/* ---------- 단추 연결 ---------- */
+$('t-rules').addEventListener('click', openRules);
+$('t-reset').addEventListener('click', () => {
+  openModal(`<h2>기록 지우기</h2><p>별과 열린 판 기록을 모두 지울까요?</p><div class="row"><button class="btn" data-no>아니요</button><button class="btn primary" data-yes>지우기</button></div>`, sheet => {
+    sheet.querySelector('[data-no]').addEventListener('click', closeModal);
+    sheet.querySelector('[data-yes]').addEventListener('click', () => { save = { best: {}, party: {} }; persist(); closeModal(); renderTitle(); toast('기록을 지웠어요'); });
+  });
+});
+$('b-back').addEventListener('click', () => { if (G && G.playing) { skipping = true; if (skipWake) skipWake(); } goTitle(); });
+$('b-help').addEventListener('click', openRules);
+$('a-go').addEventListener('click', playRound);
+$('a-reset').addEventListener('click', () => { if (G.playing) return; G.order = G.base.slice(); G.sel = null; renderPlan(); });
+$('a-undo').addEventListener('click', undoRound);
+$('a-speed').addEventListener('click', () => { speed = speed === 1 ? 2 : 1; $('a-speed').textContent = speed === 1 ? '2배속' : '1배속'; });
+$('a-skip').addEventListener('click', () => { skipping = true; if (skipWake) skipWake(); });
+$('modal').addEventListener('click', e => { if (e.target === $('modal') && !$('sheet').querySelector('[data-retry],[data-next],[data-again]')) closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('modal').classList.contains('hidden') && $('sheet').querySelector('[data-close]')) closeModal(); });
+window.addEventListener('resize', () => { if (G && !G.playing) renderPlan(); hideCoach(); });
+
+renderTitle();
+</script>
+</body>
+</html>
