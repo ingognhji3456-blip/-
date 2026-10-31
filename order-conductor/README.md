@@ -24,6 +24,8 @@
 | `tools/solver.py` | 판 검사기: 판이 풀리는지, 별 기준값, 난이도를 계산해요 |
 | `tools/parity_cases.py`, `tools/parity_test.mjs` | 게임의 규칙 엔진이 검사기와 한 줄도 안 틀리게 똑같은지 대조해요 |
 | `tools/plans.py`, `tools/e2e.mjs` | 브라우저에서 8판을 실제로 클릭해서 깨 보고 별이 맞게 나오는지 확인해요 |
+| `art/cast.js` | 캐릭터 9명의 도트 그림 원본 (모양으로 윤곽을 잡고 한 칸씩 덧칠) |
+| `art/raster.js`, `art/show.js`, `art/export.js` | 도트 그림을 칸으로 바꾸기, 미리보기 그리기, `index.html`에 넣기 |
 
 ## 판이나 수치를 바꿀 때
 
@@ -52,4 +54,19 @@
 
    ```bash
    node order-conductor/tools/e2e.mjs /tmp/oc_plans.json /tmp/oc-shots
+   ```
+
+## 캐릭터 그림을 고칠 때
+
+1. `art/cast.js`에서 그 캐릭터를 고쳐요.
+2. 미리보기를 그려서 확인해요. `GRID=1 BIG=8`을 앞에 붙이면 칸이 보이게 크게 그려요.
+
+   ```bash
+   node order-conductor/art/show.js /tmp/preview.png 기사 고블린
+   ```
+
+3. 게임에 넣어요. `index.html`의 ART 블록이 새로 바뀌어요.
+
+   ```bash
+   node order-conductor/art/export.js
    ```

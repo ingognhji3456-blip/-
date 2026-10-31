@@ -70,51 +70,72 @@ button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highligh
 @media (max-width:360px){.wide-only{display:none}}
 .nm .short,.tn .short{display:none}
 @media (max-width:380px){.nm .full,.tn .full{display:none}.nm .short,.tn .short{display:inline}}
-@media (max-height:640px){.topbar{padding-top:6px}.icon-btn{width:34px;height:34px;font-size:15px}.meter{padding:3px}.meter b{font-size:14px}.stage{padding-top:48px;min-height:0}.info{min-height:0;font-size:12.5px;padding:7px 10px}.tile{min-height:54px;padding-top:11px}.actions{padding-top:8px}}
+@media (max-height:640px){.topbar{padding-top:6px}.icon-btn{width:34px;height:34px;font-size:15px}.meter{padding:3px}.meter b{font-size:14px}.stage{min-height:180px}.info{min-height:0;font-size:12.5px;padding:7px 10px}.tile{min-height:54px;padding-top:11px}.actions{padding-top:8px}}
 .meter.star span::before{content:"★ ";color:var(--gold)}
 .meter.ok b{color:var(--good)}
 .meter.over b{color:var(--bad)}
 .meter.swaps.full b{color:var(--gold)}
 
-.stage{position:relative;margin:6px 8px 0;padding:58px 4px 8px;flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:200px;max-height:46vh;border-radius:16px;background:radial-gradient(60% 55% at 22% 0%,rgba(127,178,255,.13),transparent 70%),radial-gradient(60% 55% at 78% 0%,rgba(255,138,122,.11),transparent 70%),radial-gradient(80% 30% at 50% 92%,rgba(255,210,122,.09),transparent 75%),linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px solid var(--line);overflow:hidden}
+.stage{position:relative;margin:6px 8px 0;flex:1 1 auto;display:flex;flex-direction:column;justify-content:flex-end;min-height:230px;max-height:44vh;border-radius:16px;border:1px solid var(--line);overflow:hidden;background:#1c2550;--ground:52px}
+.stage .scene{position:absolute;left:0;right:0;top:0;bottom:calc(var(--ground) - 2px);width:100%;height:calc(100% - var(--ground) + 2px);object-fit:cover;object-position:50% 100%;image-rendering:pixelated;pointer-events:none}
+.stage .ground{position:absolute;left:0;right:0;bottom:0;height:var(--ground);pointer-events:none;background:linear-gradient(180deg,var(--grass1,#5c8a48) 0 3px,var(--grass2,#3f6a35) 3px 6px,transparent 6px),repeating-linear-gradient(90deg,rgba(0,0,0,.08) 0 3px,transparent 3px 9px),linear-gradient(180deg,var(--dirt1,#4a3a2a),var(--dirt2,#2b2219))}
 .stage.shake{animation:shake .38s}
 @keyframes shake{0%,100%{transform:none}20%{transform:translate(-5px,2px)}40%{transform:translate(5px,-2px)}60%{transform:translate(-3px,1px)}80%{transform:translate(3px,0)}}
-#arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}
-.field{display:flex;align-items:flex-end;gap:3px;position:relative;z-index:2}
-.clash{flex:0 0 10px;align-self:stretch;display:flex;align-items:center;justify-content:center}
-.clash::before{content:"";width:2px;height:80%;background:linear-gradient(180deg,transparent,var(--gold),transparent);opacity:.6}
-.tok{flex:1 1 0;min-width:0;max-width:76px;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 1px 5px;border-radius:12px;border:1px solid transparent;cursor:pointer;transition:opacity .35s,transform .2s,filter .35s}
-.tok.ally{background:linear-gradient(180deg,rgba(127,178,255,.10),rgba(127,178,255,.02))}
-.tok.enemy{background:linear-gradient(180deg,rgba(255,138,122,.10),rgba(255,138,122,.02))}
-.tok.focus{border-color:var(--gold)}
-.tok.acting{transform:translateY(-8px)}
-.tok.done{filter:saturate(.35) brightness(.75)}
-.tok.gone{opacity:0;transform:translateY(10px) scale(.8);pointer-events:none}
-.tok.hitfx{animation:hitfx .35s}
-@keyframes hitfx{0%,100%{transform:none}30%{transform:translateX(-4px)}60%{transform:translateX(4px)}}
-.tok.boomfx .face{animation:boomfx .5s forwards}
-@keyframes boomfx{0%{transform:scale(1)}40%{transform:scale(1.9);filter:brightness(2.2)}100%{transform:scale(2.4);opacity:0}}
-.tok .ord{position:absolute;top:-9px;left:50%;transform:translateX(-50%);min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:12px;font-weight:900;line-height:20px;text-align:center;background:var(--gold);color:#2a1a00;box-shadow:0 2px 6px rgba(0,0,0,.4)}
+#arrows{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:5;overflow:visible}
+.fx{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
+.fx>*{position:absolute;left:0;top:0}
+.field{display:flex;align-items:flex-end;justify-content:center;gap:2px;position:relative;z-index:3;padding:0 4px 4px}
+.clash{flex:0 0 8px;align-self:stretch}
+.tok{flex:0 1 84px;min-width:0;position:relative;display:flex;flex-direction:column;align-items:center;cursor:pointer;outline:none}
+.tok .ord{min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:12px;font-weight:900;line-height:20px;text-align:center;background:var(--gold);color:#2a1a00;box-shadow:0 2px 6px rgba(0,0,0,.45);margin-bottom:3px}
 .tok.done .ord{background:#555c74;color:#c9cde0}
-.tok .face{font-size:clamp(24px,5vh,46px);line-height:1.15;position:relative;margin-top:6px}
-.tok .tag,.tile .tag{position:absolute;right:-8px;bottom:-2px;font-size:10px;font-weight:900;background:#0008;border-radius:6px;padding:0 3px;line-height:14px;color:#fff}
-.tok .nm{font-size:clamp(9.5px,3vw,12.5px);letter-spacing:-.3px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.tok.ally .nm{color:var(--ally)}
-.tok.enemy .nm{color:var(--enemy)}
-.hpbar{width:86%;height:5px;border-radius:3px;background:#0006;overflow:hidden}
-.hpbar i{display:block;height:100%;border-radius:3px;transition:width .3s}
-.tok.ally .hpbar i{background:var(--ally)}
-.tok.enemy .hpbar i{background:var(--enemy)}
-.hpn{font-size:clamp(11px,1.4vh,13px);color:var(--muted);font-variant-numeric:tabular-nums}
-.intent{font-size:clamp(10.5px,1.35vh,12.5px);min-height:16px;line-height:1.5;padding:0 3px;border-radius:6px;background:#0005;white-space:nowrap;max-width:100%;overflow:hidden}
+.tok .hpw{width:68%;max-width:48px;display:flex;align-items:center;gap:3px;margin-bottom:2px}
+.hpbar{flex:1;height:5px;border-radius:2px;background:#000a;overflow:hidden;box-shadow:0 0 0 1px #0008}
+.hpbar i{display:block;height:100%;transition:width .3s}
+.tok.ally .hpbar i{background:linear-gradient(#a8ccff,#5b8ee8)}
+.tok.enemy .hpbar i{background:linear-gradient(#ffb0a4,#e0574a)}
+.hpn{font-size:10px;color:#e6e9f5;font-weight:700;font-variant-numeric:tabular-nums;text-shadow:0 1px 2px #000}
+.tok .body{position:relative;width:100%;display:flex;justify-content:center;align-items:flex-end}
+.tok .spr{display:block;width:100%;height:auto;image-rendering:pixelated;transform-origin:50% 100%;animation:idle 2.8s ease-in-out infinite;animation-delay:var(--d,0s);position:relative;z-index:1}
+.tok.big .spr{width:125%;margin:0 -12.5%}
+.tok.enemy .spr{scale:-1 1}
+@keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-1px) scaleY(1.012)}}
+.tok .shadow{position:absolute;left:20%;right:20%;bottom:-3px;height:7px;border-radius:50%;background:rgba(0,0,0,.4)}
+.tok .ring{position:absolute;left:6%;right:6%;bottom:-6px;height:12px;border-radius:50%;border:2px solid transparent}
+.tok.focus .ring{border-color:var(--gold);box-shadow:0 0 10px rgba(255,210,122,.8)}
+.tok.sel .ring{border-color:#fff;border-style:dashed}
+.tok.acting .ring{border-color:var(--gold);background:rgba(255,210,122,.3)}
+.tok .tag{position:absolute;top:2px;right:6%;z-index:2;font-size:10px;font-weight:900;background:#000a;border-radius:6px;padding:0 3px;line-height:14px;color:#fff}
+.tok .nm{margin-top:7px;font-size:clamp(9.5px,3vw,12px);letter-spacing:-.3px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;text-shadow:0 1px 2px #000,0 0 3px #000}
+.tok.ally .nm{color:#b9d3ff}
+.tok.enemy .nm{color:#ffc0b6}
+.tok .intent{font-size:clamp(10px,1.35vh,12px);height:18px;line-height:18px;padding:0 4px;margin-top:2px;border-radius:6px;background:#000b;white-space:nowrap;max-width:100%;overflow:hidden;display:flex;align-items:center;gap:1px}
+.intent .mini,.mini{width:15px;height:15px;image-rendering:pixelated;vertical-align:middle;flex:none}
+.tok.enemy .intent .mini.ally,.mini.ally{scale:1 1}
+.mini.enemy{scale:-1 1}
 .intent.ally-hit{color:#ffb3a8}
 .intent.heal{color:var(--heal)}
 .intent.guard{color:var(--gold)}
-.tok .shield-on{position:absolute;inset:-2px;border-radius:12px;box-shadow:0 0 0 2px var(--gold) inset,0 0 12px rgba(255,210,122,.5);pointer-events:none}
-.float{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-weight:900;font-size:18px;pointer-events:none;z-index:5;text-shadow:0 2px 4px #000;animation:floatup .9s forwards}
-.float.dmg{color:#ff8080}.float.heal{color:var(--heal)}.float.info{color:var(--gold);font-size:13px}
-@keyframes floatup{0%{opacity:0;transform:translate(-50%,6px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-26px)}}
-.msg{margin-top:8px;min-height:22px;text-align:center;font-size:14px;color:var(--gold);font-weight:700;position:relative;z-index:2}
+.tok.done .spr{filter:saturate(.45) brightness(.75)}
+.tok.hurt .spr{filter:brightness(1.8) saturate(.2) drop-shadow(0 0 3px #ff5050)}
+.tok.gone{pointer-events:none}
+.tok.gone .body{opacity:0;transform:translate(-6px,8px) rotate(-75deg);transition:transform .5s cubic-bezier(.5,0,.9,.5),opacity .45s .12s}
+.tok.enemy.gone .body{transform:translate(6px,8px) rotate(75deg)}
+.tok.gone.boomfx .body{transform:scale(1.7);opacity:0;transition:transform .22s ease-out,opacity .22s}
+.tok.gone .ord,.tok.gone .hpw,.tok.gone .nm,.tok.gone .intent,.tok.gone .ring,.tok.gone .shadow{opacity:0;transition:opacity .3s}
+.tok .dome{position:absolute;left:-6%;right:-6%;bottom:-5px;height:112%;border-radius:50% 50% 14px 14px;border:2px solid rgba(255,214,120,.95);background:radial-gradient(ellipse at 50% 25%,rgba(255,236,160,.35),rgba(255,210,122,.06) 70%);box-shadow:0 0 14px rgba(255,210,122,.65);z-index:2;pointer-events:none;animation:domein .3s ease-out}
+@keyframes domein{from{transform:scale(.6);opacity:0}to{transform:none;opacity:1}}
+.float{position:absolute;left:50%;top:22px;transform:translateX(-50%);font-weight:900;font-size:18px;pointer-events:none;z-index:7;text-shadow:0 2px 0 #000,0 0 4px #000;animation:floatup .9s forwards;white-space:nowrap}
+.float.dmg{color:#ff7a6e}.float.heal{color:#9ff5bf}.float.info{color:var(--gold);font-size:13px}
+@keyframes floatup{0%{opacity:0;transform:translate(-50%,6px) scale(.8)}15%{opacity:1;transform:translate(-50%,0) scale(1.15)}100%{opacity:0;transform:translate(-50%,-28px) scale(1)}}
+.fx .burst{width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;background:radial-gradient(circle,#fff 0 22%,#ffe066 36%,#ff8a2a 58%,rgba(255,80,20,0) 72%)}
+.fx .ring2{width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid #ffd27a}
+.fx .bit{width:4px;height:4px;margin:-2px 0 0 -2px;background:#ffb84d}
+.fx .smoke{width:24px;height:16px;margin:-8px 0 0 -12px;border-radius:50%;background:rgba(214,214,232,.55)}
+.fx .orb{width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;background:radial-gradient(circle,#fff 0 25%,#b9ffcf 40%,rgba(143,240,181,0) 72%)}
+.fx .spark{width:4px;height:4px;margin:-2px 0 0 -2px;background:#c8ffd9;box-shadow:0 0 4px #8ff0b5}
+.fx .slash,.fx .shot{margin:0;transform-origin:50% 50%}
+.msg{position:absolute;left:8px;right:8px;top:8px;min-height:22px;text-align:center;font-size:14px;color:var(--gold);font-weight:700;z-index:7;text-shadow:0 1px 0 #000,0 0 6px #000;pointer-events:none}
 .msg.fail{color:var(--bad)}
 
 .info{margin:8px 8px 0;padding:9px 12px;border-radius:12px;background:var(--panel);border:1px solid var(--line);font-size:13px;line-height:1.55;min-height:62px;color:var(--muted)}
@@ -133,15 +154,27 @@ button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highligh
 .tile{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:clamp(60px,8.5vh,78px);padding:12px 1px 4px;border-radius:12px;border:2px solid var(--line2);background:var(--panel2);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s,opacity .2s}
 .tile.ally{border-color:#35558f;background:linear-gradient(180deg,#1d3263,#162447)}
 .tile.enemy{border-color:#7a3a44;background:linear-gradient(180deg,#4a2030,#2d1622)}
+.tile .tag{position:absolute;right:-7px;top:-3px;font-size:10px;font-weight:900;background:#000b;border-radius:6px;padding:0 3px;line-height:14px;color:#fff}
 .tile .no{position:absolute;top:2px;left:5px;font-size:11px;font-weight:900;color:var(--gold)}
-.tile .ic{font-size:clamp(22px,3.2vh,30px);line-height:1;position:relative}
+.tile .ic{line-height:0;position:relative}
+.tile .pic{width:clamp(30px,4.6vh,42px);height:clamp(30px,4.6vh,42px);image-rendering:pixelated}
+.pic.enemy,.cface.enemy,.uface.enemy,.fullspr.enemy{scale:-1 1}
+.stage-card .foes{display:flex;gap:2px}
+.cface{width:30px;height:30px;image-rendering:pixelated;background:#0003;border-radius:6px}
+.uface{width:40px;height:40px;image-rendering:pixelated;background:#0003;border-radius:8px}
+.fullspr{image-rendering:pixelated;vertical-align:bottom}
+.lineup{align-items:flex-end;flex-wrap:nowrap;--u:min(10.5vw,48px)}
+.lineup span{display:flex;align-items:flex-end;gap:0}
+.lineup .vs{margin:0 4px 10px}
+.hero{display:flex;justify-content:center;align-items:flex-end;gap:0;--u:min(12vw,58px);margin:4px auto 0;padding:0 6px 6px;border-bottom:3px solid #4f7a45;width:max-content;max-width:100%}
+.hero .gap{width:min(6vw,30px)}
 .tile .tn{font-size:clamp(10.5px,1.35vh,12.5px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .tile.sel{transform:translateY(-6px);border-color:var(--gold);box-shadow:0 6px 16px rgba(255,210,122,.25)}
 .tile.moved{box-shadow:0 0 0 2px rgba(255,210,122,.35) inset}
 .tile.now{border-color:var(--gold);box-shadow:0 0 14px rgba(255,210,122,.55)}
 .tile.done{opacity:.45}
 .tile.dead{opacity:.25}
-.tile.dead .ic::after{content:"✕";position:absolute;inset:0;color:var(--bad);font-size:20px;display:grid;place-items:center}
+.tile.dead .ic::after{content:"✕";position:absolute;inset:0;color:var(--bad);font-size:22px;font-weight:900;display:grid;place-items:center;line-height:1}
 .tile.nope{animation:hitfx .35s}
 
 .actions{display:flex;gap:8px;padding:10px 8px calc(10px + var(--safe-b))}
@@ -201,7 +234,7 @@ button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highligh
 <div id="app">
   <section id="scr-title" class="screen on">
     <div class="logo">
-      <span class="baton">🎼</span>
+      <div class="hero" id="hero" aria-hidden="true"></div>
       <h1>순서 지휘자</h1>
       <p>아군도 적도 알아서 싸워요.<br>내가 할 수 있는 건 <b>누가 먼저 움직일지 차례를 바꾸는 것</b>뿐이에요.</p>
     </div>
@@ -226,9 +259,12 @@ button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highligh
       <div class="meter star" id="m-lost"><span>잃은 체력</span><b>0/5</b></div>
     </div>
     <div class="stage" id="stage">
+      <img class="scene" id="scene" alt="">
+      <div class="ground"></div>
+      <div class="msg" id="msg"></div>
       <svg id="arrows" aria-hidden="true"></svg>
       <div class="field" id="field"></div>
-      <div class="msg" id="msg"></div>
+      <div class="fx" id="fx"></div>
     </div>
     <div class="info" id="info"></div>
     <div class="orderbar">
@@ -252,6 +288,10 @@ button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highligh
 
 <script>
 'use strict';
+/* ART:BEGIN — art/export.js 가 만든 도트 그림이에요. 직접 고치지 말고 art/cast.js 를 고친 뒤 다시 내보내요. */
+const ART = {"pal":["#5c2f2a","#f27a6e","#262c47","#d8433a","#9e2a28","#b9c3d6","#eef2fa","#7d89a6","#ffffff","#4f5874","#1b1530","#14121f","#3462c9","#14204a","#24479a","#79a3f5","#fff0b0","#f2c14e","#172f6a","#5a3410","#b98322","#2a160a","#5a3a1c","#8a5a2e","#1c2a1a","#8fd68a","#4a9b4f","#2f6e3a","#7a4a2a","#f3ecd6","#b88350","#f5c9a3","#d99a74","#e9e2c8","#1e4a2a","#ffe9a8","#f0c66c","#ffe2c8","#c8953f","#4a4458","#f4f0e6","#d2c9b5","#a89d86","#9ccf5a","#cdee8a","#e88a8a","#467a2a","#6aa23c","#3a1e4a","#6e5c98","#4c3c70","#33284d","#ff9a3a","#3c425e","#252a3e","#6b76a3","#5d6584","#8aa07a","#b2c79e","#677f5a","#4a5e42","#c9b48a"],"spr":{"기사":{"w":64,"h":64,"face":[22,3,19],"enemy":false,"rows":["","~.0l~008","~.0j00~10800~.0d2","~.0h003114~10441130~.0b252","~.0g031114~3044~304~204~.08252","~.0f03341143334~304567552~.07252","~.0f0~30443300288665675572~.0526572","~.0e0~40802~604556755772~.0426572","~.0e0~4050002666~50467557772...26572","~.0e0~4040..2666~5056755~7042..26872","~.0e03330...2666~5056755~7042..26872","~.0f000~.042666555~90aA..26872","~.0m2666555~B0bA.26872","~.0m266~504~B0bA.26872","~.0m266~505~6092..26872","~.0m266~50b7772..26872","~.0m266~508B5B7B72..26872","~.0m266~50b7772..26872","~.0m2~50d7772..26872","~.0m2~90g2..26872","~.0l2~605~90966672.26872","~.0k2~60656~505~60555226872","~.0j2~50m26872","~.0j2~50m26872","~.0k2~7076~506~706226872","~.0k2~707~C06~70826872","~.0k2~707~C07775577226872","~.0l2DCEFFCCCGHCCCEE2557226872","~.0lDCCIFFCCCGHCCCEE2557226872","~.0lDCCIFF~H08EED2666J657JJJ","~.0kDCCEIFF~K08EED26KGGG~H04KJ","~.0kDCCEFFFCCCHKCCCEEE26~K09J","~.0jDCCCEFFFCCCHKCCCEEED225~6042JJ","~.0jDCCCEFFFCCCHKCCCEEED..2~5042","~.0jDCCCIFF~C04HKCCCEEED..257772","~.0iD~C04IFFCCCHHHKCCEEEL...2JMJ","~.0iDCCCEI~N05HMMK~N06L..JGGHJ","~.0hD~C04EI~M05HMMK~M06L..JHHHJ","~.0hD~C04EIFFCCCHHHKCCEEED...JHHHJ","~.0hD~C04EIFF~C04E~C04EEED~.04JJJ","~.0gD~C05EIFFECCCE~C04EEED","~.0gD~C04EIIFFECCCE~C04EEED","~.0gD~C04EIIFFECCCE~C04EEEJ","~.0gD~C04EIE~H0a~K05J","~.0fD~C05EIEE77792J265572JJ","~.0fD~C05EIEE77792.265572","~.0fD~C05EIEE77792.265572","~.0fD~C04EEIEE55592.2~6042","~.0fD~C04~I0555592.2~6042","~.0eD~C05~I0555592.266552","~.0eDCC~I0877792.265572","~.0f~D04~I05277792.265572","~.0j~D05277792.265572","~.0o277792.265572","~.0o277792.265572","~.0n2~70522666552","~.0n2~70522~604552","~.0n2~7062~5072","~.0n2~7062~5082","~.0n2~707~5092","~.0n2~70g2","~.0n2~90h2","~.0o~20h",""]},"궁수":{"w":64,"h":64,"face":[22,4,18],"enemy":false,"rows":["","","","","~.0s~O05","~.0qOOP~Q04OO","~.0pO~P04~Q05O","~.0oO~P04Q~R06O~.06JJ","~.0nOPPPQQQ~R07L~.04JHHL","~.0nOPP~Q05SS~N04SL...JHHNL","~.0mOQPP~Q05~S07L~.04TUNL","~.0mOPPP~Q05SSS~V040~.04TUNNL","~.0mOPP~Q06W~V070..T.LUNL","~.0mLQP~Q05WWVVSBVVV0..T.LUNNL","~.0j00LX~Q07WWVVVBVVV0.T...LNNNL","~.0i03303~Q07WW~V06W0.T...LUNNL","~.0i03303~Q08W~V04WWV0.T~.04LNNL","~.0i033O~Q09W~V060.T~.05LNNL","~.0iLXXO~Q04R~Q05~W05RO.T~.05LUNL","~.0iLXXQQRRRPP~Q06~R04OT~.06LUNNL","~.0iLXX~R04PPR~Q06RRQQQTOO~.04LUNNL","~.0iLN~R04PPR~Q06RR~Q07LLL..LNNL","~.0iLNURRPR~Q08RRR~Q04~N05OO0NNL~.042","~.0jLUNRR~Q093RR~Q04~M05QQVVV0...252","~.0jLNU~Q0b333VVVQ~M05QQVVV~L056622","~.0jLNU~Q0cR~V04~U0g~5042","~.0kOQQRQQUUNNNMN444VVV0~L060WWM~L0425522","~.0kOQQRRRUUNNNMN4NMMLT~.08LNML...252","~.0kOQQRRRUUNNNMNNNMMLT~.08LNML~.042","~.0jOQQQRRRUUNNNMNNNMMLT~.08LNML","~.0jOQQQRRRUUNNNMNNNMML.T~.06LNNML","~.0jOQQQRRRUUNNNMNNNMML.T~.06LNNML","~.0jOQQRRRUU~N04MNNNMMMLT~.06LNNL","~.0iOQQQRRRUU~N04MNNNMMML.T~.05LNNL","~.0iOQQQRRRUU~N04MNNNMMML.T~.05LNNL","~.0iOQQQRRR~S05HHH~S06L.T...LNNNL","~.0iOQQQRRR~M05HMH~M06L.T...LNNNL","~.0iOQQQRRRUUNNNHHHNNMMML..T..LNNNL","~.0iOQQQRRRUU~N08MMML...T.LNNL","~.0iOQQ~R04UU~N08MMML...TLNNNL","~.0hOQQQ~Y04~Q05~R08O...TLNNL","~.0hOQQQYYY~Q06~R08O~.04TNNL","~.0hOQY~O04~Q06~R09O...THJ","~.0iOO~.04OOORYYYOQRRYOOO...JHHJ","~.0qORYYYOQRRYO~.06JJ","~.0qORYYYOQRRYO","~.0qORYYYOQRRYO","~.0qORYYYOQRRYO","~.0qORYYYOQRRYO","~.0qORYYYOQRRYO","~.0qORYYYOQRRYO","~.0qLRYYYLQRRYL","~.0pL~N06~U05L","~.0pL~N06~U05L","~.0pL~M05~N05L","~.0pL~M05NUNNNL","~.0pL~M05NUNNNL","~.0pL~M05NUNNNL","~.0pL~M05NU~N04LL","~.0pL~M05NU~N06L","~.0pL~M05~N09L","~.0pL~M0eL","~.0q~L0e",""]},"사제":{"w":64,"h":64,"face":[22,3,19],"enemy":false,"rows":["","","","~.16JJJ","~.0uJJ~.08JJHHHJJ","~.0rJJJZZJJJ~.04J~H07J","~.0qJ~Z05aaaJ...JHHZZZHHJ","~.0pJ~Z04~a06J.JHHZ888ZHHJ","~.0oJZZZ~a09JDHHZ888ZKKJ","~.0nJaZZaaKKK~H06FFHZ888ZKKJ","~.0nJaZZ~a0bFFHHZZZKKJ","~.0nJ~a08VVaabVJJ~H04KKKJ","~.0mJ~a07W~V07aJJJHHKJJ","~.0mJ~a06WW~V080..JKKJ","~.0mJ~a06WW~V05BVV0..LUNL","~.0mJ~a06WW~V05BVV0..LUNL","~.0mJc~a05WW~V080..LUNL","~.0lJaccc~a04W~V04WWV0...LUNL","~.0lJa~c04~a04~W060~.04LUNL","~.0lJa~c04~a05~W040~.05LUNL","~.0lJ~c06aDa~W04dd~.05LUNL","~.0lJ~c04eeFCe~W04ffd~.04LUNL","~.0lJ~c04eeFCeeeEEeedd...LUNL","~.0mJcffeeFCeeeEE~e04d..LUNL","~.0mJc~f04FCeeeEE~e05d.LUNL","~.0mJcefffFCeeeEE~e06dLUNL","~.0mde~f04FCeeeEEf~e06dUNL","~.0mde~f04FCeeeEEf~e07UNL","~.0mde~f04FCeeeEEf~e07UNL","~.0mde~f04FCeeeEEf~e08NL","~.0mde~f04FCeeeEEf~e05fffNL","~.0ldee~f04FHeeeEEffe~f04VVV0","~.0lde~f05HHHeeEEfffefff~V040","~.0lde~f05FHeeeEEfffdeffVVV0","~.0lde~f05FCeeeEEfffdded0WNL","~.0lde~f05FCeeeEEfffd.d.LUNL","~.0lde~f05FCeeeEE~f04d..LUNL","~.0kdee~f04eFCeeeEE~f04d..LUNL","~.0kdggg8eeeFCeeeEE~f04d..LUNL","~.0kdgd28eeeFCeeeEE~f04d..LUNL","~.0ld.28eeeFCeeeEE~f04d..LUNL","~.0n28eeeFCeeeEE~f04d..LUNL","~.0n28eeeFCeeeEE~f04d..LUNL","~.0n28eeeFCeeeEE~f04d..LUNL","~.0n28eeeFCeeeEE~f04d..LUNL","~.0nd8eefFCeeeEE~f04d..LUNL","~.0mde8eefFCeeeEE~f05d.LUNL","~.0mde8eefFCeeeEE~f05d.LUNL","~.0mde8eefHHHeeKKK~f04d.LUNL","~.0mde8eefHHHeeKKK~f04d.LUNL","~.0md~e04fHHHeeKKK~f04d.LUNL","~.0md~e04f~e07~f05d.LUNL","~.0m28eeef~e07~f05d.LUNL","~.0m28eeef~e07~f05d.LUNL","~.0m28eeef~e07~f05d.LUNL","~.0md8eeef~e07~f05d.LUNL","~.0lde8eeef~e07~f06dLUNL","~.0lde8eeef~e07~f06dLUNL","~.0ld~e05f~e07~f06JLUNL","~.0lJH~G06~H06~K07LUNL","~.0lJ~H0d~K07LUNL","~.0m~J0kLUNL","~.17LL",""]},"방패병":{"w":64,"h":64,"face":[20,4,21],"enemy":false,"rows":["","","","","~.0r~207","~.0q255665572","~.0p25~60455772","~.0o25~605557772","~.0n25~6045655~7042","~.0n2556655655~7042","~.0m2~507655~7052","~.0k~204~506655~704~204","~.0j2~60h~7042","~.0j2~50l2","~.0i2~70n2","~.0j~2060W~507VVV0~204","~.0p0WW~V05BVVV0","~.0p0WW~V05BVVV0","~.0k~2050WW~V04S~V04L","~.0i22~60522WVVVSS~N04SL.~J08","~.0h2~6085~W04S~W04DDJJ~H08J","~.0h2~509C~W07EEE~H0bJ","~.0g2~50b~C07E~H04F~C05EEHHJ","~.0h25~7075~C08HHHFFF~C05EEEHHJ","~.0h2~709~C08HC~F04~C05~E04HJ","~.0h2~709~C08HC~F04~C05~E04KJ","~.0i2~707~C09HC~F04~C05~E04KJ","~.0i2~705FF~C09HC~F04~C05~E04KJ","~.0i2~705FF~C09HC~F04~C05~E04KJ","~.0i2~705FF~C09HC~F04~C05~E04KJ","~.0i2~705FF~C08555~F04~C05~E04KJ","~.0i2~705F~C09555~F04CGHCC~E04KJ","~.0i2~705F~C09555~F04CGHCC~E04KJ","~.0i2~705F~C09777~F04CGHCC~E04KJ","~.0i2~505F~C0aHC~G06~H06EKJ","~.0i2~505~N04HHH~N04HCF~G05~H05EEKJ","~.0i2~505~M04HHH~M04HCFFFGGGHHH~E04KJ","~.0i2~7055C5C5H5C5C5H5FFFGGGHHH~E04KJ","~.0j22DF9FCC9CCC9CCC9CFFFGGGHHH~E04KJ","~.0lDFF5C5C5C5C5C5H5FFFGGCCHH~E04KJ","~.0lDFFF~C0aHCFFGG~C04HHEEEKJ","~.0l2~70dHC~F04~C05~E04KJ","~.0l275757575757575C5FFF~C05~E04KJ","~.0l29777977797779HCF9FF~C05~E04KJ","~.0l275757575757575C5FFF~C05~E04KJ","~.0m2277799226555HC~F04~C05~E04KJ","~.0n2~50522~604HC~F04~C05~E04KJ","~.0n2~50522~604HC~F04~C05~E04KJ","~.0n2~50522~604HC~F04~C05~E04KJ","~.0n277799226555HC~F04~C05~E04KJ","~.0n2777992265557K~F04~C05EEEKJ","~.0n2777992265557JKFFF~C05EEKJ","~.0n27779922655572JKFF~C05EKJ","~.0m227779922655572.JKK~C04KKJ","~.0l2~7072~604552..JKKCCKKJ","~.0l2~7072~5062...J~K04J","~.0l2~708~5072...JKKJ","~.0l2~708~5072~.04JJ","~.0l2~708~5082","~.0l2~708~5092","~.0l2~70i2","~.0l2~90i2","~.0m~20i",""]},"고블린":{"w":64,"h":64,"face":[20,20,24],"enemy":true,"rows":["","","","","","","","","","~.1bLL","~.1aLUNL","~.19LUUNNL","~.18LUU~N04L","~.17LUUUNN6MML","~.17LUUUNN7MML","~.16LUU6UNNMMML","~.16LUU7NNNMMML","~.16LUUUNNNMML","~.16LUUUNNMMML","~.16LUUNNN6MML","~.15LUUUNNN7MML","~.15LU~N05MML","~.0dO~.0sLNNNMMML","~.0cOhOO~.0rLNNNML","~.0dOhhOO~.0b~O04~.09LNUNNL","~.0eOiihO~.08OO~h04OO~.07LNNNL","~.0fOiihOO~.04OO~i04~h04OO~.05LUNNL","~.0fOhjiihOO.Oh~i04hkkkhhhO~.04LUNL","~.0gOhjjihhOOiii~h05~k04O~.04LUNL","~.0hOhjjiihll~h07~Z04hO..LNUNL","~.0iOhjjjill~h07ZZB4hO..LNNNL","~.0jOhjjjll~h07ZZ44hhOOLUNNL","~.0kOhjjll~h0fOUNL","~.0lOhjll~h0gUNL","~.0mOhll~h0b~l05UNL","~.0nO~l0d0L0OllhO","~.0oO~l084X4X4X4~h05O","~.0oOOO~l07~405~h06O","~.0nOkklSS~l04SSXlXhhhlllO","~.0mO~k04SSilllS~l04hllOOO","~.0mO~k04SSi~h08lOO","~.0mOkkkNSS~h07llO","~.0lO~k04HSS~h04ShlSlO","~.0lO~k04NSSShhhlSSSlO","~.0kO~k04NNSSShhhl~M04L","~.0kO~k04NNSSShhhl~M04L","~.0kOkkkLNNSSShhhl~M04L","~.0jO~k04LNNSSShhhl~M04L","~.0jO~k04LUUU~h05l~N04L","~.0jO~k04L~N0dL","~.0kOkkL~N0fL","~.0lOOL~M0fL","~.0nLMOkMMML~M07L","~.0oLOkkMkOLMMllML","~.0pO~k04O.OhlllO","~.0pOkkkO..OhlllO","~.0qOkkO...OlllO","~.0qOkkO...OlllO","~.0oOOOkkO...OlllO","~.0nO~k06O.OhhhllO","~.0nO~k06L.O~l06OL","~.0nO~k06XLO~l07XL","~.0o~O06L..~O07L",""]},"해골궁수":{"w":64,"h":64,"face":[22,5,19],"enemy":true,"rows":["","","","","","","~.0s~m05","~.0qmmn~o04mm","~.0pm~n04~o05m","~.0om~n04o~p06m~.06dd","~.0nmnnn~o04ppXXppm~.04dggL","~.0nmnn~o06~X05L~.04dggML","~.0mmonn~o05~X07L~.04TSML","~.0mmnnn~o04gXXBBBXXXL...TSMML","~.0mmnn~o05gXXB3BXXXL..T.LSML","~.0mmon~o05gXXBB4XXXL..T.LSMML","~.0mm~o07g~X08L.T...LMMML","~.0mm~o07g~X06BXL.T...LSMML","~.0mm~o08~g07d..T~.04LMML","~.0lm~o09XBXBXBXL.T~.05LMML","~.0lm~o04p~o04XXBXBXBA.T~.05LSML","~.0kmoo~p04m~o04~X06LT~.06LSMML","~.0km~p07~m07LLL.T~.06LSMML","~.0jm~p07o~p07XXXLTLLL~.04LMML","~.0km~p05oopppXppp~X08~L05MML~.042","~.0lmpppooopppXpppoopgg~X0aL...272","~.0lmon~o04~X05pppXXXLXXgg~X06~L055522","~.0kmoon~o04pppXppp~X04~S0g~7042","~.0kmoon~o04pppX~p04XXX~L08XXM~L0427722","~.0kmoon~o04~X05pXoopT~.08LMML...272","~.0jmooon~o04pppXpppoopT~.08LMML~.042","~.0jmooon~o04pppXppXoopT~.08LMML","~.0jmooonooo~X08ooppT~.06LMMML","~.0jmooonoooXpppXpppooppT~.06LMMML","~.0jmooonooo~p04XpppooppT~.06LMML","~.0jmooonooop~g06pooppmT~.05LMML","~.0imooopnooo~p04XpppooppmT~.05LMML","~.0im~o04nooo~p04Xpppooppm.T...LMMML","~.0im~o04nooo~p04Xpppooppm.T...LMMML","~.0im~o04nooo~p04Xpppooppm.T..LMMML","~.0im~o04nooo~X08ooppm..T.LMML","~.0imoop~o05~X04ppXXooppm..TLMMML","~.0imoop~o04ppXXXppXXXopm...TLMML","~.0hmoooppooppp~g08dm~.05TMML","~.0hmoom~p04mppgggLXXXL~.07Tgd","~.0hmom.mppm.mpggdLXXXL~.06dggd","~.0im..mppm..dggd.LXXL~.07dd","~.0mmm...dggd.LXXL","~.0rdggd.LXXL","~.0rdggdL~X04L","~.0qd~g04L~X04L","~.0rdggdL~X04L","~.0rdggd.LXXL","~.0rdggd.LXXL","~.0rdggd.LXXd","~.0rdggd.LXXgd","~.0qdgggd.LXXgd","~.0qdgggd.LXXXL","~.0pd~g05dL~X04L","~.0pd~g06d~X05d","~.0pd~g0dd","~.0q~d0d","",""]},"폭탄벌레":{"w":64,"h":64,"face":[18,28,30],"enemy":true,"rows":["","","","","","","","","","","","","","","","","","","","","","","","","","","~.13q","~.0xq.qq","~.0yJZZJ","~.0xq~Z04q","~.0xqZZ8Zq","~.0xLLZZJ","~.0wLNUqq","~.0vLNLL","~.0uLNL","~.0tLNL","~.0tLNL","~.0r222N22","~.0q2999N992","~.0q255~7042","~.0qA55~704A","~.0oAAr55~704rAA","~.0nA~r06s~r05A","~.0mA~t05rrs~r06A~.04u","~.0lAt666tttrs~r07A..u~.05uu","~.0kAtt666~t04s~r08A.u...uu","~.0jArr~t07rsrrr33~r04u~.04u","~.0jArrr~t05rrsrr3113rrru...u","~.0jA~r0asrr~304rrru...u","~.0jA~r0asrrr33~r04uAAu","~.0jA~r0433~r04s~r08susssJ","~.0jArrr3113rrrs~r07srrr8ZZA","~.0jAsrr~304rrrs~r06ssrrrZBBsA","~.0jAssrr33~r04srr33rr~s05ZBBsA","~.0kAss~r07sr~304r~s09A","~.0lAsss~r05sr~304~s09A","~.0mA~s0a33ssAA~s05A","~.0mA~s0eA.~A05","~.0lAssAA~s08AssA","~.0lAssA.AAAssAAA.AssA","~.0kAssA~.04AsA~.04AssA","~.0kAssA~.04AsA~.05AsA","~.0lAA~.06A~.07A",""]},"주술사":{"w":64,"h":64,"face":[21,3,20],"enemy":true,"rows":["~.18O","~.17OPO.O","~.15O.OPOOPO","~.0hm~.0mOPOO~P04O","~.0gmom~.09~m05~.07OPPPiPPPO","~.0hmom~.06mmn~o04mm~.06OPPiiPPO","~.0hmopmm...m~n04~o05m~.05OPPiiPPO","~.0imppom.m~n04~o07m~.05LXXXLO","~.0imoppomnnn~o0am...L~X05L","~.0jmppponn~o06~s05om.L~X07L","~.0jm~p04nn~o05sssXgXsA.LXXBXXBXL","~.0kmppnnn~o04sssXXXgXsALXXBXXBXL","~.0lmpnn~o05ssgXXXgXXL.d~g05d","~.0lmopn~o05ssgXiPXPPO..dgBgd","~.0mm~o07ssgXPPXPPO..LSML","~.0mm~o07ssg~X06L..LSML","~.0mm~o07ssgXXXBXXL..LSML","~.0nm~o07ss~g05d...LSML","~.0om~p07sssgssA...LSML","~.0pm~p08ssmA~.04LSML","~.0om~p0cm~.04LSML","~.0om~p0cmm...LSML","~.0nmppoM~o06p~o04m..LSML","~.0nm~p04M~o04MM~o05m.LSML","~.0nm~p04oMooMMp~o06mLSML","~.0mmo~p04oXMMoXpp~o06mSML","~.0mmo~p04oXoXoXpp~o07MMML","~.0mmo~p04oooXoopp~o08MML","~.0mmo~p04~o06pp~o09m","~.0mmo~p04~o06ppp~o04~p04OL","~.0lmo~p04~o07~p04o~p04lllXL","~.0lmo~p04~o07~p04mmppp~l04O","~.0lmo~p04~o07~p04m.mpOlllO","~.0lmo~p04~o07~p04L..mLSkML","~.0lmo~p04~M0cL..LSMML","~.0kmpo~p04Moopooo~p05m..LMMML","~.0km~p06Moopooo~p05m..LMMML","~.0kmpppnooMoopooo~p05m..LMMML","~.0lmmonooMoopooo~p05m..LMMML","~.0mmonoXXoopooo~p05m..LMMML","~.0mmonoXXoopooo~p05m..LMMML","~.0mmon~o05pooo~p05m..LMMML","~.0mmon~o05pooo~p05m..LMMML","~.0mmon~o05pooo~p05m...LMML","~.0mmnn~o05pooo~p05om.LMMML","~.0lmonn~o05pooo~p05om.LMMML","~.0lmonn~o05pooo~p06m..LMML","~.0lmonn~o05pooo~p06m..LMML","~.0lmon~o06pooo~p06m..LMML","~.0lmon~o06pooo~p06m..LMML","~.0lmon~o06pooo~p06m..LSML","~.0lmon~o06pooo~p06m..LSML","~.0lmonooPPoopooopPPpppm..LSML","~.0lmon~o06pooo~p06m..LSML","~.0lmon~o06PPoo~p06om.LSML","~.0kmonnoooPoopooo~p06om.LSML","~.0kmonn~o06pooo~p07m.LSML","~.0km~o09pooo~p07m.LSML","~.0km~o09pooo~p07m.LSML","~.0kmoomm~o04mmooopmmpppm..LSML","~.0kmom..moom..moom..mpm...LSML","~.0lm~.04mm~.04mm~.04m~.04LSML","~.18LL",""]},"트롤":{"w":80,"h":80,"face":[39,17,25],"enemy":true,"rows":["~.1u2","~.1t252","~.1t2552","~.1tL555L","~.1sLUUNNNLLL","~.1rLUU~N07L","~.1qLUUU~N08L.22","~.1pL~U04~N0822552","~.1k22..L~U05~N06MN5552","~.1j25522L~U05NN6NNNMN552","~.1k2555L~U04~N06MMNL52","~.1l255L~U04~N06MMMNL","~.1m25LUUU6~N06MMMNL","~.1n2LUUU~N07MMMNL","~.1nL~U04~N07~M04L","~.1nL~U04~N07~M04L","~.1nLUUU~N076~M04L","~.1nLUUU~N07~M04L","~.1m225U~N08MMM522","~.1l2555~N09MM~5042","~.1m2555~N08MM5522","~.1d~O06~.04222L~N06MML22","~.1bOOvwwvvvOO~.05LU~N05ML","~.1aOv~w04~v05O...LNUNMLLNL","~.14O~.04Ov~w04~v07O..LNUNML.L","~.13OvO..Ovwww~v0aO.LUNNML","~.14OvOOvwwwv~x0bOLUNNL","~.14O~v04wwvvv~x0bNUNML","~.15Ovvvww~v0dLNUNML","~.0y~O08~v04w~v08ZBZvvONUNML","~.0vOOO~v08OO~v0bZZZvvvUNNL","~.0tOOww~v0tNNL","~.0rOO~w05~v0kXvvv~x04NML","~.0oOOO~w06~v0ey~v05XXvvvXXNUNML","~.0mOOxx~w05~v0d~x0hNNML","~.0lOxxx~w05~v0e~x08~y08xNNL","~.0lOxx~w04~v0g~x0gUNML","~.0kOxx~w04~v0h~x0gUNML","~.0kOxxwww~v0i~x06ww~x04OOLUNNML","~.0kOx~w04~v0jx~v05ww~v04OLUNNL","~.0kOx~w04~v0jyx~v04xxx~v04NUNML","~.0kOvwww~v06y~v0dxxxvvvxxxwvvvNUNML","~.0jOxvvww~v0k~x04vv~x04wvvvUNML","~.0jOxvvww~v09~z0av~x05vv~x04~v06O","~.0jOxvvw~v09~z09UUz~x05vvvxxx~v07O","~.0jOx~v0a~z0b~U05~x04vvvx~v04yyyvvO","~.0jOx~v0a~z0b~U05~x05~v05yy~v05O","~.0iOxx~v09~z0c~U06~x05~v0bO","~.0iOxx~v09~z04yy~z06~U06~x06~v0aO","~.0iOxxx~v08~z06yy~z04~U06~x06O~x08O","~.0iOxxx~v08~z0c~U06~x06OO~x06O","~.0iO~x04~v07~z0c~U06~x05O..~O06","~.0iO~x04~v07~z0cyy~U04~x05O","~.0hO~x05y~v07~z09yy~U05~x05~L04","~.0hOxxx~U0zL","~.0hOxxx~S0zL","~.0hO~x04~U0a~N0nL","~.0hO~x04~N0xL","~.0gO~x04~N0yL","~.0gO~x04~N0zL","~.0gO~x04~N0zL","~.0gO~x04~M0zL","~.0gO~x06~M0wL","~.0gO~x09L~M08yy~M08vv~M07L","~.0gO~x09OL~M05xxyyy~M06~v04~M04LL","~.0gO~y09O.OxMMxxxyyyL~M04~v05xMML","~.0hOO~y05OO..O~x06yyyOLMMw~v05xxxO","~.0j~O05~.04O~x06yyyO.Oww~v05xxxO","~.0sO~x06yyyO.Oww~v05xxxO","~.0sO~x06yyyO.Oww~v05xxxO","~.0sO~x06yyyO.Oww~v05xxxO","~.0rOO~x06yyyO.Oww~v05xxxO","~.0qO~x0bOOv~w06~v04O","~.0qO~x0cO~v0cO","~.0qO~x0d~v0dO","~.0qO~x09yxxx~v07yvvvyvvO","~.0qO~x09yxxx~v07yvvvyvvO","~.0qO~y0d~x07yxxxyxxxO","~.0r~O0s",""]}}};
+/* ART:END */
+
 /* ENGINE:BEGIN — tools/solver.py 와 똑같이 움직여야 해요. tools/parity_test.mjs 가 둘을 대조해요. */
 const UNITS = {
   '기사':     { side: 'A', hp: 9,  pow: 3, habit: 'front',   spd: 3, icon: '⚔️' },
@@ -471,6 +511,94 @@ const eulreul = w => (hasBatchim(w) ? '을' : '를');
 const TAGS = ['가', '나', '다', '라'];
 const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+
+/* ---------- 도트 그림 ---------- */
+const IMG = {};        // 이름 → { full, face, w, h, enemy }
+(function decodeArt() {
+  const AL = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+,-/:;<=>?@[]^_{|}';
+  const rgb = ART.pal.map(h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)]);
+  for (const [name, sp] of Object.entries(ART.spr)) {
+    const cv = document.createElement('canvas'); cv.width = sp.w; cv.height = sp.h;
+    const ctx = cv.getContext('2d'), im = ctx.createImageData(sp.w, sp.h);
+    sp.rows.forEach((row, y) => {
+      let x = 0;
+      for (let i = 0; i < row.length;) {
+        let ch = row[i], n = 1;
+        if (ch === '~') { ch = row[i + 1]; n = parseInt(row.substr(i + 2, 2), 36); i += 4; } else i++;
+        if (ch !== '.') {
+          const c = rgb[AL.indexOf(ch)];
+          for (let k = 0; k < n; k++) { const o = (y * sp.w + x + k) * 4; im.data[o] = c[0]; im.data[o + 1] = c[1]; im.data[o + 2] = c[2]; im.data[o + 3] = 255; }
+        }
+        x += n;
+      }
+    });
+    ctx.putImageData(im, 0, 0);
+    const [fx, fy, fs] = sp.face;
+    const fc = document.createElement('canvas'); fc.width = fs; fc.height = fs;
+    fc.getContext('2d').drawImage(cv, fx, fy, fs, fs, 0, 0, fs, fs);
+    IMG[name] = { full: cv.toDataURL(), face: fc.toDataURL(), w: sp.w, h: sp.h, enemy: sp.enemy };
+  }
+})();
+const faceImg = (name, cls) => `<img class="${cls || 'mini'} ${UNITS[name].side === 'A' ? 'ally' : 'enemy'}" src="${IMG[name].face}" alt="">`;
+const fullImg = name => `<img class="fullspr ${UNITS[name].side === 'A' ? 'ally' : 'enemy'}" style="width:calc(var(--u,44px) * ${IMG[name].w / 64})" src="${IMG[name].full}" alt="${esc(name)}">`;
+
+/* 판마다 배경: 하늘 띠, 별, 달, 먼 산, 가까운 언덕, 나무, 성 실루엣 (도트로 그려요) */
+const THEMES = [
+  { sky: ['#18204a', '#232e66', '#3b3f80', '#6a5492', '#a06c8e'], far: '#2b2f62', near: '#1e3448', tree: '#152a36', moon: '#fff1c9', stars: 26, grass: ['#5c8a48', '#3f6a35'], dirt: ['#4a3a2a', '#2b2219'] },
+  { sky: ['#0c1630', '#12223f', '#183052', '#1f4062', '#2c5676'], far: '#13283c', near: '#0f2433', tree: '#0b1c26', moon: '#e8f1ff', stars: 34, grass: ['#3f7a48', '#2c5634'], dirt: ['#2f2a24', '#1e1a16'] },
+  { sky: ['#160f24', '#221832', '#2f2142', '#433055', '#5c3f68'], far: '#221934', near: '#181226', tree: '#120d1c', moon: '#d9ffe0', stars: 20, grass: ['#5d6070', '#44465a'], dirt: ['#2a2633', '#1b1822'] },
+  { sky: ['#202a58', '#3a3878', '#7a4e86', '#c46a7c', '#f2a272'], far: '#3c3768', near: '#2a2d56', tree: '#1e2142', moon: '#ffe0a0', stars: 8, grass: ['#6f8a4a', '#4f6638'], dirt: ['#4a4038', '#30291f'] },
+];
+const sceneCache = {};
+function sceneFor(t) {
+  if (sceneCache[t]) return sceneCache[t];
+  const th = THEMES[t], W = 200, H = 96;
+  const cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const c = cv.getContext('2d');
+  let seed = 7 + t * 101; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  // 하늘은 CSS 그라데이션이 맡고, 여기서는 별·달·산만 그려요 (투명 배경)
+  for (let i = 0; i < th.stars; i++) { const x = Math.floor(rnd() * W), y = Math.floor(rnd() * H * 0.5); c.fillStyle = rnd() < 0.3 ? '#ffffff' : '#c9d4ff'; c.fillRect(x, y, 1, 1); if (rnd() < 0.1) { c.fillRect(x - 1, y, 3, 1); c.fillRect(x, y - 1, 1, 3); } }
+  // 달 (마지막 판은 지는 해)
+  const mx = t === 3 ? 132 : 128, my = t === 3 ? 60 : 20, mr = t === 3 ? 11 : 7;
+  c.fillStyle = th.moon; for (let y = -mr; y <= mr; y++) for (let x = -mr; x <= mr; x++) if (x * x + y * y <= mr * mr) c.fillRect(mx + x, my + y, 1, 1);
+  if (t !== 3) { c.globalCompositeOperation = 'destination-out'; for (let y = -mr; y <= mr; y++) for (let x = -mr; x <= mr; x++) if ((x - 3) * (x - 3) + (y + 2) * (y + 2) <= (mr - 1) * (mr - 1)) c.fillRect(mx + x, my + y, 1, 1); c.globalCompositeOperation = 'source-over'; }
+  // 먼 산: 뾰족한 봉우리 여러 개 + 눈 덮인 꼭대기
+  const peaks = []; for (let px = -10; px < W + 20; px += 18 + Math.floor(rnd() * 16)) peaks.push([px, 20 + Math.floor(rnd() * 22), 0.9 + rnd() * 0.5]);
+  const ridge = x => { let best = 0; for (const [px, h, sl] of peaks) best = Math.max(best, h - Math.abs(x - px) * sl); return 78 - Math.floor(best); };
+  for (let x = 0; x < W; x++) { const y0 = ridge(x); c.fillStyle = th.far; c.fillRect(x, y0, 1, H - y0); }
+  c.fillStyle = 'rgba(255,255,255,.28)';
+  for (const [px, h] of peaks) { if (h < 30) continue; const top = 78 - h; for (let k = 0; k < 4; k++) c.fillRect(px - k, top + k, k * 2 + 1, 1); }
+  // 가까운 언덕 (완만하게)
+  c.fillStyle = th.near;
+  for (let x = 0; x < W; x++) { const hy = 80 + Math.round(4 * Math.sin(x / 23 + t) + 2 * Math.sin(x / 9 + t * 2)); c.fillRect(x, hy, 1, H); }
+  // 나무 (뾰족한 침엽수)
+  c.fillStyle = th.tree;
+  for (let i = 0; i < 9; i++) { const x = Math.floor(10 + rnd() * 180), h = 8 + Math.floor(rnd() * 8), base = 84 + Math.floor(rnd() * 6); for (let k = 0; k < h; k++) { const w = Math.floor(k / 2.2); c.fillRect(x - w, base - h + k, w * 2 + 1, 1); } c.fillRect(x, base, 1, 3); }
+  // 왼쪽 언덕 위 우리 성, 오른쪽 먼 곳의 어두운 탑
+  c.fillStyle = th.near;
+  const cx = 22, cy = 74; c.fillRect(cx, cy - 12, 16, 12); c.fillRect(cx - 3, cy - 18, 5, 18); c.fillRect(cx + 14, cy - 18, 5, 18); c.fillRect(cx + 6, cy - 22, 5, 22);
+  for (const [bx, bw] of [[cx - 3, 5], [cx + 14, 5], [cx + 6, 5]]) for (let k = 0; k < bw; k += 2) c.fillRect(bx + k, cy - (bx === cx + 6 ? 24 : 20), 1, 2);
+  c.fillStyle = '#ffd27a'; c.fillRect(cx + 8, cy - 18, 1, 2); c.fillRect(cx - 1, cy - 14, 1, 1); c.fillRect(cx + 16, cy - 14, 1, 1);
+  c.fillStyle = th.tree; const tx = 176, ty = 70; c.fillRect(tx, ty - 22, 6, 22); c.fillRect(tx - 1, ty - 24, 8, 2); for (let k = 0; k < 4; k++) c.fillRect(tx + 1 + k * 0, ty - 24 - k * 2, 4 - k, 2);
+  c.fillStyle = '#ff6b5e'; c.fillRect(tx + 2, ty - 16, 2, 2);
+  sceneCache[t] = cv.toDataURL();
+  return sceneCache[t];
+}
+function applyTheme(n) {
+  const t = Math.min(THEMES.length - 1, Math.floor((n - 1) / 2)), th = THEMES[t], st = $('stage');
+  $('scene').src = sceneFor(t);
+  st.style.background = `linear-gradient(180deg,${th.sky.map((c, i) => `${c} ${Math.round(i / (th.sky.length - 1) * 100)}%`).join(',')})`;
+  st.style.setProperty('--grass1', th.grass[0]); st.style.setProperty('--grass2', th.grass[1]);
+  st.style.setProperty('--dirt1', th.dirt[0]); st.style.setProperty('--dirt2', th.dirt[1]);
+}
+/* 땅 높이를 캐릭터 발에 맞춰요 */
+function placeGround() {
+  const st = $('stage'), tok = $('field').querySelector('.tok:not(.gone) .body');
+  if (!tok) return;
+  const g = st.getBoundingClientRect().bottom - tok.getBoundingClientRect().bottom + 3;
+  st.style.setProperty('--ground', Math.max(30, Math.round(g)) + 'px');
+}
+
 /* ---------- 저장 ---------- */
 const SAVE_KEY = 'order-conductor-v1';
 let save = { best: {}, party: {} };
@@ -489,6 +617,7 @@ function show(id) {
 
 /* ---------- 첫 화면 ---------- */
 function renderTitle() {
+  $('hero').innerHTML = ['방패병', '사제', '궁수', '기사'].map(fullImg).join('') + '<span class="gap"></span>' + ['고블린', '폭탄벌레', '해골궁수', '트롤'].map(fullImg).join('');
   const box = $('stages');
   box.innerHTML = '';
   let total = 0, nextMarked = false;
@@ -500,7 +629,7 @@ function renderTitle() {
     if (open && !bestOf(n).clear && !nextMarked) { card.classList.add('next'); nextMarked = true; }
     const stars = [0, 1, 2].map(i => `<span class="${i < st ? '' : 'off'}">★</span>`).join('');
     card.innerHTML = `<span class="st">${stars}</span><div class="no">${n}번째 판</div><div class="nm">${esc(b.title)}</div>` +
-      `<div class="foes">${b.enemies.map(e => UNITS[e].icon).join('')}</div>`;
+      `<div class="foes">${b.enemies.map(e => faceImg(e, 'cface')).join('')}</div>`;
     card.setAttribute('aria-label', `${n}번째 판 ${b.title}, 별 ${st}개${open ? '' : ', 잠김'}`);
     card.addEventListener('click', () => {
       if (!open) { toast('앞 판을 먼저 깨야 열려요'); return; }
@@ -524,7 +653,7 @@ function closeModal() { $('modal').classList.add('hidden'); $('sheet').innerHTML
 
 function unitCard(name) {
   const u = UNITS[name];
-  return `<div class="ucard"><div class="ic">${u.icon}</div><div><b>${esc(name)}</b> <span class="stat">${u.side === 'A' ? '아군' : '적'} · 체력 ${u.hp} · 빠르기 ${u.spd}</span>` +
+  return `<div class="ucard"><div class="ic">${faceImg(name, 'uface')}</div><div><b>${esc(name)}</b> <span class="stat">${u.side === 'A' ? '아군' : '적'} · 체력 ${u.hp} · 빠르기 ${u.spd}</span>` +
     `<small>${esc(HABIT_TEXT[name])}</small></div></div>`;
 }
 
@@ -565,11 +694,11 @@ function openIntro(n) {
   const b = BATTLES[n - 1];
   let party = chosenParty(n);
   const render = () => {
-    const allies = party.allies.map(a => UNITS[a].icon).join('');
-    const foes = b.enemies.map(e => UNITS[e].icon).join('');
+    const allies = party.allies.map(a => fullImg(a)).join('');
+    const foes = b.enemies.map(e => fullImg(e)).join('');
     const partyPick = b.parties.length > 1 ? `<h3>맨 뒤 동료 고르기</h3><div class="party">${b.parties.map(p => {
       const lead = p.allies[0];
-      return `<button class="pcard ${p.key === party.key ? 'on' : ''}" data-party="${esc(p.key)}"><span class="ic">${UNITS[lead].icon}</span><b>${esc(lead)}</b><small>${esc(HABIT_TEXT[lead])}</small><small>★ 지휘 ${p.s2} · 잃은 체력 ${p.s3}</small></button>`;
+      return `<button class="pcard ${p.key === party.key ? 'on' : ''}" data-party="${esc(p.key)}"><span class="ic">${faceImg(lead, 'uface')}</span><b>${esc(lead)}</b><small>${esc(HABIT_TEXT[lead])}</small><small>★ 지휘 ${p.s2} · 잃은 체력 ${p.s3}</small></button>`;
     }).join('')}</div>` : '';
     const fresh = b.fresh.length ? `<h3>새 얼굴</h3><div class="cards">${b.fresh.map(unitCard).join('')}</div>` : '';
     openModal(`<h2>${n}. ${esc(b.title)}</h2>
@@ -615,8 +744,10 @@ function startBattle(n, partyKey) {
   newRound(null);
   show('scr-battle');
   $('b-title').textContent = `${n}. ${b.title}`;
+  applyTheme(n);
   buildField(G.state);
   renderAll();
+  requestAnimationFrame(placeGround);
   tutorial('start');
 }
 
@@ -662,14 +793,14 @@ function intentOf(s, order, u) {
   return null;
 }
 function intentChip(it) {
-  if (!it) return { text: '', cls: '' };
-  const ic = id => UNITS[nameOf(id)].icon + (G.tags[id] || '');
-  if (it.kind === 'attack') return { text: `→${ic(it.targets[0])}${it.amount}`, cls: it.guarded ? 'guard' : (unitOf(G.state, it.targets[0]).side === 'A' ? 'ally-hit' : '') };
-  if (it.kind === 'heal') return { text: `+${it.amount}${ic(it.targets[0])}`, cls: 'heal' };
-  if (it.kind === 'rest') return { text: '💤 쉼', cls: 'heal' };
-  if (it.kind === 'bomb') return { text: `💥양옆${it.amount}`, cls: it.targets.some(t => unitOf(G.state, t).side === 'A') ? 'ally-hit' : '' };
-  if (it.kind === 'shield') return { text: '🛡방패', cls: 'guard' };
-  return { text: '', cls: '' };
+  if (!it) return { html: '', cls: '' };
+  const ic = id => faceImg(nameOf(id)) + (G.tags[id] ? `<span>${G.tags[id]}</span>` : '');
+  if (it.kind === 'attack') return { html: `→${ic(it.targets[0])}${it.amount}${it.guarded ? '🛡' : ''}`, cls: it.guarded ? 'guard' : (unitOf(G.state, it.targets[0]).side === 'A' ? 'ally-hit' : '') };
+  if (it.kind === 'heal') return { html: `+${it.amount}${ic(it.targets[0])}`, cls: 'heal' };
+  if (it.kind === 'rest') return { html: 'Zz 쉼', cls: 'heal' };
+  if (it.kind === 'bomb') return { html: `펑! 양옆${it.amount}`, cls: it.targets.some(t => unitOf(G.state, t).side === 'A') ? 'ally-hit' : '' };
+  if (it.kind === 'shield') return { html: '방패', cls: 'guard' };
+  return { html: '', cls: '' };
 }
 function intentText(it, u) {
   if (!it) return '할 일이 없어요';
@@ -697,8 +828,11 @@ function makeTok(id) {
   el.dataset.id = id;
   el.setAttribute('role', 'button');
   el.setAttribute('tabindex', '0');
-  el.innerHTML = `<div class="ord"></div><div class="face">${u.icon}${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</div>` +
-    `<div class="nm">${nameHtml(nameOf(id))}</div><div class="hpbar"><i></i></div><div class="hpn"></div><div class="intent"></div>`;
+  if (IMG[nameOf(id)].w > 64) el.classList.add('big');
+  el.style.setProperty('--d', (-((id.charCodeAt(1) * 7 + id.length * 3) % 28) / 10) + 's');
+  el.innerHTML = `<div class="ord"></div><div class="hpw"><div class="hpbar"><i></i></div><span class="hpn"></span></div>` +
+    `<div class="body"><div class="shadow"></div><div class="ring"></div><img class="spr" src="${IMG[nameOf(id)].full}" alt="${esc(nameOf(id))}" draggable="false">${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</div>` +
+    `<div class="nm">${nameHtml(nameOf(id))}</div><div class="intent"></div>`;
   el.addEventListener('click', () => { if (G.playing) return; G.focus = G.focus === id ? null : id; renderPlan(); });
   el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.click(); } });
   return el;
@@ -717,17 +851,18 @@ function updateField(snap, order, ptr, plan) {
     }
     const max = UNITS[nameOf(id)].hp, hp = Math.max(0, snap.hp[id] || 0);
     el.querySelector('.hpbar i').style.width = (100 * hp / max) + '%';
-    el.querySelector('.hpn').textContent = `${hp}/${max}`;
+    el.querySelector('.hpn').textContent = String(hp);
     const k = order.indexOf(id);
     const ord = el.querySelector('.ord');
     ord.textContent = k >= 0 ? String(k + 1) : '';
     ord.style.visibility = k >= 0 ? 'visible' : 'hidden';
     el.classList.toggle('done', !plan && ptr >= 0 && k >= 0 && k < ptr);
     el.classList.toggle('focus', plan && G.focus === id);
+    el.classList.toggle('sel', plan && G.sel === id);
     const chip = el.querySelector('.intent');
     if (plan) {
       const c = intentChip(intentOf(G.state, order, id));
-      chip.textContent = c.text; chip.className = 'intent ' + c.cls; chip.style.visibility = c.text ? 'visible' : 'hidden';
+      chip.innerHTML = c.html; chip.className = 'intent ' + c.cls; chip.style.visibility = c.html ? 'visible' : 'hidden';
     } else {
       chip.style.visibility = 'hidden';
     }
@@ -761,7 +896,7 @@ function renderTiles(order, opts) {
         el = document.createElement('button');
         el.className = 'tile ' + (u.side === 'A' ? 'ally' : 'enemy');
         el.dataset.id = id;
-        el.innerHTML = `<span class="no"></span><span class="ic">${u.icon}${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</span><span class="tn">${nameHtml(nameOf(id))}</span>`;
+        el.innerHTML = `<span class="no"></span><span class="ic">${faceImg(nameOf(id), 'pic')}${G.tags[id] ? `<span class="tag">${G.tags[id]}</span>` : ''}</span><span class="tn">${nameHtml(nameOf(id))}</span>`;
         el.addEventListener('click', () => onTile(id));
       }
       el.querySelector('.no').textContent = String(k + 1);
@@ -786,8 +921,8 @@ function drawArrows(list) {
     const fe = tokEl(a.from), te = tokEl(a.to);
     if (!fe || !te) continue;
     const fr = fe.getBoundingClientRect(), tr = te.getBoundingClientRect();
-    const x1 = fr.left + fr.width / 2 - R.left, y1 = fr.top - R.top - 13;
-    const x2 = tr.left + tr.width / 2 - R.left, y2 = tr.top - R.top - 13;
+    const x1 = fr.left + fr.width / 2 - R.left, y1 = fr.top - R.top - 3;
+    const x2 = tr.left + tr.width / 2 - R.left, y2 = tr.top - R.top - 3;
     const color = a.color || '#ffd27a';
     if (a.from === a.to) {
       html += `<circle cx="${x1}" cy="${y1 - 6}" r="9" fill="none" stroke="${color}" stroke-width="2.5"/>` +
@@ -837,7 +972,7 @@ function renderInfo() {
   const u = unitOf(G.state, id);
   const it = intentOf(G.state, G.order, id);
   const k = G.order.indexOf(id) + 1;
-  box.innerHTML = `<div class="who"><b>${u.icon} ${esc(dn(id))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span>` +
+  box.innerHTML = `<div class="who"><b>${faceImg(nameOf(id))} ${esc(dn(id))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span>` +
     `<span>체력 ${G.state.hp[id]}/${u.hp} · 빠르기 ${u.spd} · <b>${k}번째</b> 차례</span></div>` +
     `<div>습관: ${esc(HABIT_TEXT[nameOf(id)])}</div><div class="now">지금 차례가 오면: ${esc(intentText(it, id))}</div>` +
     (G.sel ? `<div><b>${esc(dn(G.sel))}</b>${iga(nameOf(G.sel))} 골라져 있어요. 바꿀 상대를 순서표에서 탭해요.</div>` : '');
@@ -849,6 +984,7 @@ function renderPlan() {
   renderInfo();
   $('a-undo').disabled = !G.history.length;
   $('a-reset').disabled = usedNow() === 0;
+  placeGround();
   if (G.focus && G.state.hp[G.focus]) drawArrows(arrowsFor(G.focus)); else clearArrows();
 }
 function renderAll() {
@@ -891,12 +1027,104 @@ function floatText(id, text, cls) {
   el.appendChild(f);
   setTimeout(() => f.remove(), 950);
 }
-function bump(id, cls) {
-  const el = tokEl(id);
-  if (!el || skipping) return;
-  el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
+/* ---------- 움직임 (공격, 화살, 회복, 폭발) ---------- */
+const durOf = ms => ms / speed;
+function rel(el) { const R = $('stage').getBoundingClientRect(), r = el.getBoundingClientRect(); return { x: r.left - R.left + r.width / 2, w: r.width, h: r.height, top: r.top - R.top, bottom: r.bottom - R.top }; }
+function bodyOf(id) { const el = tokEl(id); return el ? el.querySelector('.body') : null; }
+function spawn(cls, x, y, html) { const d = document.createElement('div'); d.className = cls; d.style.transform = `translate(${x}px,${y}px)`; if (html) d.innerHTML = html; $('fx').appendChild(d); return d; }
+function shakeStage() { if (reduceMotion || skipping) return; const st = $('stage'); st.classList.remove('shake'); void st.offsetWidth; st.classList.add('shake'); }
+function hop(id) { const b = bodyOf(id); if (!b || skipping || reduceMotion) return; b.animate([{ transform: 'translateY(0)' }, { transform: 'translateY(-6px)' }, { transform: 'translateY(0)' }], { duration: durOf(220), easing: 'ease-out' }); }
+async function lunge(a, t) {
+  const b = bodyOf(a), tt = bodyOf(t);
+  if (!b || !tt || skipping || reduceMotion) return;
+  const A = rel(b), T = rel(tt), dir = Math.sign(T.x - A.x) || 1;
+  const dx = (T.x - A.x) - dir * Math.max(T.w, A.w) * 0.6;
+  const tok = tokEl(a); tok.style.zIndex = 4;
+  b.animate([{ transform: 'translate(0,0)' }, { transform: `translate(${-dir * 4}px,0)`, offset: 0.15 }, { transform: `translate(${dx}px,-5px)`, offset: 0.5 }, { transform: `translate(${dx}px,0)`, offset: 0.62 }, { transform: 'translate(0,0)' }], { duration: durOf(560), easing: 'ease-in-out' });
+  setTimeout(() => { tok.style.zIndex = ''; }, durOf(580));
+  await sleep(285);
 }
-const DUR = { turn: 260, hit: 480, down: 300, boom: 560, heal: 440, rest: 340, shield: 440, thief: 440 };
+const ARROW = dark => `<svg width="22" height="6" viewBox="0 0 11 3" shape-rendering="crispEdges"><rect x="2" y="1" width="7" height="1" fill="${dark ? '#7a4a2a' : '#c08a52'}"/><rect x="9" y="0" width="1" height="3" fill="#e8eef7"/><rect x="10" y="1" width="1" height="1" fill="#e8eef7"/><rect x="0" y="0" width="3" height="1" fill="${dark ? '#33284d' : '#e05a5a'}"/><rect x="0" y="2" width="3" height="1" fill="${dark ? '#33284d' : '#e05a5a'}"/></svg>`;
+async function shoot(a, t, dark) {
+  const fb = bodyOf(a), tb = bodyOf(t);
+  if (!fb || !tb || skipping || reduceMotion) return;
+  const A = rel(fb), T = rel(tb), dir = Math.sign(T.x - A.x) || 1;
+  const x0 = A.x + dir * A.w * 0.42, y0 = A.top + A.h * 0.4, x1 = T.x - dir * T.w * 0.12, y1 = T.top + T.h * 0.45;
+  const arc = Math.min(36, Math.abs(x1 - x0) * 0.16);
+  const el = spawn('shot', x0, y0, ARROW(dark)), frames = [];
+  for (let i = 0; i <= 10; i++) {
+    const k = i / 10, x = x0 + (x1 - x0) * k, y = y0 + (y1 - y0) * k - arc * 4 * k * (1 - k);
+    const ang = Math.atan2((y1 - y0) - arc * 4 * (1 - 2 * k), x1 - x0) * 180 / Math.PI;
+    frames.push({ transform: `translate(${x - 11}px,${y - 3}px) rotate(${ang}deg)` });
+  }
+  fb.animate([{ transform: 'translateX(0)' }, { transform: `translateX(${-dir * 3}px)` }, { transform: 'translateX(0)' }], { duration: durOf(220) });
+  el.animate(frames, { duration: durOf(330), easing: 'linear', fill: 'forwards' });
+  await sleep(330);
+  el.remove();
+}
+async function healOrb(a, t) {
+  const fb = bodyOf(a), tb = bodyOf(t);
+  if (!fb || !tb || skipping || reduceMotion || a === t) return;
+  const A = rel(fb), T = rel(tb), dir = Math.sign(T.x - A.x) || 1;
+  const x0 = A.x + dir * A.w * 0.25, y0 = A.top + A.h * 0.12, x1 = T.x, y1 = T.top + T.h * 0.45;
+  const el = spawn('orb', x0, y0);
+  el.animate([{ transform: `translate(${x0}px,${y0}px)` }, { transform: `translate(${(x0 + x1) / 2}px,${Math.min(y0, y1) - 26}px)` }, { transform: `translate(${x1}px,${y1}px)` }], { duration: durOf(400), easing: 'ease-in-out', fill: 'forwards' });
+  await sleep(400);
+  el.remove();
+}
+function sparkles(id) {
+  const b = bodyOf(id); if (!b || skipping) return;
+  const T = rel(b);
+  for (let i = 0; i < 7; i++) {
+    const x = T.x + (i - 3) * T.w * 0.12, y = T.top + T.h * (0.45 + (i % 3) * 0.13);
+    const sp = spawn('spark', x, y);
+    sp.animate([{ transform: `translate(${x}px,${y}px)`, opacity: 1 }, { transform: `translate(${x}px,${y - 24 - (i % 2) * 10}px)`, opacity: 0 }], { duration: durOf(650 + i * 40), easing: 'ease-out', fill: 'forwards' });
+    setTimeout(() => sp.remove(), durOf(760 + i * 40));
+  }
+}
+function slashFx(id, dir) {
+  const b = bodyOf(id); if (!b || skipping) return;
+  const T = rel(b), x = T.x - 17, y = T.top + T.h * 0.4 - 17;
+  const tf = `translate(${x}px,${y}px) scaleX(${-dir})`;
+  const s = spawn('slash', x, y, `<svg width="34" height="34" viewBox="0 0 17 17" shape-rendering="crispEdges"><path d="M2 15h2v-2h2v-2h2v-2h2v-2h2v-2h2v-2h2v2h-2v2h-2v2h-2v2h-2v2h-2v2h-2z" fill="#fff"/><path d="M4 16h2v-2h2v-2h2v-2h2v-2h2v-2h2v1h-1v2h-2v2h-2v2h-2v2h-2v2h-3z" fill="#ffe7a8"/></svg>`);
+  s.animate([{ transform: tf + ' scale(.5)', opacity: 0 }, { transform: tf + ' scale(1)', opacity: 1, offset: 0.3 }, { transform: tf + ' scale(1.25)', opacity: 0 }], { duration: durOf(320), fill: 'forwards' });
+  setTimeout(() => s.remove(), durOf(340));
+}
+function impact(t, amount, melee) {
+  const el = tokEl(t); if (!el || skipping) return;
+  floatText(t, '-' + amount, 'dmg');
+  el.classList.add('hurt'); setTimeout(() => el.classList.remove('hurt'), 170);
+  const dir = el.classList.contains('ally') ? -1 : 1;
+  el.querySelector('.body').animate([{ transform: 'translateX(0)' }, { transform: `translateX(${dir * 6}px)` }, { transform: 'translateX(0)' }], { duration: durOf(260), easing: 'ease-out' });
+  if (melee) slashFx(t, dir);
+}
+function boomFx(id) {
+  const b = bodyOf(id); if (!b || skipping) return;
+  const T = rel(b), x = T.x, y = T.top + T.h * 0.7;
+  const burst = spawn('burst', x, y);
+  burst.animate([{ transform: `translate(${x}px,${y}px) scale(.5)`, opacity: 1 }, { transform: `translate(${x}px,${y}px) scale(4.4)`, opacity: 0.95, offset: 0.35 }, { transform: `translate(${x}px,${y}px) scale(5.2)`, opacity: 0 }], { duration: durOf(560), easing: 'ease-out', fill: 'forwards' });
+  const ring = spawn('ring2', x, y);
+  ring.animate([{ transform: `translate(${x}px,${y}px) scale(.4)`, opacity: 1 }, { transform: `translate(${x}px,${y}px) scale(5.5)`, opacity: 0 }], { duration: durOf(480), easing: 'ease-out', fill: 'forwards' });
+  for (let i = 0; i < 14; i++) {
+    const a = i / 14 * Math.PI * 2, r = 24 + (i % 3) * 11;
+    const bit = spawn('bit', x, y); bit.style.background = ['#ffd23a', '#ff8a2a', '#fff3c4', '#4a3a2a'][i % 4];
+    bit.animate([{ transform: `translate(${x}px,${y}px)`, opacity: 1 }, { transform: `translate(${x + Math.cos(a) * r}px,${y + Math.sin(a) * r * 0.7 - 8}px)`, opacity: 0 }], { duration: durOf(540), easing: 'cubic-bezier(.2,.7,.3,1)', fill: 'forwards' });
+    setTimeout(() => bit.remove(), durOf(580));
+  }
+  setTimeout(() => { burst.remove(); ring.remove(); }, durOf(620));
+  shakeStage();
+}
+function smokeFx(id) {
+  const b = bodyOf(id); if (!b || skipping) return;
+  const T = rel(b);
+  for (let i = 0; i < 3; i++) {
+    const x = T.x + (i - 1) * 11, y = T.bottom - 6;
+    const s = spawn('smoke', x, y);
+    s.animate([{ transform: `translate(${x}px,${y}px) scale(.6)`, opacity: 0.85 }, { transform: `translate(${x + (i - 1) * 7}px,${y - 20}px) scale(1.7)`, opacity: 0 }], { duration: durOf(720), easing: 'ease-out', fill: 'forwards' });
+    setTimeout(() => s.remove(), durOf(740));
+  }
+}
+const DUR = { turn: 200, hit: 360, down: 440, boom: 540, heal: 320, rest: 400, shield: 420, thief: 420 };
 function frameMsg(f) {
   if (f.kind === 'turn') return `${f.ptr + 1}번째 · ${dn(f.actor)} 차례`;
   if (f.kind === 'hit') return `${dn(f.actor)}${nameOf(f.actor) === '폭탄벌레' ? ' 폭발' : ''} → ${dn(f.target)} ${f.amount}`;
@@ -920,46 +1148,47 @@ async function playRound() {
   renderAll();
   renderMeters();
   const dead = new Set();
-  const shielded = new Set();
   $('info').innerHTML = '재생 중이에요. <b>건너뛰기</b>를 누르면 마디 끝으로 바로 가요.';
   for (const f of r.frames) {
     if (skipping || G !== g) break;
     $('msg').textContent = frameMsg(f);
+    for (const el of $('field').querySelectorAll('.tok.acting')) el.classList.remove('acting');
     if (f.kind === 'turn') {
       const u = UNITS[nameOf(f.actor)];
-      $('info').innerHTML = `<div class="who"><b>${f.ptr + 1}번째 · ${u.icon} ${esc(dn(f.actor))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span></div><div>습관: ${esc(HABIT_TEXT[nameOf(f.actor)])}</div>`;
+      $('info').innerHTML = `<div class="who"><b>${f.ptr + 1}번째 · ${faceImg(nameOf(f.actor))} ${esc(dn(f.actor))}</b><span class="sidep ${u.side}">${u.side === 'A' ? '아군' : '적'}</span></div><div>습관: ${esc(HABIT_TEXT[nameOf(f.actor)])}</div>`;
+      if (tokEl(f.actor)) { tokEl(f.actor).classList.add('acting'); hop(f.actor); }
     }
-    for (const el of $('field').querySelectorAll('.tok.acting')) el.classList.remove('acting');
+    // 맞기 전의 움직임: 달려가 베기 / 화살 / 회복 구슬
+    let melee = false;
+    if (f.kind === 'hit') {
+      const h = UNITS[nameOf(f.actor)].habit;
+      if (h === 'front') { melee = true; await lunge(f.actor, f.target); }
+      else if (h === 'back' || h === 'weakest') await shoot(f.actor, f.target, nameOf(f.actor) === '해골궁수');
+      if (skipping || G !== g) break;
+    } else if (f.kind === 'heal') {
+      await healOrb(f.actor, f.target);
+      if (skipping || G !== g) break;
+    }
     if (f.kind === 'down') dead.add(f.target);
-    if (f.kind === 'boom') dead.add(f.actor);
+    if (f.kind === 'boom') { dead.add(f.actor); const el = tokEl(f.actor); if (el) el.classList.add('boomfx'); }
     updateField(f.snap, f.bar, f.ptr, false);
     renderTiles(f.bar, { plan: false, ptr: f.ptr, dead });
-    if (f.actor && tokEl(f.actor) && f.kind !== 'hit') tokEl(f.actor).classList.add('acting');
-    if (f.kind === 'hit') {
-      if (tokEl(f.actor) && !tokEl(f.actor).classList.contains('gone')) drawArrows([{ from: f.actor, to: f.target, label: String(f.amount), color: '#ff8a7a' }]);
-      floatText(f.target, '-' + f.amount, 'dmg'); bump(f.target, 'hitfx');
-    } else if (f.kind === 'heal') {
-      drawArrows([{ from: f.actor, to: f.target, label: '+' + f.amount, color: '#8ff0b5' }]);
-      floatText(f.target, '+' + f.amount, 'heal');
-    } else if (f.kind === 'boom') {
-      clearArrows();
-      const el = tokEl(f.actor); if (el) el.classList.add('boomfx');
-      if (!reduceMotion) { $('stage').classList.remove('shake'); void $('stage').offsetWidth; $('stage').classList.add('shake'); }
-    } else if (f.kind === 'rest') {
-      floatText(f.actor, '쉼', 'info'); clearArrows();
-    } else if (f.kind === 'shield') {
-      floatText(f.actor, '방패!', 'info'); clearArrows();
-      shielded.add(f.actor);
-      const el = tokEl(f.actor); if (el && !el.querySelector('.shield-on')) el.insertAdjacentHTML('beforeend', '<div class="shield-on"></div>');
-    } else if (f.kind === 'turn') {
-      clearArrows();
+    if (f.kind === 'hit') impact(f.target, f.amount, melee);
+    else if (f.kind === 'heal') { floatText(f.target, '+' + f.amount, 'heal'); sparkles(f.target); }
+    else if (f.kind === 'boom') boomFx(f.actor);
+    else if (f.kind === 'down') smokeFx(f.target);
+    else if (f.kind === 'rest') floatText(f.actor, 'Zz 쉼', 'info');
+    else if (f.kind === 'shield') {
+      floatText(f.actor, '방패!', 'info');
+      const b = bodyOf(f.actor); if (b && !b.querySelector('.dome')) b.insertAdjacentHTML('beforeend', '<div class="dome"></div>');
     }
     await sleep(DUR[f.kind] || 300);
   }
   if (G !== g) { skipping = false; return; }
   // 끝난 모습 (건너뛰기 했으면 여기서 한 번에)
   for (const el of $('field').querySelectorAll('.tok.acting')) el.classList.remove('acting');
-  for (const el of $('field').querySelectorAll('.shield-on')) el.remove();
+  for (const el of $('field').querySelectorAll('.dome')) el.remove();
+  $('fx').innerHTML = '';
   clearArrows();
   const last = r.frames.length ? r.frames[r.frames.length - 1] : null;
   updateField({ A: r.state.A, E: r.state.E, hp: r.state.hp }, last ? last.bar : order, last ? last.bar.length : -1, false);
