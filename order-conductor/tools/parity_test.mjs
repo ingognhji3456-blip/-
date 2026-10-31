@@ -20,7 +20,7 @@ for (const [ci, c] of cases.entries()) {
     rounds++;
     const where = `case ${ci} (${c.allies.join('·')} vs ${c.enemies.join('·')}) round ${ri + 1}`;
     if (r.cost !== null && E.swapDistance(s.A, r.A) !== r.cost) { fails++; console.log('COST', where, E.swapDistance(s.A, r.A), r.cost); }
-    const out = E.runRound(s, r.A);
+    const out = E.runRound(s, r.A, r.T);
     if (!eq(out.log, r.log)) { fails++; console.log('LOG', where, '\n  js:', out.log, '\n  py:', r.log); break; }
     if (out.result !== r.result) { fails++; console.log('RESULT', where, out.result, r.result); break; }
     if (!eq(out.state.A, r.A2) || !eq(out.state.E, r.E2) || !eq(sortObj(out.state.hp), sortObj(r.hp)) || !eq(sortObj(out.state.fuse), sortObj(r.fuse))) {

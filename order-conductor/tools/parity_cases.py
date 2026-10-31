@@ -6,7 +6,7 @@
 """
 import json, os, random, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from solver import BATTLES, make, run_round, moves, analyse
+from solver import BATTLES, make, run_round, moves, analyse, target_choices, targets_for
 
 def jid(u):
     name, idx = u
@@ -18,11 +18,14 @@ def playthrough(allies, enemies, R, S, rng, anywhere=False):
     for _ in range(R):
         if anywhere:
             A = list(st[0]); rng.shuffle(A); A = tuple(A); cost = None
+            # 아무 적이나 (사거리 밖도) 골라서 엔진이 막는지도 봐요
+            T = {u: rng.choice(list(st[1]) + [None]) for u in A if u[0] in ('기사', '궁수')}
         else:
             opts = moves(st[0], S); A = rng.choice(sorted(opts)); cost = opts[A]
+            T = rng.choice(target_choices(st, A))
         log = []
-        nst, res = run_round(st, A, log)
-        rounds.append(dict(A=[jid(u) for u in A], cost=cost, log=log, result=res,
+        nst, res = run_round(st, A, T, log)
+        rounds.append(dict(A=[jid(u) for u in A], T={jid(u): (jid(t) if t else None) for u, t in T.items()}, cost=cost, log=log, result=res,
                            A2=[jid(u) for u in nst[0]], E2=[jid(u) for u in nst[1]],
                            hp={jid(u): h for u, h in nst[2]}, fuse={jid(u): f for u, f in nst[3]}))
         st = nst

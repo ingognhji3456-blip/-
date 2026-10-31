@@ -45,13 +45,22 @@ async function openBattle(page, n) {
   const bad = await page.evaluate(() => [...document.querySelectorAll('#field .tok')].filter(t => (t.querySelector('.nm .full') || t.querySelector('.nm')).textContent !== G.state.names[t.dataset.id]).map(t => t.dataset.id));
   check(!bad.length, `battle ${n}: tokens with wrong name: ${bad}`);
 }
-async function arrange(page, target) {
+async function arrange(page, target, targets) {
   let cur = await form(page);
   for (let k = 0; k < target.length; k++) {
     if (cur[k] === target[k]) continue;
     await page.click(`#field .tok[data-id="${cur[k]}"]`);
     await page.click(`#field .tok[data-id="${target[k]}"]`);
     cur = await form(page);
+  }
+  // 노릴 적: 공격수를 탭하고 적을 탭해요 (쉬게 하려면 지금 대상을 다시 탭)
+  for (const [u, want] of Object.entries(targets || {})) {
+    const now = await page.evaluate(id => G.targets[id], u);
+    if (now === want) continue;
+    await page.click(`#field .tok[data-id="${u}"]`);
+    await page.click(`#field .tok[data-id="${want === null ? now : want}"]`);
+    const got = await page.evaluate(id => G.targets[id], u);
+    check(got === want, `target of ${u}: ${got} want ${want}`);
   }
   return cur;
 }
@@ -74,11 +83,12 @@ const thresholds = page => page.evaluate(() => BATTLES.map(b => ({ s2: b.parties
     await openBattle(page, n);
     if (n === 1) await shot(page, '02-battle1-plan');
     for (const [ri, f] of p.forms.entries()) {
-      const got = await arrange(page, f);
+      const got = await arrange(page, f, p.targets[ri]);
       check(JSON.stringify(got) === JSON.stringify(f), `battle ${n} round ${ri + 1} arrange ${got} vs ${f}`);
-      if (n === 6 && ri === 0) {
-        await page.waitForTimeout(400); await shot(page, '03-battle6-plan');
-        await page.click('#a-go'); await page.waitForTimeout(900); await shot(page, '04-battle6-playing');
+      if (n === 8 && ri === 0) {
+        await page.click(`#field .tok[data-id="${f[0]}"]`); await page.waitForTimeout(400); await shot(page, '03-battle8-range');
+        await page.click(`#field .tok[data-id="${f[0]}"]`); await page.waitForTimeout(300); await shot(page, '03b-battle8-plan');
+        await page.click('#a-go'); await page.waitForTimeout(1300); await shot(page, '04-battle8-playing');
         try { await page.click('#a-skip', { timeout: 1500 }); } catch (e) {}
         await page.waitForFunction(() => !document.querySelector('#modal').classList.contains('hidden') || !document.querySelector('#act-plan').classList.contains('hidden'));
       } else await playRound(page);
@@ -103,7 +113,7 @@ const thresholds = page => page.evaluate(() => BATTLES.map(b => ({ s2: b.parties
   const th = await thresholds(page);
   for (const p of plans) {
     await openBattle(page, p.battle);
-    for (const f of p.forms) { await arrange(page, f); await playRound(page); }
+    for (const [ri, f] of p.forms.entries()) { await arrange(page, f, p.targets[ri]); await playRound(page); }
     const title = await page.$eval('#sheet h2', el => el.textContent).catch(() => '(no modal)');
     check(title.startsWith('승리'), `battle ${p.battle} ${p.mode}: expected win, got ${title}`);
     const goals = await page.$$eval('#sheet .goals li', els => els.map(e => e.classList.contains('yes')));
@@ -142,12 +152,18 @@ const thresholds = page => page.evaluate(() => BATTLES.map(b => ({ s2: b.parties
   await page.click(`#field .tok[data-id="${start[0]}"]`); await page.click(`#field .tok[data-id="${start[1]}"]`);
   check(JSON.stringify(await form(page)) === JSON.stringify(start), 'swapping back refunds');
   check((await page.$eval('#m-swaps b', el => el.textContent)) === '0/1', 'move meter back to 0/1');
+  // 사거리 밖: 맨 뒤 궁수(3번 자리)는 적 3번(5칸)에 닿지 않아요 (3판)
+  await page.click('#b-back'); await page.waitForSelector('#scr-title.on');
+  await openBattle(page, 3);
+  const before3 = await page.evaluate(() => G.targets.a2);
+  await page.click('#field .tok[data-id="a2"]'); await page.click('#field .tok[data-id="e2"]');
+  check((await page.evaluate(() => G.targets.a2)) === before3, 'out-of-range target is refused');
   // 되돌리기
   await page.click('#b-back'); await page.waitForSelector('#scr-title.on');
   const p2 = plans.find(x => x.battle === 2 && x.mode === 'moves');
   await openBattle(page, 2);
   await page.mouse.click(2, 2);
-  await arrange(page, p2.forms[0]); await playRound(page);
+  await arrange(page, p2.forms[0], p2.targets[0]); await playRound(page);
   check((await page.$eval('#m-round b', el => el.textContent)) === '2/3', 'round 2 after first round');
   await page.click('#a-undo');
   check((await page.$eval('#m-round b', el => el.textContent)) === '1/3', 'undo returns to round 1');
@@ -157,7 +173,7 @@ const thresholds = page => page.evaluate(() => BATTLES.map(b => ({ s2: b.parties
   await page.click('#b-back'); await page.waitForSelector('#scr-title.on'); await page.waitForTimeout(1200);
   const p8 = plans.find(x => x.battle === 8 && x.mode === 'hp');
   await openBattle(page, 8);
-  for (const f of p8.forms) { await arrange(page, f); await playRound(page); }
+  for (const [ri, f] of p8.forms.entries()) { await arrange(page, f, p8.targets[ri]); await playRound(page); }
   check((await page.$eval('#sheet h2', el => el.textContent)).startsWith('승리'), 'battle 8 after leaving mid-play');
   check(!errors.length, 'errors in run 3: ' + errors.join(' | '));
   await ctx.close();

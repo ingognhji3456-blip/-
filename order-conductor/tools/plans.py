@@ -16,7 +16,8 @@ for n, (title, allies, enemies, R, S, lesson) in enumerate(BATTLES, 1):
     for mode in ('moves', 'hp'):
         plan = find_plan(st0, R, S, mode)
         st = st0
-        for A, c, log in plan: st, _ = run_round(st, A)
-        res.append(dict(battle=n, mode=mode, forms=[[jid(u) for u in A] for A, c, log in plan],
-                        moves=sum(c for A, c, log in plan), hp=ally_hp(st), full=sum(maxhp(u) for u in st0[0])))
+        for A, T, c, log in plan: st, _ = run_round(st, A, T)
+        res.append(dict(battle=n, mode=mode, forms=[[jid(u) for u in A] for A, T, c, log in plan],
+                        targets=[{jid(u): (jid(t) if t else None) for u, t in T.items()} for A, T, c, log in plan],
+                        moves=sum(c for A, T, c, log in plan), hp=ally_hp(st), full=sum(maxhp(u) for u in st0[0])))
 json.dump(res, sys.stdout, ensure_ascii=False)
