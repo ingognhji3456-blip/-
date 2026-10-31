@@ -6,9 +6,8 @@ const { PAL, SPR } = require('./cast.js');
 const ALPHA = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz!#$%&()*+,-/:;<=>?@[]^_{|}';
 const colors = [], idx = {};
 const out = {};
-for (const [name, spr] of Object.entries(SPR)) {
-  const g = build(spr);
-  const rows = g.map(row => {
+function encode(spr, g) {
+  return g.map(row => {
     const chars = row.map(c => {
       if (c === '.') return '.';
       const col = ((spr.pal || {})[c] || PAL[c]).toLowerCase();
@@ -24,8 +23,15 @@ for (const [name, spr] of Object.entries(SPR)) {
       i = j;
     }
     return s.replace(/(~\.[0-9a-z]{2})+$/, '').replace(/\.+$/, '');
-  });
-  out[name] = { w: spr.w, h: spr.h, face: spr.face, enemy: !!spr.enemy, rows };
+  }).join('|');
+}
+for (const [name, spr] of Object.entries(SPR)) {
+  const frames = [], seen = {};
+  const add = pose => { const e = encode(spr, build(spr, pose)); if (!(e in seen)) { seen[e] = frames.length; frames.push(e); } return seen[e]; };
+  const anims = {};
+  const defs = spr.anims || { idle: { frames: [{ ms: 1000, pose: {} }] } };
+  for (const [k, a] of Object.entries(defs)) anims[k] = { f: a.frames.map(fr => add(fr.pose)), ms: a.frames.map(fr => fr.ms), hit: a.hit };
+  out[name] = { w: spr.w, h: spr.h, face: spr.face, enemy: !!spr.enemy, frames, anims };
 }
 const js = `const ART = ${JSON.stringify({ pal: colors, spr: out })};`;
 const file = path.join(__dirname, '..', 'index.html');
