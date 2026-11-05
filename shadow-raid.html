@@ -6,19 +6,25 @@
 <title>그림자 습격</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <meta name="description" content="밤마다 몰려오는 그림자 무리를 10분 동안 버텨 내는 생존 슈팅 게임. 저절로 쏘는 무기를 모아 키우고 진화시켜요.">
-<meta name="theme-color" content="#0d0b18">
+<meta name="theme-color" content="#070814">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Orbitron:wght@600;800;900&family=Noto+Sans+KR:wght@400;500;700;900&display=swap">
 <style>
 :root{
-  /* 레이아웃: 화면 전체가 전장 캔버스. 위 가장자리에 경험치 띠와 시계, 왼쪽 위에 무기 칸, 아래에 보스 체력. 메뉴와 카드는 가운데 뜬 판. */
+  /* 레이아웃: 화면 전체가 전장 캔버스. 그 위에 우주 작전 계기판처럼 모서리를 깎은 유리판이 떠 있어요.
+     왼쪽 위 상태판(초상·체력·레벨), 가운데 시계와 새벽 막대, 오른쪽 멈춤 단추, 아래 보스 체력. */
   color-scheme:dark;
-  --night:#0d0b18; --panel:#171329; --panel-2:#221c3d; --line:#3a3160; --line-2:#564a88;
-  --text:#f5f1ff; --muted:#aaa0cc; --dim:#6f6696;
-  --xp:#57e1ff; --gold:#ffc94d; --hot:#ff4d6a; --heal:#72f0a0; --evo:#ff9a3c; --violet:#8f6bff;
-  --ink:#0a0716; --scrim:rgba(6,4,14,.74);
+  --night:#070814; --text:#eef4ff; --muted:#9aa8cc; --dim:#5f6a92;
+  --cyan:#4fe3ff; --violet:#8f6bff; --hot:#ff4d7a; --gold:#ffcf4d; --green:#66f0a6; --orange:#ff8a3d;
+  --glass:linear-gradient(180deg,rgba(18,24,56,.94),rgba(6,8,22,.96));
+  --edge:linear-gradient(135deg,rgba(110,225,255,.9),rgba(143,107,255,.38) 32%,rgba(110,225,255,.12) 62%,rgba(255,77,122,.65));
+  --edge-gold:linear-gradient(135deg,#fff0b8,rgba(255,170,60,.5) 36%,rgba(255,207,77,.15) 64%,#ff9a3c);
+  --edge-hot:linear-gradient(135deg,#ffa0b8,rgba(255,77,122,.45) 36%,rgba(255,77,122,.12) 64%,#ff4d7a);
+  --edge-green:linear-gradient(135deg,#b8ffe0,rgba(102,240,166,.45) 36%,rgba(102,240,166,.12) 64%,#3ccf9a);
+  --scan:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0 1px,transparent 1px 3px);
   --f-display:"Black Han Sans","Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-tech:"Orbitron","Noto Sans KR",ui-monospace,sans-serif;
   --f-body:"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
   --t-xs:12px; --t-sm:13px; --t-md:15px; --t-lg:20px; --t-xl:30px;
 }
@@ -27,175 +33,228 @@
 html,body{height:100%; margin:0; overflow:hidden; overscroll-behavior:none}
 body{background:var(--night); color:var(--text); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent}
 button{font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; border:0; background:none; padding:0}
-button:focus-visible{outline:2px solid var(--xp); outline-offset:3px}
+button:focus-visible{outline:2px solid var(--cyan); outline-offset:3px}
 button:disabled{cursor:default}
 h1,h2,h3,p{margin:0}
 h1,h2,h3{text-wrap:balance; font-weight:400}
-.num{font-variant-numeric:tabular-nums}
+.num,.tech{font-family:var(--f-tech); font-variant-numeric:tabular-nums; letter-spacing:.04em}
 #cv{position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; cursor:crosshair}
 
-/* ---------- 게임 중 계기판 ---------- */
+/* ---------- 깎은 모서리 유리판: 바깥이 테두리 빛, ::before가 안쪽 유리 ---------- */
+.hx{--c:12px; --edge-c:var(--edge); --fill:var(--glass); position:relative; isolation:isolate; background:var(--edge-c); clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+.hx::before{content:""; position:absolute; inset:1.5px; z-index:-1; background:var(--scan),var(--fill); clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+.hx.gold{--edge-c:var(--edge-gold)} .hx.hot{--edge-c:var(--edge-hot)} .hx.green{--edge-c:var(--edge-green)}
+.label{font-family:var(--f-tech); font-size:10px; font-weight:800; letter-spacing:.32em; color:var(--cyan); text-transform:uppercase}
+.label.gold{color:var(--gold)} .label.hot{color:var(--hot)}
+
+/* ---------- 계기판 ---------- */
 #hud{position:fixed; inset:0; pointer-events:none; z-index:5}
-.xpbar{position:absolute; left:0; right:0; top:0; padding-top:env(safe-area-inset-top,0px); background:rgba(8,6,18,.82); border-bottom:1px solid var(--line)}
-.xptrack{position:relative; height:12px; overflow:hidden}
-.xptrack i{position:absolute; inset:0; transform-origin:left center; transform:scaleX(0); background:linear-gradient(90deg,#2b8cff,var(--xp)); box-shadow:0 0 14px rgba(87,225,255,.7)}
-.hud-row{position:absolute; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 20px); display:grid; grid-template-columns:1fr auto 1fr; align-items:start; gap:8px; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px))}
-.hud-left{display:flex; flex-direction:column; gap:6px; align-items:flex-start}
-.chips{display:flex; gap:6px; flex-wrap:wrap}
-.chip{display:inline-flex; align-items:center; gap:5px; height:26px; padding:0 9px; border-radius:8px; background:rgba(12,9,26,.72); border:1px solid rgba(160,140,255,.18); font-size:var(--t-sm); font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap}
-.chip.lv{font-family:var(--f-display); font-weight:400; color:var(--xp); letter-spacing:.02em}
-.coin-dot{width:12px; height:12px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff3b8,var(--gold) 55%,#b8801a); box-shadow:0 0 6px rgba(255,201,77,.6); flex:none}
-.skull{width:13px; height:13px; flex:none}
-#timer{font-family:var(--f-display); font-size:30px; line-height:1; letter-spacing:.03em; font-variant-numeric:tabular-nums; text-shadow:0 2px 0 var(--ink),0 0 18px rgba(143,107,255,.55); padding-top:2px}
-#timer.late{color:var(--gold)}
-.hud-right{justify-self:end}
-.icon-btn{pointer-events:auto; width:40px; height:40px; border-radius:12px; display:grid; place-items:center; background:rgba(12,9,26,.72); border:1px solid rgba(160,140,255,.25)}
-.icon-btn:active{transform:scale(.94)}
+.xpbar{position:absolute; left:0; right:0; top:0; padding-top:env(safe-area-inset-top,0px); background:linear-gradient(180deg,rgba(3,4,14,.95),rgba(3,4,14,.55))}
+.xptrack{position:relative; height:8px; overflow:hidden; background:rgba(79,227,255,.08); border-bottom:1px solid rgba(79,227,255,.4)}
+.xptrack i{position:absolute; inset:0; transform-origin:left center; transform:scaleX(0); background:linear-gradient(90deg,#1f6bff,var(--cyan) 75%,#e6fdff); box-shadow:0 0 14px var(--cyan)}
+.xptrack::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0 calc(4% - 1px),rgba(3,4,14,.75) calc(4% - 1px) 4%); pointer-events:none}
+.hud-row{position:absolute; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 14px); display:flex; align-items:flex-start; justify-content:space-between; gap:8px; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px))}
+.hud-left{display:flex; flex-direction:column; gap:6px; min-width:0}
+.status{--c:10px; display:grid; grid-template-columns:44px minmax(0,1fr); grid-template-rows:auto auto; gap:3px 9px; align-items:center; width:216px; padding:6px 10px 7px 6px}
+.portrait{grid-row:1/3; width:44px; height:44px; clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); background:linear-gradient(135deg,var(--cyan),var(--violet)); padding:2px}
+.portrait img{display:block; width:100%; height:100%; clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%); background:radial-gradient(circle at 40% 30%,#2a3f86,#090d24)}
+.st-top{display:flex; align-items:center; gap:9px; min-width:0; white-space:nowrap}
+.lv{font-family:var(--f-tech); font-size:10px; font-weight:800; color:var(--cyan); letter-spacing:.1em}
+.lv b{font-size:16px; font-weight:900; color:#fff; margin-left:2px; text-shadow:0 0 10px rgba(79,227,255,.7)}
+.mini{display:inline-flex; align-items:center; gap:4px; font-family:var(--f-tech); font-size:12px; font-weight:700; color:#dfe7ff}
+.skull{width:12px; height:12px; flex:none}
+.coin-dot{width:11px; height:11px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff4c0,var(--gold) 55%,#b8801a); box-shadow:0 0 6px rgba(255,207,77,.65); flex:none; display:inline-block}
+.hpbar{position:relative; height:14px; background:rgba(0,0,0,.55); clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%); overflow:hidden}
+.hpbar i{position:absolute; left:0; top:0; bottom:0; width:100%; transform-origin:left center}
+#hpghost{background:rgba(255,255,255,.55); transition:transform .5s ease .15s}
+#hpfill{background:linear-gradient(180deg,#9dffc6,#2ecf78); box-shadow:inset 0 -3px 0 rgba(0,0,0,.18)}
+.hpbar.mid #hpfill{background:linear-gradient(180deg,#ffe58a,#e0a21a)}
+.hpbar.low #hpfill{background:linear-gradient(180deg,#ffa0b0,#e0304d); animation:hpblink .7s ease-in-out infinite}
+@keyframes hpblink{50%{filter:brightness(1.5)}}
+.hpbar::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0 9px,rgba(0,0,0,.35) 9px 10px)}
+#hptext{position:absolute; inset:0; z-index:1; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:800; color:#fff; text-shadow:0 1px 2px #000}
+.clock{--c:10px; position:absolute; left:50%; top:0; transform:translateX(-50%); min-width:118px; padding:4px 14px 7px; text-align:center}
+.clock .label{display:block; font-size:8.5px; letter-spacing:.4em; color:var(--muted)}
+#timer{font-family:var(--f-tech); font-size:24px; font-weight:900; line-height:1.1; letter-spacing:.06em; text-shadow:0 0 14px rgba(79,227,255,.55)}
+#timer.late{color:var(--gold); text-shadow:0 0 14px rgba(255,207,77,.7)}
+.dawn{position:relative; height:4px; margin-top:4px; background:rgba(255,255,255,.1)}
+.dawn i{position:absolute; left:0; top:0; bottom:0; width:100%; transform-origin:left center; transform:scaleX(0); background:linear-gradient(90deg,var(--violet),var(--gold))}
+.dawn::after{content:""; position:absolute; right:-4px; top:-3px; width:10px; height:10px; border-radius:50%; background:radial-gradient(circle,#fff6c8,var(--gold) 55%,transparent 70%)}
+.icon-btn{--c:8px; pointer-events:auto; width:42px; height:42px; display:grid; place-items:center}
+.icon-btn:active{transform:translateY(2px)}
 .slots{display:flex; flex-direction:column; gap:4px}
 .slot-row{display:flex; gap:4px}
-.slot{position:relative; width:30px; height:30px; border-radius:7px; background:rgba(12,9,26,.72); border:1px solid rgba(160,140,255,.22)}
-.slot img{position:absolute; inset:2px; width:24px; height:24px}
-.slot b{position:absolute; right:-3px; bottom:-4px; min-width:14px; height:14px; padding:0 3px; border-radius:5px; background:var(--ink); border:1px solid var(--line-2); font-size:10px; line-height:12px; text-align:center; font-weight:700}
-.slot.evo{border-color:var(--evo); box-shadow:0 0 10px rgba(255,154,60,.5)}
-.slot.evo b{color:var(--evo); border-color:var(--evo)}
-.slot.empty{background:rgba(12,9,26,.3); border-style:dashed; border-color:rgba(160,140,255,.16)}
-.slot.sm{width:24px; height:24px; border-radius:6px}
-.slot.sm img{width:18px; height:18px; inset:2px}
-.slot.sm b{font-size:9px; height:12px; line-height:10px; min-width:12px}
-#bossbar{position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 18px); transform:translateX(-50%); width:min(520px,calc(100% - 32px)); text-align:center}
-#bossname{font-family:var(--f-display); font-size:var(--t-lg); color:#ffd2db; text-shadow:0 2px 0 var(--ink),0 0 12px rgba(255,77,106,.7); letter-spacing:.04em}
-.bb{height:14px; margin-top:4px; border-radius:7px; overflow:hidden; background:rgba(12,9,26,.85); border:1px solid rgba(255,77,106,.55)}
-.bb i{display:block; height:100%; width:100%; transform-origin:left center; background:linear-gradient(90deg,#b3123a,var(--hot)); transition:transform .12s linear}
-#toast{position:absolute; left:50%; top:calc(env(safe-area-inset-top,0px) + 112px); transform:translate(-50%,-8px); max-width:calc(100% - 32px); padding:8px 16px; border-radius:12px; background:rgba(12,9,26,.88); border:1px solid var(--line-2); font-weight:700; font-size:var(--t-sm); text-align:center; opacity:0; transition:opacity .25s, transform .25s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.slot{position:relative; width:30px; height:30px; clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px); background:linear-gradient(135deg,rgba(110,225,255,.7),rgba(143,107,255,.3))}
+.slot img{position:absolute; inset:1.5px; width:calc(100% - 3px); height:calc(100% - 3px)}
+.slot b{position:absolute; right:1px; bottom:0; min-width:12px; padding:0 2px; font-family:var(--f-tech); font-size:9px; font-weight:900; line-height:12px; text-align:center; color:#fff; background:rgba(4,6,18,.85)}
+.slot.evo{background:linear-gradient(135deg,#ffe9a0,#ff8a3d)}
+.slot.evo b{color:var(--gold)}
+.slot.sm{width:24px; height:24px}
+.slot.sm b{font-size:8px; line-height:10px}
+.slot.empty{background:rgba(110,140,255,.18)}
+.slot.empty::after{content:""; position:absolute; inset:1.5px; background:rgba(5,7,20,.6); clip-path:inherit}
+#bossbar{--c:10px; position:absolute; left:50%; bottom:calc(env(safe-area-inset-bottom,0px) + 16px); transform:translateX(-50%); width:min(540px,calc(100% - 32px)); padding:7px 12px 10px; --edge-c:var(--edge-hot)}
+.bb-head{display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:5px}
+#bossname{font-family:var(--f-display); font-size:var(--t-lg); color:#ffe0e8; text-shadow:0 0 12px rgba(255,77,122,.8); letter-spacing:.04em}
+.bb{position:relative; height:12px; background:rgba(0,0,0,.6); overflow:hidden; clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+.bb i{position:absolute; inset:0; transform-origin:left center; background:linear-gradient(180deg,#ff8aa4,#d4123f); transition:transform .12s linear}
+.bb::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0 calc(5% - 1px),rgba(0,0,0,.45) calc(5% - 1px) 5%)}
+#toast{--c:8px; position:absolute; left:50%; top:calc(env(safe-area-inset-top,0px) + 92px); transform:translate(-50%,-8px); max-width:calc(100% - 32px); padding:8px 18px; font-weight:700; font-size:var(--t-sm); text-align:center; opacity:0; transition:opacity .25s, transform .25s; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #toast.show{opacity:1; transform:translate(-50%,0)}
-#toast.warn{border-color:var(--hot); color:#ffd7de}
-#toast.good{border-color:var(--gold); color:#fff1c7}
+#toast.warn{--edge-c:var(--edge-hot); color:#ffdbe4}
+#toast.good{--edge-c:var(--edge-gold); color:#fff1c7}
 
-/* 보스 경고 띠 */
-#banner{position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 25%); z-index:6; pointer-events:none; text-align:center; padding-block:10px; background:repeating-linear-gradient(-45deg,rgba(255,77,106,.9) 0 18px,rgba(20,6,14,.92) 18px 36px); transform:scaleY(0); opacity:0}
-#banner .in{display:inline-block; padding:6px 22px; background:rgba(20,6,14,.92); border-radius:10px}
-#banner b{display:block; font-family:var(--f-display); font-weight:400; font-size:clamp(30px,8vw,52px); line-height:1.05; color:#fff; text-shadow:0 0 18px rgba(255,77,106,.9)}
-#banner span{display:block; font-size:var(--t-md); font-weight:700; color:#ffc2cd; margin-top:2px}
+/* 경고 띠 */
+#banner{position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 25%); z-index:6; pointer-events:none; text-align:center; padding-block:12px; background:linear-gradient(90deg,transparent,rgba(30,4,14,.9) 18%,rgba(30,4,14,.92) 82%,transparent); border-block:2px solid transparent; border-image:linear-gradient(90deg,transparent,var(--hot) 20%,var(--hot) 80%,transparent) 1; transform:scaleX(0); opacity:0}
+#banner .bn-in{position:relative; display:inline-block; padding-inline:22px}
+#banner .bn-in::before,#banner .bn-in::after{content:""; position:absolute; top:50%; width:46px; height:18px; margin-top:-9px; background:repeating-linear-gradient(-45deg,var(--hot) 0 6px,transparent 6px 12px); opacity:.9}
+#banner .bn-in::before{right:100%} #banner .bn-in::after{left:100%}
+#bannerL{display:block; font-family:var(--f-tech); font-size:11px; font-weight:900; letter-spacing:.6em; color:var(--hot)}
+#bannerT{display:block; font-family:var(--f-display); font-weight:400; font-size:clamp(30px,8vw,52px); line-height:1.05; color:#fff; text-shadow:0 0 22px rgba(255,77,122,.9)}
+#bannerS{display:block; font-size:var(--t-md); font-weight:700; color:#ffc8d4; margin-top:2px}
 #banner.show{animation:banner 2.8s ease forwards}
-#banner.gold{background:repeating-linear-gradient(-45deg,rgba(255,201,77,.9) 0 18px,rgba(26,18,4,.92) 18px 36px)}
-#banner.gold b{text-shadow:0 0 18px rgba(255,201,77,.9)}
-#banner.gold span{color:#ffe7a8}
-@keyframes banner{0%{transform:scaleY(0); opacity:0} 8%{transform:scaleY(1.08); opacity:1} 14%{transform:scaleY(1)} 82%{transform:scaleY(1); opacity:1} 100%{transform:scaleY(0); opacity:0}}
+#banner.gold{background:linear-gradient(90deg,transparent,rgba(30,20,4,.9) 18%,rgba(30,20,4,.92) 82%,transparent); border-image:linear-gradient(90deg,transparent,var(--gold) 20%,var(--gold) 80%,transparent) 1}
+#banner.gold .bn-in::before,#banner.gold .bn-in::after{background:repeating-linear-gradient(-45deg,var(--gold) 0 6px,transparent 6px 12px)}
+#banner.gold #bannerL{color:var(--gold)} #banner.gold #bannerT{text-shadow:0 0 22px rgba(255,207,77,.9)} #banner.gold #bannerS{color:#ffe7a8}
+@keyframes banner{0%{transform:scaleX(0); opacity:0} 9%{transform:scaleX(1.04); opacity:1} 14%{transform:scaleX(1)} 82%{transform:scaleX(1); opacity:1} 100%{transform:scaleX(0); opacity:0}}
 
-/* 가상 조이스틱 */
-#joy{position:fixed; left:0; top:0; width:124px; height:124px; margin:-62px 0 0 -62px; border-radius:50%; border:2px solid rgba(255,255,255,.16); background:radial-gradient(rgba(143,107,255,.12),rgba(143,107,255,.03) 70%); pointer-events:none; z-index:4}
-#joy i{position:absolute; left:50%; top:50%; width:54px; height:54px; margin:-27px 0 0 -27px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#fff,#c6bbff 55%,#7462d6); box-shadow:0 6px 16px rgba(0,0,0,.45)}
+/* 조이스틱 */
+#joy{position:fixed; left:0; top:0; width:128px; height:128px; margin:-64px 0 0 -64px; border-radius:50%; pointer-events:none; z-index:4; background:radial-gradient(circle,rgba(79,227,255,.12),rgba(79,227,255,.02) 62%,transparent 63%),repeating-conic-gradient(rgba(79,227,255,.55) 0 3deg,transparent 3deg 30deg); -webkit-mask:radial-gradient(circle,#000 58%,transparent 59%,transparent 61%,#000 62%,#000 70%,transparent 71%); mask:radial-gradient(circle,#000 58%,transparent 59%,transparent 61%,#000 62%,#000 70%,transparent 71%)}
+#joy i{position:absolute; left:50%; top:50%; width:50px; height:50px; margin:-25px 0 0 -25px; border-radius:50%; background:radial-gradient(circle at 35% 30%,#ffffff,#bdf4ff 45%,#2aa8d8); box-shadow:0 0 20px rgba(79,227,255,.7)}
 
-/* ---------- 메뉴 화면 ---------- */
-.screen{position:fixed; inset:0; z-index:10; overflow-y:auto; display:flex; flex-direction:column; align-items:center; gap:18px; padding-block:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 22px); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); background:radial-gradient(120% 80% at 50% 40%,rgba(13,11,24,.15),rgba(13,11,24,.82))}
+/* ---------- 메뉴 ---------- */
+.screen{position:fixed; inset:0; z-index:10; overflow-y:auto; display:flex; flex-direction:column; align-items:center; gap:16px; padding-block:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-bottom,0px) + 20px); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); background:radial-gradient(110% 75% at 50% 42%,rgba(7,8,20,0) 30%,rgba(7,8,20,.82))}
 .topbar{width:min(100%,760px); display:flex; align-items:center; justify-content:space-between; gap:10px}
-.wallet{display:inline-flex; align-items:center; gap:8px; height:38px; padding:0 14px; border-radius:12px; background:rgba(12,9,26,.8); border:1px solid var(--line); font-weight:900; font-size:var(--t-md); font-variant-numeric:tabular-nums}
-.ghost{height:38px; padding:0 14px; border-radius:12px; background:rgba(12,9,26,.8); border:1px solid var(--line); font-weight:700; font-size:var(--t-sm); color:var(--muted)}
-.ghost:hover{color:var(--text); border-color:var(--line-2)}
-.menu-main{flex:1; width:min(100%,440px); display:flex; flex-direction:column; justify-content:center; gap:18px}
-.eyebrow{font-size:var(--t-sm); font-weight:700; letter-spacing:.18em; color:var(--muted); text-align:center}
-.logo{font-family:var(--f-display); font-size:clamp(64px,19vw,104px); line-height:.9; text-align:center; letter-spacing:-.01em; color:#fbf8ff}
+.wallet{--c:9px; display:inline-flex; align-items:center; gap:8px; height:40px; padding:0 16px; font-family:var(--f-tech); font-weight:900; font-size:var(--t-md)}
+.top-actions{display:flex; gap:8px}
+.ghost{--c:9px; height:40px; min-width:40px; padding:0 14px; display:inline-flex; align-items:center; justify-content:center; gap:6px; font-weight:700; font-size:var(--t-sm); color:#cfd9f6}
+.ghost:hover{color:#fff}
+.ghost svg{width:16px; height:16px}
+.menu-main{flex:1; width:min(100%,460px); display:flex; flex-direction:column; justify-content:center; gap:14px}
+.eyebrow{text-align:center}
+.eyebrow .label{letter-spacing:.5em}
+.eyebrow p{font-size:var(--t-sm); font-weight:700; color:var(--muted); letter-spacing:.12em; margin-top:2px}
+.logo{font-family:var(--f-display); font-size:clamp(62px,18vw,100px); line-height:.9; text-align:center; letter-spacing:-.01em; color:#fbf8ff; filter:drop-shadow(0 0 18px rgba(143,107,255,.35))}
 .logo span{display:block}
 .logo .a{text-shadow:5px 5px 0 #6b4dff,10px 10px 0 #3b2a96,15px 15px 0 #1c1450}
 .logo .b{color:var(--hot); text-shadow:5px 5px 0 #8e1530,10px 10px 0 #4c0a1a,15px 15px 0 #22050c; margin-top:6px}
-.stage{display:grid; grid-template-columns:40px minmax(0,1fr) 40px; align-items:center; gap:6px; padding:14px 8px; border-radius:18px; background:rgba(23,19,41,.9); border:1px solid var(--line); position:relative; overflow:hidden}
-.stage::before{content:""; position:absolute; inset:0 0 auto 0; height:4px; background:var(--stage-c,var(--violet))}
-.stage .arrow{width:40px; height:56px; border-radius:12px; font-size:28px; line-height:1; color:var(--muted)}
-.stage .arrow:hover:not(:disabled){color:var(--text); background:rgba(255,255,255,.05)}
+.hero-spot{height:clamp(56px,13vh,140px); flex:none}
+.stage{--c:16px; display:grid; grid-template-columns:34px 78px minmax(0,1fr) 34px; align-items:center; gap:10px; padding:12px 8px}
+.stage .arrow{--c:6px; width:34px; height:52px; font-size:22px; line-height:1; color:var(--cyan)}
 .stage .arrow:disabled{opacity:.25}
-.stage-info{text-align:center; min-width:0}
-.stage-no{font-size:var(--t-xs); font-weight:900; letter-spacing:.2em; color:var(--stage-c,var(--violet))}
-.stage-info h2{font-family:var(--f-display); font-size:28px; line-height:1.15}
-.stage-info p{font-size:var(--t-sm); color:var(--muted); margin-top:4px}
+.thumb{--c:10px; width:78px; height:78px; padding:2px}
+.thumb canvas{display:block; width:100%; height:100%; clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
+.stage-info{min-width:0}
+.stage-no{font-family:var(--f-tech); font-size:10px; font-weight:900; letter-spacing:.35em; color:var(--stage-c,var(--cyan))}
+.stage-info h2{font-family:var(--f-display); font-size:26px; line-height:1.15}
+.danger-row{display:flex; align-items:center; gap:6px; margin-top:2px; font-size:var(--t-xs); color:var(--muted)}
+.danger-row i{width:12px; height:6px; transform:skewX(-20deg); background:rgba(255,255,255,.14)}
+.danger-row i.on{background:var(--hot); box-shadow:0 0 6px var(--hot)}
+.stage-info p{font-size:var(--t-sm); color:var(--muted); margin-top:3px; line-height:1.45}
 .stage-info .best{color:var(--gold); font-weight:700}
 .stage-info .lock{color:var(--hot); font-weight:700}
-.start{height:68px; border-radius:18px; font-family:var(--f-display); font-size:32px; letter-spacing:.06em; color:#fff; background:linear-gradient(180deg,#ff6a7f,#e0264a 60%,#b0122f); box-shadow:0 6px 0 #6e0a1d,0 14px 30px rgba(255,77,106,.35); text-shadow:0 2px 0 rgba(0,0,0,.25)}
-.start:hover:not(:disabled){filter:brightness(1.08)}
-.start:active:not(:disabled){transform:translateY(4px); box-shadow:0 2px 0 #6e0a1d,0 8px 20px rgba(255,77,106,.3)}
-.start:disabled{filter:grayscale(.85) brightness(.6)}
+.start-wrap{filter:drop-shadow(0 8px 22px rgba(255,77,122,.45))}
+.start{--c:16px; position:relative; width:100%; height:74px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; overflow:hidden; color:#fff; background:linear-gradient(180deg,#ff7590,#e0264a 55%,#a40f33); clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+.start b{font-family:var(--f-display); font-weight:400; font-size:34px; letter-spacing:.08em; text-shadow:0 2px 0 rgba(0,0,0,.3)}
+.start small{font-family:var(--f-tech); font-size:10px; font-weight:800; letter-spacing:.6em; opacity:.85; margin-top:5px}
+.start::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(-60deg,rgba(255,255,255,.07) 0 10px,transparent 10px 20px)}
+.start::after{content:""; position:absolute; inset:0; background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.4) 50%,transparent 65%); transform:translateX(-120%); animation:sweep 3.2s ease-in-out infinite}
+@keyframes sweep{0%,55%{transform:translateX(-120%)} 100%{transform:translateX(120%)}}
+.start:active:not(:disabled){transform:translateY(3px)}
+.start:disabled{filter:grayscale(.85) brightness(.55)}
+.start:disabled::after{display:none}
 .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.btn{height:52px; border-radius:14px; font-weight:900; font-size:var(--t-md); background:var(--panel-2); border:1px solid var(--line-2); display:inline-flex; align-items:center; justify-content:center; gap:8px; padding:0 16px}
-.btn:hover:not(:disabled){border-color:var(--xp)}
+.btn{--c:10px; height:52px; padding:0 16px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:900; font-size:var(--t-md); color:#eaf2ff}
+.btn svg{width:18px; height:18px; flex:none}
+.btn:hover:not(:disabled){filter:brightness(1.18)}
 .btn:active:not(:disabled){transform:translateY(2px)}
-.btn.primary{background:linear-gradient(180deg,#5d8bff,#3b5ee0); border-color:#7fa0ff; color:#fff}
-.btn.gold{background:linear-gradient(180deg,#ffd76b,#f0a92a); border-color:#ffe39a; color:#2a1a00}
-.btn.danger{color:#ffc2cd; border-color:rgba(255,77,106,.5)}
+.btn.primary{--edge-c:linear-gradient(135deg,#bff6ff,#2aa8ff); --fill:linear-gradient(180deg,#2f8cff,#1c4fc8); color:#fff}
+.btn.gold{--edge-c:linear-gradient(135deg,#fff3c4,#e09a1a); --fill:linear-gradient(180deg,#ffd76b,#e89a1e); color:#2a1a00}
+.btn.danger{--edge-c:var(--edge-hot); color:#ffc8d4}
 .btn:disabled{opacity:.45}
-.badge-dot{min-width:20px; height:20px; padding:0 6px; border-radius:10px; background:var(--gold); color:#2a1a00; font-size:11px; font-weight:900; line-height:20px}
+.badge-dot{min-width:20px; height:20px; padding:0 6px; border-radius:10px; background:var(--gold); color:#2a1a00; font-family:var(--f-tech); font-size:11px; font-weight:900; line-height:20px}
 .foot-note{font-size:var(--t-xs); color:var(--dim); text-align:center}
 
 /* 강화 화면 */
-.shop-head{width:min(100%,760px); display:flex; flex-direction:column; gap:4px}
-.shop-head h2{font-family:var(--f-display); font-size:var(--t-xl)}
+.shop-head{--c:14px; width:min(100%,760px); padding:14px 18px}
+.shop-head h2{font-family:var(--f-display); font-size:var(--t-xl); line-height:1.2}
 .shop-head p{color:var(--muted); font-size:var(--t-sm)}
 .ups{width:min(100%,760px); display:grid; grid-template-columns:repeat(auto-fill,minmax(232px,1fr)); gap:10px}
-.up{display:grid; grid-template-columns:48px minmax(0,1fr); grid-template-rows:auto auto; gap:6px 12px; padding:12px; border-radius:16px; background:var(--panel); border:1px solid var(--line)}
-.up img{width:48px; height:48px}
+.up{--c:12px; display:grid; grid-template-columns:50px minmax(0,1fr); gap:8px 12px; padding:12px}
+.up img{width:50px; height:50px}
 .up h3{font-size:var(--t-md); font-weight:900}
 .up .val{font-size:var(--t-xs); color:var(--muted)}
-.up .val b{color:var(--heal); font-weight:700}
+.up .val b{color:var(--green); font-weight:700}
 .up-foot{grid-column:1/3; display:flex; align-items:center; justify-content:space-between; gap:8px}
 .pips{display:flex; gap:3px; flex-wrap:wrap}
-.pips i{width:12px; height:6px; border-radius:2px; background:var(--line-2)}
-.pips i.on{background:var(--gold)}
-.pips i.next{background:var(--xp); animation:blink 1s ease-in-out infinite}
+.pips i{width:12px; height:7px; transform:skewX(-20deg); background:rgba(255,255,255,.14)}
+.pips i.on{background:var(--gold); box-shadow:0 0 6px rgba(255,207,77,.6)}
+.pips i.next{background:var(--cyan); box-shadow:0 0 8px var(--cyan); animation:blink 1s ease-in-out infinite}
 @keyframes blink{50%{opacity:.35}}
-.buy{height:34px; padding:0 12px; border-radius:10px; font-weight:900; font-size:var(--t-sm); display:inline-flex; align-items:center; gap:6px; background:linear-gradient(180deg,#ffd76b,#f0a92a); color:#2a1a00; white-space:nowrap}
-.buy:disabled{background:var(--panel-2); color:var(--dim)}
+.buy{--c:7px; height:34px; padding:0 14px; display:inline-flex; align-items:center; gap:6px; font-family:var(--f-tech); font-weight:900; font-size:var(--t-sm); white-space:nowrap; color:#2a1a00; --edge-c:linear-gradient(135deg,#fff3c4,#e09a1a); --fill:linear-gradient(180deg,#ffd76b,#e89a1e)}
+.buy:disabled{color:var(--dim); --edge-c:rgba(140,150,200,.25); --fill:rgba(20,24,50,.9)}
 .buy:active:not(:disabled){transform:translateY(2px)}
 
 /* ---------- 모달 ---------- */
-.modal{position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; padding-block:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); background:var(--scrim); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
-.panel{position:relative; width:min(100%,720px); max-height:100%; overflow-y:auto; padding:22px; border-radius:22px; background:linear-gradient(180deg,var(--panel-2),var(--panel)); border:1px solid var(--line-2); box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal{position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; padding-block:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); background:radial-gradient(circle at 50% 45%,rgba(10,14,40,.55),rgba(3,4,12,.88)),repeating-linear-gradient(0deg,rgba(79,227,255,.04) 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,rgba(79,227,255,.04) 0 1px,transparent 1px 40px); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
+.panel{--c:18px; width:min(100%,720px); max-height:100%; overflow-y:auto; padding:22px}
 .panel.narrow{width:min(100%,440px)}
+.p-head{text-align:center; margin-bottom:4px}
 .panel h2.title{font-family:var(--f-display); font-size:34px; line-height:1.1; text-align:center}
 .panel .sub{text-align:center; color:var(--muted); font-size:var(--t-sm); margin-top:4px}
 .stack{display:flex; flex-direction:column; gap:10px}
 
 /* 레벨 업 */
-.lv-panel{overflow:visible; background:none; border:0; box-shadow:none; padding:0; width:min(100%,820px)}
+.lv-panel{width:min(100%,860px); max-height:100%; overflow-y:auto; padding:4px}
 .lv-head{position:relative; text-align:center; padding-block:6px 14px}
-.lv-head::before{content:""; position:absolute; left:50%; top:50%; width:340px; height:340px; margin:-170px 0 0 -170px; border-radius:50%; background:repeating-conic-gradient(rgba(255,201,77,.16) 0 10deg,transparent 10deg 20deg); -webkit-mask:radial-gradient(closest-side,#000 30%,transparent); mask:radial-gradient(closest-side,#000 30%,transparent); animation:spin 14s linear infinite; z-index:-1}
+.lv-head::before{content:""; position:absolute; left:50%; top:50%; width:360px; height:360px; margin:-180px 0 0 -180px; border-radius:50%; background:repeating-conic-gradient(rgba(79,227,255,.13) 0 6deg,transparent 6deg 18deg); -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent); animation:spin 16s linear infinite; z-index:-1}
 @keyframes spin{to{transform:rotate(360deg)}}
-.lv-head h2{font-family:var(--f-display); font-size:44px; line-height:1; color:var(--gold); text-shadow:0 3px 0 #7a4b00,0 0 24px rgba(255,201,77,.6)}
-.lv-head p{color:#e6dcff; font-size:var(--t-sm); margin-top:6px; font-weight:500}
-.cards{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px}
-.card{position:relative; display:flex; flex-direction:column; align-items:center; gap:8px; padding:18px 14px 16px; min-width:0; text-align:center; border-radius:18px; background:linear-gradient(180deg,#2a2350,#1a1531); border:2px solid var(--line-2); box-shadow:0 10px 30px rgba(0,0,0,.4); transition:transform .12s ease, border-color .12s ease; animation:cardIn .32s ease both}
-.card:nth-child(2){animation-delay:.06s} .card:nth-child(3){animation-delay:.12s} .card:nth-child(4){animation-delay:.18s}
-@keyframes cardIn{from{transform:translateY(18px) scale(.96); opacity:0}}
-.card:focus-visible{transform:translateY(-4px); border-color:var(--xp)}
-@media (hover:hover){.card:hover{transform:translateY(-4px); border-color:var(--xp)}}
-.card.locked{pointer-events:none}
-.card img{width:68px; height:68px; flex:none}
-.card .c-body{display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0}
+.lv-head h2{font-family:var(--f-display); font-size:46px; line-height:1; color:var(--gold); text-shadow:0 3px 0 #7a4b00,0 0 26px rgba(255,207,77,.6)}
+.lv-head p{color:#dfe8ff; font-size:var(--t-sm); margin-top:6px; font-weight:500}
+.cards{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px}
+.card{--c:16px; --edge-c:linear-gradient(160deg,#9fdcff,#5d6bff 40%,rgba(93,107,255,.2) 70%,#8f6bff); --fill:linear-gradient(180deg,rgba(26,34,78,.96),rgba(8,10,28,.97)); display:flex; flex-direction:column; align-items:center; gap:8px; padding:12px 14px 16px; min-width:0; text-align:center; transition:transform .14s ease, filter .14s ease; animation:cardIn .36s cubic-bezier(.2,1.3,.4,1) both}
+.card:nth-child(2){animation-delay:.07s} .card:nth-child(3){animation-delay:.14s}
+@keyframes cardIn{from{transform:translateY(26px) scale(.92); opacity:0}}
+.card:focus-visible{transform:translateY(-5px); filter:brightness(1.15)}
+@media (hover:hover){.card:hover{transform:translateY(-5px); filter:brightness(1.15)}}
+.card.p{--edge-c:linear-gradient(160deg,#b8ffe0,#2ecf9a 40%,rgba(46,207,154,.2) 70%,#5fe0d0); --fill:linear-gradient(180deg,rgba(14,48,52,.96),rgba(5,16,20,.97))}
+.card.evo{--edge-c:linear-gradient(160deg,#fff3c4,#ff9a3c 40%,rgba(255,154,60,.25) 70%,#ff5a1a); --fill:linear-gradient(180deg,rgba(78,36,10,.97),rgba(26,10,4,.97))}
+.card.heal,.card.coin{--edge-c:var(--edge-gold)}
+.card .c-top{width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px}
+.card .key{font-family:var(--f-tech); font-size:10px; font-weight:900; color:var(--dim)}
+.card .c-type{font-family:var(--f-tech); font-size:9.5px; font-weight:900; letter-spacing:.3em; color:#9fdcff}
+.card.p .c-type{color:#8ff0c8} .card.evo .c-type{color:#ffd27a} .card.heal .c-type,.card.coin .c-type{color:var(--gold)}
+.medal{position:relative; width:84px; height:84px; display:grid; place-items:center; margin-top:2px}
+.medal::before{content:""; position:absolute; inset:-6px; border-radius:50%; background:conic-gradient(from 0deg,transparent,rgba(79,227,255,.55),transparent 35%,rgba(143,107,255,.5),transparent 70%); animation:spin 4s linear infinite; -webkit-mask:radial-gradient(closest-side,transparent 78%,#000 80%,#000 92%,transparent 94%); mask:radial-gradient(closest-side,transparent 78%,#000 80%,#000 92%,transparent 94%)}
+.card.evo .medal::before{background:conic-gradient(from 0deg,transparent,rgba(255,207,77,.8),transparent 35%,rgba(255,120,40,.7),transparent 70%)}
+.card.p .medal::before{background:conic-gradient(from 0deg,transparent,rgba(102,240,166,.6),transparent 35%,rgba(79,227,255,.5),transparent 70%)}
+.card img{width:70px; height:70px; filter:drop-shadow(0 6px 12px rgba(0,0,0,.5))}
+.card .c-body{display:flex; flex-direction:column; align-items:center; gap:6px; min-width:0; width:100%}
 .card .c-head{display:flex; align-items:center; gap:6px; flex-wrap:wrap; justify-content:center}
 .card .c-name{font-family:var(--f-display); font-size:22px; line-height:1.15}
-.tag{font-size:11px; font-weight:900; padding:2px 8px; border-radius:99px; background:var(--xp); color:#04121a; white-space:nowrap}
-.tag.p{background:var(--heal); color:#03170b}
-.tag.e{background:var(--evo); color:#241000}
-.tag.x{background:var(--gold); color:#241a00}
-.card .c-desc{font-size:var(--t-sm); color:#e4ddff; line-height:1.45}
+.tag{font-family:var(--f-tech); font-size:10px; font-weight:900; letter-spacing:.06em; padding:2px 8px; background:var(--cyan); color:#03121a; white-space:nowrap; clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.tag.p{background:var(--green); color:#03170b} .tag.e{background:var(--orange); color:#241000} .tag.x{background:var(--gold); color:#241a00}
+.card .c-desc{width:100%; font-size:var(--t-sm); color:#e8eeff; line-height:1.45; background:rgba(0,0,0,.3); padding:7px 10px; clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
 .card .c-hint{font-size:var(--t-xs); color:var(--muted)}
-.card .c-hint b{color:var(--evo); font-weight:700}
-.card .key{position:absolute; top:8px; left:10px; font-size:11px; font-weight:900; color:var(--dim)}
-.card.evo{border-color:var(--evo); background:linear-gradient(180deg,#4a2a14,#22140e); box-shadow:0 0 0 1px rgba(255,154,60,.4),0 0 34px rgba(255,154,60,.35)}
-.card.evo::after{content:""; position:absolute; inset:0; border-radius:16px; background:linear-gradient(110deg,transparent 30%,rgba(255,236,190,.22) 45%,transparent 60%); background-size:250% 100%; animation:shine 2.2s linear infinite; pointer-events:none}
+.card .c-hint b{color:var(--orange); font-weight:700}
+.card.evo::after{content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(110deg,transparent 30%,rgba(255,236,190,.2) 45%,transparent 60%); background-size:250% 100%; animation:shine 2.2s linear infinite; pointer-events:none}
 @keyframes shine{from{background-position:120% 0} to{background-position:-130% 0}}
-.lv-foot{display:flex; justify-content:center; gap:10px; margin-top:14px}
+.lv-foot{display:flex; justify-content:center; gap:10px; margin-top:16px}
 @media (max-width:640px){
   .cards{grid-template-columns:1fr; gap:10px}
-  .card{flex-direction:row; text-align:left; align-items:center; padding:12px 14px; gap:12px}
+  .card{display:grid; grid-template-columns:62px minmax(0,1fr); align-items:center; text-align:left; gap:4px 12px; padding:10px 12px 12px}
+  .card .c-top{grid-column:1/3}
+  .medal{width:62px; height:62px}
   .card img{width:54px; height:54px}
   .card .c-body{align-items:flex-start}
   .card .c-head{justify-content:flex-start}
   .card .c-name{font-size:20px}
-  .card .key{display:none}
-  .lv-head h2{font-size:38px}
+  .lv-head h2{font-size:40px}
 }
 
 /* 보물 상자 */
 .chest-stage{position:relative; height:150px; display:grid; place-items:center}
-.chest-rays{position:absolute; width:300px; height:300px; border-radius:50%; background:repeating-conic-gradient(rgba(255,214,107,.28) 0 8deg,transparent 8deg 22deg); -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent); opacity:0; transform:scale(.4); transition:opacity .4s, transform .6s}
+.chest-rays{position:absolute; width:300px; height:300px; border-radius:50%; background:repeating-conic-gradient(rgba(255,214,107,.3) 0 8deg,transparent 8deg 22deg); -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent); opacity:0; transform:scale(.4); transition:opacity .4s, transform .6s}
 .chest-img{position:relative; z-index:1; width:132px; height:121px; filter:drop-shadow(0 10px 16px rgba(0,0,0,.55))}
 .chest-stage.shake .chest-img{animation:shake .12s linear infinite}
 @keyframes shake{25%{transform:translate(-3px,1px) rotate(-3deg)} 75%{transform:translate(3px,-1px) rotate(3deg)}}
@@ -203,108 +262,91 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 @keyframes pop{from{transform:scale(.85)}}
 .chest-stage.open .chest-rays{opacity:1; transform:scale(1); animation:spin 9s linear infinite}
 .rewards{display:flex; flex-direction:column; gap:8px; margin-top:8px}
-.reward{display:flex; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; background:rgba(255,255,255,.05); border:1px solid var(--line-2); animation:cardIn .3s ease both}
-.reward.evo{border-color:var(--evo); background:rgba(255,154,60,.12)}
-.reward img{width:44px; height:44px; flex:none}
+.reward{--c:10px; display:flex; align-items:center; gap:12px; padding:10px 12px; animation:cardIn .3s ease both}
+.reward.evo{--edge-c:var(--edge-gold)}
+.reward img{width:46px; height:46px; flex:none}
 .reward div{min-width:0}
 .reward b{font-weight:900}
-.reward .tag{margin-left:4px; vertical-align:1px}
+.reward .tag{margin-left:6px; vertical-align:2px}
 .reward p{font-size:var(--t-sm); color:var(--muted)}
 
 /* 결과 · 일시정지 */
-.result-title.win{color:var(--gold); text-shadow:0 3px 0 #7a4b00,0 0 24px rgba(255,201,77,.5)}
-.result-title.lose{color:#ffb3c0; text-shadow:0 3px 0 #5e0a1a}
+.result-head{display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:14px}
+.result-title.win{color:var(--gold); text-shadow:0 3px 0 #7a4b00,0 0 24px rgba(255,207,77,.5)}
+.result-title.lose{color:#ffb3c4; text-shadow:0 3px 0 #5e0a1a}
+.result-head .title{text-align:left !important}
+.result-head .sub{text-align:left !important}
+.grade{--c:12px; width:78px; height:78px; display:grid; place-items:center; font-family:var(--f-tech); font-size:44px; font-weight:900; line-height:1}
+.grade.S{color:var(--gold); text-shadow:0 0 18px rgba(255,207,77,.8); --edge-c:var(--edge-gold)}
+.grade.A{color:var(--cyan); text-shadow:0 0 18px rgba(79,227,255,.7)}
+.grade.B{color:var(--green)} .grade.C{color:#c9b0ff} .grade.D{color:var(--muted)}
+.grade small{display:block; font-size:8px; letter-spacing:.3em; color:var(--muted); text-shadow:none; margin-top:-6px}
 .stats{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:16px}
-.stat-box{padding:10px 6px; border-radius:14px; background:rgba(0,0,0,.25); border:1px solid var(--line); text-align:center; min-width:0}
+.stat-box{--c:10px; padding:10px 6px; text-align:center; min-width:0}
 .stat-box span{display:block; font-size:var(--t-xs); color:var(--muted)}
-.stat-box b{display:block; font-family:var(--f-display); font-weight:400; font-size:24px; font-variant-numeric:tabular-nums; line-height:1.2}
+.stat-box b{display:block; font-family:var(--f-tech); font-weight:900; font-size:21px; font-variant-numeric:tabular-nums; line-height:1.3}
 .stat-box.coin b{color:var(--gold)}
-.sec-title{font-size:var(--t-xs); font-weight:900; letter-spacing:.14em; color:var(--muted); margin-top:18px; margin-bottom:8px}
-.dmg-list{display:flex; flex-direction:column; gap:6px}
-.dmg-row{display:grid; grid-template-columns:28px minmax(0,7em) minmax(0,1fr) auto; align-items:center; gap:8px; font-size:var(--t-sm)}
-.dmg-row img{width:28px; height:28px}
+.sec-title{font-family:var(--f-tech); font-size:10px; font-weight:900; letter-spacing:.3em; color:var(--cyan); margin-top:18px; margin-bottom:8px}
+.dmg-list{display:flex; flex-direction:column; gap:7px}
+.dmg-row{display:grid; grid-template-columns:30px minmax(0,7em) minmax(0,1fr) auto; align-items:center; gap:8px; font-size:var(--t-sm)}
+.dmg-row img{width:30px; height:30px}
 .dmg-row .nm{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:700}
-.dmg-row .bar{height:8px; border-radius:4px; background:rgba(255,255,255,.06); overflow:hidden}
-.dmg-row .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--violet),var(--xp))}
-.dmg-row .v{font-variant-numeric:tabular-nums; color:var(--muted); min-width:4.5em; text-align:right}
-.earn{margin-top:14px; padding:10px 14px; border-radius:14px; background:rgba(255,201,77,.08); border:1px solid rgba(255,201,77,.35); font-size:var(--t-sm); display:flex; flex-wrap:wrap; gap:4px 14px; justify-content:center}
-.earn b{color:var(--gold)}
+.dmg-row .bar{height:9px; background:rgba(255,255,255,.07); overflow:hidden; clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%)}
+.dmg-row .bar i{display:block; height:100%; background:linear-gradient(90deg,var(--violet),var(--cyan)); box-shadow:0 0 8px rgba(79,227,255,.5)}
+.dmg-row .v{font-family:var(--f-tech); font-size:12px; color:var(--muted); min-width:4.5em; text-align:right}
+.earn{--c:10px; --edge-c:var(--edge-gold); margin-top:14px; padding:10px 14px; font-size:var(--t-sm); display:flex; flex-wrap:wrap; gap:4px 14px; justify-content:center}
+.earn b{color:var(--gold); font-family:var(--f-tech)}
 .actions{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px}
-.build{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:14px}
+.build{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:16px}
 .build-col{display:flex; flex-direction:column; gap:6px; min-width:0}
-.build-item{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; background:rgba(0,0,0,.22); min-width:0}
-.build-item img{width:30px; height:30px; flex:none}
+.build-item{--c:8px; display:flex; align-items:center; gap:8px; padding:6px 8px; min-width:0}
+.build-item img{width:32px; height:32px; flex:none}
 .build-item div{min-width:0}
 .build-item b{display:block; font-size:var(--t-sm); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.build-item span{display:block; font-size:var(--t-xs); color:var(--muted)}
-.build-item.evo b{color:var(--evo)}
+.build-item span{display:block; font-size:var(--t-xs); color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.build-item.evo{--edge-c:var(--edge-gold)}
+.build-item.evo b{color:var(--orange)}
 .empty{font-size:var(--t-xs); color:var(--dim); padding:6px 8px}
 .evo-hints{display:flex; flex-direction:column; gap:4px; font-size:var(--t-xs); color:var(--muted)}
-.evo-hints b{color:var(--evo); font-weight:700}
-.evo-hints .ready{color:var(--heal)}
+.evo-hints b{color:var(--orange); font-weight:700}
+.evo-hints .ready{color:var(--green)}
 @media (max-width:520px){
   .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .build-item img{width:26px; height:26px}
-  .build-item span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .panel{padding:18px 16px}
+  .build-item img{width:28px; height:28px}
+  .status{width:190px}
+  .clock{position:static; transform:none; margin-left:auto; min-width:100px; padding:4px 10px 6px}
+  #timer{font-size:20px}
+  .stage{grid-template-columns:30px 62px minmax(0,1fr) 30px; gap:8px}
+  .stage .arrow{width:30px}
+  .thumb{width:62px; height:62px}
+  .stage-info h2{font-size:22px}
+  .grade{width:64px; height:64px; font-size:36px}
 }
 
 /* 설정 · 하는 법 */
-.toggle{display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:12px 14px; border-radius:14px; background:rgba(0,0,0,.22); border:1px solid var(--line); font-weight:700; text-align:left}
-.toggle .sw{position:relative; width:46px; height:26px; border-radius:13px; background:var(--line); flex:none; transition:background .15s}
-.toggle .sw::after{content:""; position:absolute; left:3px; top:3px; width:20px; height:20px; border-radius:50%; background:#cfc8ea; transition:transform .15s}
-.toggle[aria-checked="true"] .sw{background:var(--violet)}
-.toggle[aria-checked="true"] .sw::after{transform:translateX(20px); background:#fff}
-.help{display:flex; flex-direction:column; gap:12px; margin-top:14px; font-size:var(--t-sm); color:#e4ddff}
+.toggle{--c:9px; display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; padding:12px 14px; font-weight:700; text-align:left}
+.toggle .sw{position:relative; width:48px; height:24px; flex:none; background:rgba(255,255,255,.12); clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%); transition:background .15s}
+.toggle .sw::after{content:""; position:absolute; left:5px; top:4px; width:16px; height:16px; background:#cfd6ee; clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%); transition:transform .15s}
+.toggle[aria-checked="true"] .sw{background:linear-gradient(90deg,#1f6bff,var(--cyan))}
+.toggle[aria-checked="true"] .sw::after{transform:translateX(22px); background:#fff}
+.help{display:flex; flex-direction:column; gap:12px; margin-top:14px; font-size:var(--t-sm); color:#e4e9ff}
 .help h3{font-family:var(--f-display); font-size:var(--t-lg); color:var(--text)}
 .help ul{margin:4px 0 0; padding-left:18px; display:flex; flex-direction:column; gap:3px}
 .help b{color:var(--gold)}
 .help-items{display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px; margin-top:6px}
-.help-items div{display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:10px; background:rgba(0,0,0,.22)}
-.help-items img{width:28px; height:28px; flex:none}
+.help-items div{display:flex; align-items:center; gap:8px; padding:6px 8px; background:rgba(0,0,0,.25)}
+.help-items img{width:30px; height:30px; flex:none}
 .evo-table{display:flex; flex-direction:column; gap:12px; margin-top:6px}
-.codex-item{display:flex; flex-direction:column; gap:6px; padding-bottom:12px; border-bottom:1px solid var(--line)}
-.evo-row{display:grid; grid-template-columns:26px auto 26px minmax(0,1fr); align-items:center; gap:4px 8px; padding-left:8px; font-size:var(--t-xs)}
-.evo-row img{width:26px; height:26px}
+.codex-item{display:flex; flex-direction:column; gap:6px; padding-bottom:12px; border-bottom:1px solid rgba(110,225,255,.15)}
+.evo-row{display:grid; grid-template-columns:28px auto 28px minmax(0,1fr); align-items:center; gap:4px 8px; padding-left:8px; font-size:var(--t-xs)}
+.evo-row img{width:28px; height:28px}
 .evo-row .op{color:var(--dim); white-space:nowrap}
-.evo-row b{color:var(--evo); font-size:var(--t-sm); min-width:0}
+.evo-row b{color:var(--orange); font-size:var(--t-sm); min-width:0}
 .evo-row p{grid-column:1/-1; color:var(--muted)}
 
-/* ---------- 게임 화면답게 다듬기 ---------- */
-.xptrack{height:14px; background:linear-gradient(180deg,#07051a,#1a1434)}
-.xptrack i::after{content:""; position:absolute; left:0; right:0; top:0; height:42%; background:rgba(255,255,255,.35)}
-.xptrack::after{content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg,transparent 0 calc(5% - 1px),rgba(0,0,0,.45) calc(5% - 1px) 5%); pointer-events:none}
-#timer{padding:5px 16px 7px; margin-top:-8px; border-radius:0 0 16px 16px; background:linear-gradient(180deg,rgba(26,18,52,.92),rgba(10,8,24,.88)); border:1px solid rgba(160,140,255,.28); border-top:0; box-shadow:0 6px 16px rgba(0,0,0,.4)}
-.chip{background:linear-gradient(180deg,rgba(34,26,66,.92),rgba(12,9,28,.9)); border:1px solid rgba(170,150,255,.25); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 8px rgba(0,0,0,.35)}
-.chip.lv{color:#fff; background:linear-gradient(180deg,#3d8bff,#1f4fc4); border-color:#8fc0ff; text-shadow:0 1px 0 rgba(0,0,0,.4)}
-.slot{background:none; border:1px solid rgba(255,255,255,.14); box-shadow:0 3px 8px rgba(0,0,0,.4)}
-.slot img,.slot.sm img{inset:0; width:100%; height:100%; border-radius:6px}
-.icon-btn{background:linear-gradient(180deg,rgba(40,30,80,.94),rgba(14,10,32,.92)); box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 4px 0 rgba(0,0,0,.45)}
-.icon-btn:active{transform:translateY(3px); box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 1px 0 rgba(0,0,0,.45)}
-.panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.1),inset 0 0 0 1px rgba(255,255,255,.03),0 24px 70px rgba(0,0,0,.6)}
-.panel:not(.lv-panel)::before{content:""; position:absolute; left:18px; right:18px; top:0; height:2px; background:linear-gradient(90deg,transparent,rgba(190,170,255,.75),transparent)}
-.btn{box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 4px 0 rgba(0,0,0,.45); transition:transform .08s,box-shadow .08s}
-.btn:active:not(:disabled){transform:translateY(3px); box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 1px 0 rgba(0,0,0,.45)}
-.btn.primary{box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 4px 0 #1c2f86}
-.btn.gold{box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 4px 0 #8a5a10}
-.ghost,.wallet{background:linear-gradient(180deg,rgba(34,26,66,.92),rgba(12,9,28,.9)); box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 3px 0 rgba(0,0,0,.4)}
-.card{--band:linear-gradient(90deg,#5d8bff,#8f6bff); padding-top:24px; overflow:hidden}
-.card::before{content:""; position:absolute; left:0; right:0; top:0; height:7px; background:var(--band)}
-.card.p{--band:linear-gradient(90deg,#3ccf9a,#5fe0d0)}
-.card.evo{--band:linear-gradient(90deg,#ffe08a,#ff9a3c,#ff5a1a)}
-.card.heal,.card.coin{--band:linear-gradient(90deg,#ffd76b,#f0a92a)}
-.card .key{top:13px}
-.card img{border-radius:16px; box-shadow:0 8px 18px rgba(0,0,0,.45),0 0 0 2px rgba(255,255,255,.1)}
-.card .c-desc{background:rgba(0,0,0,.24); border-radius:10px; padding:6px 10px}
-.hero-spot{height:clamp(64px,15vh,150px); flex:none}
-.reward img,.build-item img,.up img,.dmg-row img,.help-items img,.evo-row img{border-radius:22%}
-.up{background:linear-gradient(180deg,var(--panel-2),var(--panel)); box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 6px 16px rgba(0,0,0,.3)}
-.stage{box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 10px 30px rgba(0,0,0,.4)}
-@media (max-width:640px){ .card{padding-top:18px} }
-.panel.lv-panel{box-shadow:none}
-
 @media (prefers-reduced-motion:reduce){
-  .lv-head::before,.card.evo::after,.chest-stage.open .chest-rays{animation:none}
+  .lv-head::before,.card.evo::after,.chest-stage.open .chest-rays,.medal::before,.start::after{animation:none}
   .card,.reward{animation:none}
 }
 </style>
@@ -316,49 +358,55 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
   <div class="xpbar"><div class="xptrack"><i id="xpfill"></i></div></div>
   <div class="hud-row">
     <div class="hud-left">
-      <div class="chips">
-        <span class="chip lv" id="lvl">Lv 1</span>
-        <span class="chip"><svg class="skull" viewBox="0 0 16 16" aria-hidden="true"><path fill="#e9e3ff" d="M8 1C4.1 1 1.5 3.6 1.5 7c0 2 1 3.4 2.3 4.2V14h2v-1.6h1.2V14h2v-1.6h1.2V14h2v-2.8c1.3-.8 2.3-2.2 2.3-4.2C14.5 3.6 11.9 1 8 1zM5.4 9.6a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm5.2 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg><span id="kills" class="num">0</span></span>
-        <span class="chip"><span class="coin-dot"></span><span id="coins" class="num">0</span></span>
+      <div class="status hx">
+        <div class="portrait"><img id="portrait" alt=""></div>
+        <div class="st-top">
+          <span class="lv">LV<b id="lvl">1</b></span>
+          <span class="mini"><svg class="skull" viewBox="0 0 16 16" aria-hidden="true"><path fill="#e9e3ff" d="M8 1C4.1 1 1.5 3.6 1.5 7c0 2 1 3.4 2.3 4.2V14h2v-1.6h1.2V14h2v-1.6h1.2V14h2v-2.8c1.3-.8 2.3-2.2 2.3-4.2C14.5 3.6 11.9 1 8 1zM5.4 9.6a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2zm5.2 0a1.6 1.6 0 1 1 0-3.2 1.6 1.6 0 0 1 0 3.2z"/></svg><span id="kills">0</span></span>
+          <span class="mini"><span class="coin-dot"></span><span id="coins">0</span></span>
+        </div>
+        <div class="hpbar" id="hpbar"><i id="hpghost"></i><i id="hpfill"></i><span id="hptext">100/100</span></div>
       </div>
       <div class="slots"><div class="slot-row" id="wslots"></div><div class="slot-row" id="pslots"></div></div>
     </div>
-    <div id="timer">00:00</div>
-    <div class="hud-right"><button class="icon-btn" id="pauseBtn" aria-label="일시정지"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" rx="1" fill="#f5f1ff"/><rect x="9.5" y="2" width="3.5" height="12" rx="1" fill="#f5f1ff"/></svg></button></div>
+    <div class="clock hx"><span class="label">SURVIVE</span><div id="timer">00:00</div><div class="dawn" title="새벽까지"><i id="dawnfill"></i></div></div>
+    <button class="icon-btn hx" id="pauseBtn" aria-label="일시정지"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" fill="#e6f8ff"/><rect x="9.5" y="2" width="3.5" height="12" fill="#e6f8ff"/></svg></button>
   </div>
-  <div id="bossbar" hidden><div id="bossname">보스</div><div class="bb"><i id="bossfill"></i></div></div>
-  <div id="toast" role="status" aria-live="polite"></div>
+  <div id="bossbar" class="hx" hidden><div class="bb-head"><span class="label hot">BOSS</span><span id="bossname">보스</span><span class="label hot">BOSS</span></div><div class="bb"><i id="bossfill"></i></div></div>
+  <div id="toast" class="hx" role="status" aria-live="polite"></div>
 </div>
-<div id="banner" aria-live="assertive"><div class="in"><b id="bannerT">보스 출현</b><span id="bannerS"></span></div></div>
+<div id="banner" aria-live="assertive"><div class="bn-in"><span id="bannerL">WARNING</span><b id="bannerT">보스 출현</b><span id="bannerS"></span></div></div>
 <div id="joy" hidden><i></i></div>
 
 <!-- 메인 메뉴 -->
 <section id="menu" class="screen">
   <div class="topbar">
-    <span class="wallet"><span class="coin-dot"></span><span id="mCoins">0</span></span>
-    <div style="display:flex; gap:8px">
-      <button class="ghost" id="helpBtn">하는 법</button>
-      <button class="ghost" id="setBtn">설정</button>
+    <span class="wallet hx"><span class="coin-dot"></span><span id="mCoins">0</span></span>
+    <div class="top-actions">
+      <button class="ghost hx" id="helpBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#4fe3ff" stroke-width="1.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4" fill="none" stroke="#e6f8ff" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="#e6f8ff"/></svg>하는 법</button>
+      <button class="ghost hx" id="setBtn" aria-label="설정"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#e6f8ff" d="M9.2 1l.4 1.9 1.3.6 1.7-1 1.2 1.2-1 1.7.6 1.3 1.9.4v1.7l-1.9.4-.6 1.3 1 1.7-1.2 1.2-1.7-1-1.3.6-.4 1.9H7.5l-.4-1.9-1.3-.6-1.7 1-1.2-1.2 1-1.7-.6-1.3L1.4 9V7.3l1.9-.4.6-1.3-1-1.7 1.2-1.2 1.7 1 1.3-.6.4-1.9zM8.3 5.6a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg></button>
     </div>
   </div>
   <div class="menu-main">
-    <p class="eyebrow">새벽까지 10분, 버텨라</p>
+    <div class="eyebrow"><span class="label">SHADOW RAID</span><p>새벽까지 10분, 버텨라</p></div>
     <h1 class="logo"><span class="a">그림자</span><span class="b">습격</span></h1>
     <div class="hero-spot" id="heroSpot" aria-hidden="true"></div>
-    <div class="stage" id="stageCard">
-      <button class="arrow" id="stPrev" aria-label="이전 스테이지">‹</button>
+    <div class="stage hx" id="stageCard">
+      <button class="arrow hx" id="stPrev" aria-label="이전 스테이지">‹</button>
+      <div class="thumb hx"><canvas id="stThumb" width="156" height="156" aria-hidden="true"></canvas></div>
       <div class="stage-info">
-        <div class="stage-no" id="stNo">STAGE 1</div>
+        <div class="stage-no" id="stNo">STAGE 01</div>
         <h2 id="stName">네온 거리</h2>
+        <div class="danger-row" id="stDanger"></div>
         <p id="stDesc"></p>
         <p id="stBest"></p>
       </div>
-      <button class="arrow" id="stNext" aria-label="다음 스테이지">›</button>
+      <button class="arrow hx" id="stNext" aria-label="다음 스테이지">›</button>
     </div>
-    <button class="start" id="startBtn">출격!</button>
+    <div class="start-wrap"><button class="start" id="startBtn"><b>출격!</b><small>DEPLOY</small></button></div>
     <div class="row2">
-      <button class="btn" id="shopBtn">강화 <span class="badge-dot" id="shopBadge" hidden>!</span></button>
-      <button class="btn" id="codexBtn">무기 도감</button>
+      <button class="btn hx" id="shopBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#4fe3ff" d="M8 1.5l5.5 5.2H10V14H6V6.7H2.5z"/></svg>강화 <span class="badge-dot" id="shopBadge" hidden>!</span></button>
+      <button class="btn hx" id="codexBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" d="M2 3.2c2-.9 4-.9 6 .4v10c-2-1.3-4-1.3-6-.4zM14 3.2c-2-.9-4-.9-6 .4v10c2-1.3 4-1.3 6-.4z"/></svg>무기 도감</button>
     </div>
     <p class="foot-note" id="footNote">WASD·방향키로 움직이고 Esc로 멈춰요</p>
   </div>
@@ -367,10 +415,11 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 <!-- 강화 -->
 <section id="shop" class="screen" hidden>
   <div class="topbar">
-    <button class="ghost" id="shopBack">‹ 돌아가기</button>
-    <span class="wallet"><span class="coin-dot"></span><span id="sCoins">0</span></span>
+    <button class="ghost hx" id="shopBack">‹ 돌아가기</button>
+    <span class="wallet hx"><span class="coin-dot"></span><span id="sCoins">0</span></span>
   </div>
-  <div class="shop-head">
+  <div class="shop-head hx">
+    <span class="label">UPGRADE LAB</span>
     <h2>강화</h2>
     <p>코인으로 영구 능력을 올려요. 판이 끝나도 사라지지 않아요.</p>
   </div>
@@ -379,87 +428,88 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 
 <!-- 레벨 업 -->
 <div class="modal" id="lvModal" hidden>
-  <div class="panel lv-panel" role="dialog" aria-modal="true" aria-labelledby="lvTitle">
-    <div class="lv-head"><h2 id="lvTitle">레벨 업!</h2><p id="lvSub">하나를 골라요</p></div>
+  <div class="lv-panel" role="dialog" aria-modal="true" aria-labelledby="lvTitle">
+    <div class="lv-head"><span class="label">LEVEL UP</span><h2 id="lvTitle">레벨 업!</h2><p id="lvSub">하나를 골라요</p></div>
     <div class="cards" id="cards"></div>
-    <div class="lv-foot"><button class="btn" id="rerollBtn">다시 뽑기 <span class="badge-dot" id="rerollN">0</span></button></div>
+    <div class="lv-foot"><button class="btn hx" id="rerollBtn">다시 뽑기 <span class="badge-dot" id="rerollN">0</span></button></div>
   </div>
 </div>
 
 <!-- 보물 상자 -->
 <div class="modal" id="chestModal" hidden>
-  <div class="panel narrow" role="dialog" aria-modal="true" aria-labelledby="chestTitle">
-    <h2 class="title" id="chestTitle" style="color:var(--gold)">보물 상자!</h2>
+  <div class="panel narrow hx gold" role="dialog" aria-modal="true" aria-labelledby="chestTitle">
+    <div class="p-head"><span class="label gold">SUPPLY DROP</span><h2 class="title" id="chestTitle" style="color:var(--gold)">보물 상자!</h2></div>
     <div class="chest-stage" id="chestStage"><div class="chest-rays"></div><img class="chest-img" id="chestImg" alt=""></div>
     <div class="rewards" id="rewards"></div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn gold" id="chestOk" hidden>받기</button></div>
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn gold hx" id="chestOk" hidden>받기</button></div>
   </div>
 </div>
 
 <!-- 일시정지 -->
 <div class="modal" id="pauseModal" hidden>
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
-    <h2 class="title" id="pauseTitle">일시정지</h2>
-    <p class="sub" id="pauseSub"></p>
+  <div class="panel hx" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
+    <div class="p-head"><span class="label">SYSTEM PAUSED</span><h2 class="title" id="pauseTitle">일시정지</h2><p class="sub" id="pauseSub"></p></div>
     <div class="actions">
-      <button class="btn primary" id="resumeBtn">계속하기</button>
-      <button class="btn danger" id="quitBtn">포기하기</button>
+      <button class="btn primary hx" id="resumeBtn">계속하기</button>
+      <button class="btn danger hx" id="quitBtn">포기하기</button>
     </div>
     <div class="build">
-      <div class="build-col"><div class="sec-title" style="margin:0">무기</div><div class="stack" id="pW" style="gap:6px"></div></div>
-      <div class="build-col"><div class="sec-title" style="margin:0">보조 장비</div><div class="stack" id="pP" style="gap:6px"></div></div>
+      <div class="build-col"><div class="sec-title" style="margin:0">WEAPONS · 무기</div><div class="stack" id="pW" style="gap:6px"></div></div>
+      <div class="build-col"><div class="sec-title" style="margin:0">GEAR · 보조 장비</div><div class="stack" id="pP" style="gap:6px"></div></div>
     </div>
-    <div class="sec-title">진화 조건</div>
+    <div class="sec-title">EVOLUTION · 진화 조건</div>
     <div class="evo-hints" id="pEvo"></div>
-    <div class="row2" style="margin-top:10px">
-      <button class="toggle" role="switch" data-set="sfx" aria-checked="true">효과음<span class="sw"></span></button>
-      <button class="toggle" role="switch" data-set="music" aria-checked="true">배경음악<span class="sw"></span></button>
+    <div class="row2" style="margin-top:12px">
+      <button class="toggle hx" role="switch" data-set="sfx" aria-checked="true">효과음<span class="sw"></span></button>
+      <button class="toggle hx" role="switch" data-set="music" aria-checked="true">배경음악<span class="sw"></span></button>
     </div>
   </div>
 </div>
 
 <!-- 결과 -->
 <div class="modal" id="resultModal" hidden>
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="resTitle">
-    <h2 class="title result-title" id="resTitle">쓰러졌어요</h2>
-    <p class="sub" id="resSub"></p>
-    <div class="stats">
-      <div class="stat-box"><span>버틴 시간</span><b id="rTime">00:00</b></div>
-      <div class="stat-box"><span>처치</span><b id="rKills">0</b></div>
-      <div class="stat-box"><span>레벨</span><b id="rLv">1</b></div>
-      <div class="stat-box coin"><span>얻은 코인</span><b id="rCoins">0</b></div>
+  <div class="panel hx" id="resultPanel" role="dialog" aria-modal="true" aria-labelledby="resTitle">
+    <div class="result-head">
+      <div><span class="label" id="resLabel">MISSION REPORT</span><h2 class="title result-title" id="resTitle">쓰러졌어요</h2><p class="sub" id="resSub"></p></div>
+      <div class="grade hx" id="rGrade">C<small>RANK</small></div>
     </div>
-    <div class="earn" id="rEarn"></div>
-    <div class="sec-title">무기별 피해</div>
+    <div class="stats">
+      <div class="stat-box hx"><span>버틴 시간</span><b id="rTime">00:00</b></div>
+      <div class="stat-box hx"><span>처치</span><b id="rKills">0</b></div>
+      <div class="stat-box hx"><span>레벨</span><b id="rLv">1</b></div>
+      <div class="stat-box hx gold coin"><span>얻은 코인</span><b id="rCoins">0</b></div>
+    </div>
+    <div class="earn hx" id="rEarn"></div>
+    <div class="sec-title">DAMAGE · 무기별 피해</div>
     <div class="dmg-list" id="rDmg"></div>
     <div class="actions">
-      <button class="btn primary" id="againBtn">다시 도전</button>
-      <button class="btn" id="homeBtn">메인으로</button>
+      <button class="btn primary hx" id="againBtn">다시 도전</button>
+      <button class="btn hx" id="homeBtn">메인으로</button>
     </div>
   </div>
 </div>
 
 <!-- 설정 -->
 <div class="modal" id="setModal" hidden>
-  <div class="panel narrow" role="dialog" aria-modal="true" aria-labelledby="setTitle">
-    <h2 class="title" id="setTitle">설정</h2>
+  <div class="panel narrow hx" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+    <div class="p-head"><span class="label">SETTINGS</span><h2 class="title" id="setTitle">설정</h2></div>
     <div class="stack" style="margin-top:16px">
-      <button class="toggle" role="switch" data-set="sfx" aria-checked="true">효과음<span class="sw"></span></button>
-      <button class="toggle" role="switch" data-set="music" aria-checked="true">배경음악<span class="sw"></span></button>
-      <button class="toggle" role="switch" data-set="nums" aria-checked="true">피해 숫자 보기<span class="sw"></span></button>
-      <button class="toggle" role="switch" data-set="shake" aria-checked="true">화면 흔들림<span class="sw"></span></button>
-      <button class="btn danger" id="resetBtn">기록 모두 지우기</button>
-      <button class="btn primary" id="setClose">닫기</button>
+      <button class="toggle hx" role="switch" data-set="sfx" aria-checked="true">효과음<span class="sw"></span></button>
+      <button class="toggle hx" role="switch" data-set="music" aria-checked="true">배경음악<span class="sw"></span></button>
+      <button class="toggle hx" role="switch" data-set="nums" aria-checked="true">피해 숫자 보기<span class="sw"></span></button>
+      <button class="toggle hx" role="switch" data-set="shake" aria-checked="true">화면 흔들림<span class="sw"></span></button>
+      <button class="btn danger hx" id="resetBtn">기록 모두 지우기</button>
+      <button class="btn primary hx" id="setClose">닫기</button>
     </div>
   </div>
 </div>
 
 <!-- 하는 법 / 도감 -->
 <div class="modal" id="helpModal" hidden>
-  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
-    <h2 class="title" id="helpTitle">하는 법</h2>
+  <div class="panel hx" role="dialog" aria-modal="true" aria-labelledby="helpTitle">
+    <div class="p-head"><span class="label" id="helpLabel">BRIEFING</span><h2 class="title" id="helpTitle">하는 법</h2></div>
     <div class="help" id="helpBody"></div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn primary" id="helpClose">알겠어요</button></div>
+    <div class="actions" style="grid-template-columns:1fr"><button class="btn primary hx" id="helpClose">알겠어요</button></div>
   </div>
 </div>
 <script>
@@ -1220,11 +1270,12 @@ const GROUND = {
   },
 };
 const patCache = {};
-function groundPattern(g, si) {
-  if (patCache['g' + si]) return patCache['g' + si];
+function groundTile(si) {
+  if (patCache['t' + si]) return patCache['t' + si];
   const c = newCanvas(512, 512); GROUND[STAGES[si].ground](c.getContext('2d'), 512);
-  return (patCache['g' + si] = g.createPattern(c, 'repeat'));
+  return (patCache['t' + si] = c);
 }
+function groundPattern(g, si) { return patCache['g' + si] || (patCache['g' + si] = g.createPattern(groundTile(si), 'repeat')); }
 // 크게 번지는 명암 얼룩 (1152 주기라 512 타일 반복을 가려 줘요)
 function macroPattern(g, si) {
   if (patCache['m' + si]) return patCache['m' + si];
@@ -1522,13 +1573,16 @@ function drawDrone(g, x, y, t, evo) {
   g.fillStyle = '#121620'; g.beginPath(); g.arc(x + 3.5, y + .5, 2.6, 0, TAU); g.fill();
 }
 
-/* ---------- 주인공: 매 프레임 직접 그려요 (걷기·조준·반동·목도리 흔들림·눈 깜빡임) ---------- */
-const HERO = { jacket: '#3b6fb3', jacketD: '#1d3a6c', hood: '#2c4a85', skin: '#ffd9b8', hair: '#3a2418', scarf: '#ff7a2f', scarfD: '#b8461a', boot: '#3a2a22', pants: '#20263c' };
+/* ---------- 주인공: 우주복 차림. 매 프레임 직접 그려요 (걷기·조준·반동·목도리·눈 깜빡임·계기판 불빛) ---------- */
+const HERO = { suit: '#eef2fa', suitM: '#c3cbe0', suitD: '#7c88a6', trim: '#ff7a2f', glow: '#4fe3ff', visor: '#0b1734', boot: '#4a5470', pack: '#dfe5f2', skin: '#ffd9b8', scarf: '#ff7a2f', scarfD: '#b8461a' };
 const HS = 1.2; // 주인공 크기 배율
 const heroBob = H => (H.moving ? -Math.abs(Math.cos(H.walk)) * 2.2 : Math.sin(H.t * 2.6) * .7) * HS;
 const heroFlip = H => Math.cos(H.aimA) < 0 ? -1 : 1;
-function heroMuzzle(H) { const L = ((H.evo ? 31 : 27) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
-function heroLantern(H) { return [H.x - heroFlip(H) * 12 * HS, H.y + heroBob(H) + 9.5 * HS]; }
+const heroAt = (H, lx, ly) => [H.x + heroFlip(H) * lx * HS, H.y + heroBob(H) + ly * HS];
+function heroMuzzle(H) { const L = ((H.evo ? 31 : 26.5) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
+const heroLantern = H => heroAt(H, -13.2, -4.5);
+const heroAntenna = H => heroAt(H, -6, -36.5);
+const heroThruster = H => heroAt(H, -11, 7);
 function updateScarf(H, dt) {
   const n = 7, seg = 4.2 * HS, flip = heroFlip(H), ax = H.x - flip * HS, ay = H.y - 9 * HS + heroBob(H);
   if (!H.scarf) H.scarf = Array.from({ length: n }, (_, i) => ({ x: ax - flip * i * seg, y: ay + i, px: ax - flip * i * seg, py: ay + i }));
@@ -1545,7 +1599,7 @@ function drawScarf(g, S) {
   const n = S.length, L = [], R = [];
   for (let i = 0; i < n; i++) {
     const a = S[Math.max(0, i - 1)], b = S[Math.min(n - 1, i + 1)]; let tx = b.x - a.x, ty = b.y - a.y; const d = Math.hypot(tx, ty) || 1; tx /= d; ty /= d;
-    const w = lerp(3.2, 1.3, i / (n - 1)) * HS; L.push([S[i].x - ty * w, S[i].y + tx * w]); R.push([S[i].x + ty * w, S[i].y - tx * w]);
+    const w = lerp(3, 1.2, i / (n - 1)) * HS; L.push([S[i].x - ty * w, S[i].y + tx * w]); R.push([S[i].x + ty * w, S[i].y - tx * w]);
   }
   g.beginPath(); L.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); for (let i = n - 1; i >= 0; i--) g.lineTo(R[i][0], R[i][1]); g.closePath();
   g.fillStyle = lin(g, S[0].x, S[0].y, S[n - 1].x, S[n - 1].y, [[0, HERO.scarf], [1, HERO.scarfD]]); g.fill();
@@ -1553,64 +1607,100 @@ function drawScarf(g, S) {
   g.strokeStyle = 'rgba(255,220,180,.55)'; g.lineWidth = .8; g.beginPath(); S.forEach((p, i) => i ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke();
 }
 function drawHero(g, H) {
-  const flip = heroFlip(H), bob = heroBob(H), aim = flip > 0 ? H.aimA : Math.PI - H.aimA, step = H.moving ? Math.sin(H.walk) : 0;
+  const flip = heroFlip(H), aim = flip > 0 ? H.aimA : Math.PI - H.aimA, step = H.moving ? Math.sin(H.walk) : 0, t = H.t, OL = dk(HERO.suitD, .45);
   drawScarf(g, H.scarf);
-  g.save(); g.translate(H.x, H.y + bob); g.scale(flip * HS, HS);
-  const leg = (x, a, col) => { g.save(); g.translate(x, 3); g.rotate(a); g.fillStyle = col; rr(g, -2.6, 0, 5.2, 9, 2.4); g.fill(); g.fillStyle = HERO.boot; rr(g, -2.8, 7, 7, 4.2, 2); g.fill(); g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(-1.8, 7.6, 4, 1); g.restore(); };
-  leg(-2.5, step * .6, dk(HERO.pants, .3));
-  g.fillStyle = lin(g, -14, 0, -6, 0, [[0, '#4a2f1c'], [1, '#86582f']]); rr(g, -13.5, -10, 8, 13, 3); g.fill(); g.lineWidth = .8; g.strokeStyle = '#24160a'; g.stroke();
-  g.fillStyle = 'rgba(255,255,255,.12)'; g.fillRect(-12.5, -9, 6, 1.4);
-  g.strokeStyle = '#2a2a34'; g.lineWidth = .8; g.beginPath(); g.moveTo(-12, 3); g.lineTo(-12, 6); g.stroke();
-  g.fillStyle = '#2a2e3c'; rr(g, -14.6, 5.6, 5.2, 7.4, 1.6); g.fill();
-  g.fillStyle = rad(g, -12, 9.4, .3, -12, 9.4, 3, [[0, '#ffffff'], [.4, '#ffe08a'], [1, '#ff9a2a']]); g.beginPath(); g.ellipse(-12, 9.4, 1.8, 2.6, 0, 0, TAU); g.fill();
-  const torso = new Path2D(); rrPath(torso, -8, -10.5, 16, 15, 6);
-  g.fillStyle = lin(g, -8, -10, 8, 5, [[0, lt(HERO.jacket, .3)], [.5, HERO.jacket], [1, HERO.jacketD]]); g.fill(torso);
-  g.save(); g.clip(torso); g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(-8, 0, 16, 6); g.restore();
-  g.lineWidth = .9; g.strokeStyle = dk(HERO.jacketD, .55); g.stroke(torso);
-  g.strokeStyle = 'rgba(210,230,255,.55)'; g.lineWidth = .8; g.beginPath(); g.moveTo(2.5, -8); g.lineTo(2.5, 1); g.stroke();
-  g.fillStyle = '#3a2416'; g.fillRect(-8, 1, 16, 2.6); g.fillStyle = '#ffd06b'; g.fillRect(1.2, 1, 3, 2.6);
-  g.fillStyle = lin(g, -6, -12, 6, -8, [[0, '#ffa060'], [1, HERO.scarfD]]); g.beginPath(); g.ellipse(0, -9.5, 7.2, 3, 0, 0, TAU); g.fill(); g.lineWidth = .7; g.strokeStyle = '#6a2008'; g.stroke();
-  leg(2.5, -step * .6, HERO.pants);
+  g.save(); g.translate(H.x, H.y + heroBob(H)); g.scale(flip * HS, HS);
+  const leg = (x, a, back) => {
+    g.save(); g.translate(x, 3); g.rotate(a); g.lineWidth = .7; g.strokeStyle = OL;
+    g.fillStyle = lin(g, -3, 0, 3, 0, back ? [[0, HERO.suitD], [1, HERO.suitM]] : [[0, HERO.suitM], [.5, HERO.suit], [1, HERO.suitM]]); rr(g, -2.9, 0, 5.8, 9, 2.6); g.fill(); g.stroke();
+    g.fillStyle = back ? dk(HERO.trim, .35) : HERO.trim; g.fillRect(-2.9, 4, 5.8, 1.4);
+    g.fillStyle = lin(g, 0, 7, 0, 12, [[0, lt(HERO.boot, .3)], [1, dk(HERO.boot, .35)]]); rr(g, -3.2, 7.4, 7.8, 4.8, 2); g.fill(); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.25)'; g.fillRect(-2.4, 8, 5, .9);
+    g.restore();
+  };
+  leg(-2.6, step * .6, true);
+  // 생명유지 배낭: 산소통 · 빛줄 · 분사구
+  g.lineWidth = .8; g.strokeStyle = OL;
+  g.fillStyle = lin(g, -18, -10, -15, 0, [[0, '#7a849c'], [.5, '#eef2fa'], [1, '#7a849c']]); rr(g, -18.4, -10.5, 3.4, 12.5, 1.7); g.fill(); g.stroke();
+  g.fillStyle = lin(g, -16, -12, -7, 4, [[0, HERO.pack], [1, dk(HERO.pack, .32)]]); rr(g, -15.6, -12.2, 9.2, 15.4, 3); g.fill(); g.stroke();
+  g.fillStyle = HERO.glow; g.fillRect(-14, -9.5, 1.6, 9.6); g.fillStyle = '#ffffff'; g.fillRect(-13.7, -9.5, .5, 9.6);
+  g.fillStyle = '#3a4258'; rr(g, -13.6, 2.6, 5.2, 3.4, 1); g.fill();
+  g.strokeStyle = '#8a94ad'; g.lineWidth = 2; g.beginPath(); g.moveTo(-8, -8.5); g.quadraticCurveTo(-9.5, -14, -5.5, -15.5); g.stroke();
+  g.strokeStyle = '#5a6480'; g.lineWidth = .5; for (let i = 1; i < 5; i++) { const u = i / 5, x = lerp(-8, -5.5, u) - Math.sin(u * Math.PI) * 1.6, y = lerp(-8.5, -15.5, u); g.beginPath(); g.moveTo(x - 1, y - .3); g.lineTo(x + 1, y + .3); g.stroke(); }
+  // 몸통
+  const torso = new Path2D(); rrPath(torso, -8.2, -10.8, 16.4, 15.4, 6);
+  g.fillStyle = lin(g, -8, -10, 8, 5, [[0, '#ffffff'], [.45, HERO.suit], [1, HERO.suitM]]); g.fill(torso);
+  g.save(); g.clip(torso); g.fillStyle = 'rgba(40,50,80,.16)'; g.fillRect(-8.2, 0, 16.4, 5); g.fillStyle = HERO.trim; g.fillRect(-8.2, -10.8, 16.4, 2.3); g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(-8.2, -8.5, 16.4, .6); g.restore();
+  g.lineWidth = .8; g.strokeStyle = OL; g.stroke(torso);
+  g.fillStyle = '#18203a'; rr(g, -.4, -6.8, 7.2, 6.2, 1.4); g.fill(); g.strokeStyle = '#8a94ad'; g.lineWidth = .6; g.stroke();
+  ['#66f0a6', '#4fe3ff', '#ff4d7a'].forEach((c, i) => { g.globalAlpha = .45 + .55 * (Math.sin(t * (2 + i * 1.3) + i * 2) > 0 ? 1 : .2); g.fillStyle = c; g.beginPath(); g.arc(1.4 + i * 2, -4.9, .8, 0, TAU); g.fill(); });
+  g.globalAlpha = 1; g.fillStyle = HERO.glow; g.fillRect(1, -2.6, 4.6 * (.4 + .6 * (.5 + .5 * Math.sin(t * 3))), .9);
+  g.fillStyle = '#5d6882'; g.fillRect(-8.2, 1.4, 16.4, 2.4); g.fillStyle = '#ffcf4d'; g.fillRect(1.4, 1.4, 2.8, 2.4);
+  g.fillStyle = '#7c88a6'; rr(g, -7.2, 1, 4.2, 3.8, 1); g.fill();
+  leg(2.6, -step * .6, false);
   const arm = () => {
     g.save(); g.translate(1, -5); g.rotate(aim);
     const kx = -H.recoil * 3;
-    g.fillStyle = lin(g, 0, -2.4, 0, 2.4, [[0, lt(HERO.jacket, .2)], [1, HERO.jacketD]]); rr(g, -1 + kx * .5, -2.4, 10, 4.8, 2.4); g.fill(); g.lineWidth = .7; g.strokeStyle = dk(HERO.jacketD, .5); g.stroke();
+    g.fillStyle = lin(g, 0, -2.6, 0, 2.6, [[0, '#ffffff'], [1, HERO.suitM]]); rr(g, -1 + kx * .5, -2.6, 10, 5.2, 2.6); g.fill(); g.lineWidth = .7; g.strokeStyle = OL; g.stroke();
+    g.fillStyle = HERO.trim; g.fillRect(6 + kx * .5, -2.6, 1.6, 5.2);
     if (!H.evo) {
-      g.fillStyle = '#1a1c26'; g.beginPath(); g.moveTo(10 + kx, 1.5); g.lineTo(13 + kx, 1.5); g.lineTo(12 + kx, 7); g.lineTo(9 + kx, 6.5); g.closePath(); g.fill();
-      g.fillStyle = lin(g, 0, -3.6, 0, 2.6, [[0, '#8a93ad'], [.4, '#4a5168'], [1, '#1c2030']]); rr(g, 7 + kx, -3.6, 14, 6.2, 2); g.fill();
-      g.fillStyle = '#ff9a3c'; g.fillRect(9 + kx, -.6, 9, 1);
-      g.fillStyle = '#15171f'; rr(g, 19 + kx, -2.1, 8, 3.4, 1.2); g.fill();
-      g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(8 + kx, -3.1, 11, .9);
+      g.fillStyle = '#20263a'; g.beginPath(); g.moveTo(10 + kx, 1.8); g.lineTo(13 + kx, 1.8); g.lineTo(12 + kx, 7); g.lineTo(9 + kx, 6.6); g.closePath(); g.fill();
+      g.fillStyle = lin(g, 0, -3.8, 0, 2.8, [[0, '#ffffff'], [.5, '#d4dbea'], [1, '#8a94ad']]); rr(g, 7 + kx, -3.8, 14, 6.4, 2.2); g.fill(); g.lineWidth = .6; g.strokeStyle = '#3a4258'; g.stroke();
+      g.fillStyle = HERO.glow; rr(g, 9.6 + kx, -1.3, 7, 1.9, .9); g.fill();
+      g.fillStyle = '#262c40'; rr(g, 19 + kx, -2.2, 6.6, 3.6, 1.4); g.fill();
+      g.fillStyle = HERO.glow; g.fillRect(25 + kx, -2.2, 1.4, 3.6);
+      g.fillStyle = '#ff7a2f'; g.fillRect(8 + kx, -3.8, 3, 1.2);
     } else {
       g.fillStyle = rad(g, 9 + kx, 4, .5, 10 + kx, 5, 4.5, [[0, '#ffe08a'], [1, '#8a4a0a']]); g.beginPath(); g.arc(10 + kx, 5, 4.2, 0, TAU); g.fill();
-      g.fillStyle = lin(g, 0, -4.5, 0, 4.5, [[0, '#ffe08a'], [.5, '#d48a20'], [1, '#6a3a08']]); rr(g, 5 + kx, -4.5, 14, 9, 3); g.fill(); g.lineWidth = .7; g.strokeStyle = '#4a2604'; g.stroke();
-      for (const y of [-2.6, -.2, 2.2]) { g.fillStyle = lin(g, 0, y - 1, 0, y + 1, [[0, '#c9ceda'], [1, '#2a2e3a']]); g.fillRect(18 + kx, y - .9, 13, 1.8); }
-      const sp = (H.t * 60) % 4; g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(20 + kx + sp, -3.5, 1, 7);
+      g.fillStyle = lin(g, 0, -4.5, 0, 4.5, [[0, '#ffffff'], [.45, '#ffd27a'], [1, '#a8620f']]); rr(g, 5 + kx, -4.5, 14, 9, 3); g.fill(); g.lineWidth = .7; g.strokeStyle = '#4a2604'; g.stroke();
+      for (const y of [-2.6, -.2, 2.2]) { g.fillStyle = lin(g, 0, y - 1, 0, y + 1, [[0, '#e6ebf5'], [1, '#2a2e3a']]); g.fillRect(18 + kx, y - .9, 13, 1.8); }
+      const sp = (t * 60) % 4; g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(20 + kx + sp, -3.5, 1, 7);
       g.fillStyle = '#2a2e3a'; g.fillRect(29 + kx, -3.8, 2, 7.6);
-      g.fillStyle = '#ff6a1a'; g.fillRect(8 + kx, -1.2, 7, 1);
+      g.fillStyle = HERO.glow; g.fillRect(8 + kx, -1.2, 7, 1);
     }
-    g.fillStyle = '#262a36'; g.beginPath(); g.arc(9.5 + kx, .4, 2.6, 0, TAU); g.fill();
+    g.fillStyle = '#5d6882'; g.beginPath(); g.arc(9.5 + kx, .4, 2.7, 0, TAU); g.fill();
     g.restore();
   };
   const armFirst = aim < -.55;
   if (armFirst) arm();
-  g.save(); g.translate(1.5, -19);
-  const hood = new Path2D(); hood.arc(0, 0, 10.8, 0, TAU);
-  g.fillStyle = rad(g, -3, -4, 1, 0, 0, 12, [[0, lt(HERO.hood, .3)], [.6, HERO.hood], [1, dk(HERO.hood, .35)]]); g.fill(hood); g.lineWidth = .9; g.strokeStyle = dk(HERO.hood, .6); g.stroke(hood);
-  const face = new Path2D(); face.ellipse(3, 1.2, 7.2, 7.4, 0, 0, TAU);
-  g.fillStyle = rad(g, 1, -2, .5, 3, 1, 8, [[0, '#fff0e0'], [.6, HERO.skin], [1, '#e8b48e']]); g.fill(face);
-  g.fillStyle = 'rgba(255,120,120,.28)'; g.beginPath(); g.ellipse(7.2, 4.4, 1.8, 1.1, 0, 0, TAU); g.ellipse(.2, 4.4, 1.6, 1, 0, 0, TAU); g.fill();
-  g.fillStyle = HERO.hair; g.beginPath(); g.moveTo(-4, -2); g.quadraticCurveTo(-1, -8, 6, -6.5); g.quadraticCurveTo(10, -5, 10, -1.5); g.lineTo(7.5, -3.2); g.lineTo(6.5, -.8); g.lineTo(4.5, -3.4); g.lineTo(2.8, -.6); g.lineTo(1.4, -3.4); g.lineTo(-1, -.6); g.closePath(); g.fill();
-  g.lineWidth = 1.6; g.strokeStyle = dk(HERO.hood, .25); g.stroke(face);
-  const eh = H.blink > 0 ? .35 : 2.2;
-  g.fillStyle = '#1a1020'; g.beginPath(); g.ellipse(6.3, 1.4, 1.25, eh, 0, 0, TAU); g.ellipse(1.6, 1.4, 1.15, eh * .95, 0, 0, TAU); g.fill();
-  if (H.blink <= 0) { g.fillStyle = '#fff'; g.beginPath(); g.arc(6.7, .5, .55, 0, TAU); g.arc(2, .5, .5, 0, TAU); g.fill(); }
-  g.strokeStyle = '#7a4a3a'; g.lineWidth = .7; g.lineCap = 'round'; g.beginPath(); g.moveTo(3.4, 4.8); g.quadraticCurveTo(4.4, 5.5, 5.4, 4.8); g.stroke();
-  g.fillStyle = '#1c2030'; g.beginPath(); g.ellipse(-1, -8, 9.5, 2.2, -.12, 0, TAU); g.fill();
-  for (const x of [-4.5, 2]) { g.fillStyle = rad(g, x - 1, -9, .3, x, -8.2, 3, [[0, '#d8fbff'], [.5, '#38c8e8'], [1, '#0e4a5e']]); g.beginPath(); g.arc(x, -8.2, 2.8, 0, TAU); g.fill(); g.lineWidth = .8; g.strokeStyle = '#0c1018'; g.stroke(); }
+  // 헬멧
+  g.save(); g.translate(1.5, -19.5);
+  g.fillStyle = lin(g, 0, 7, 0, 12, [[0, '#eef2fa'], [1, '#7c88a6']]); g.beginPath(); g.ellipse(-.5, 9.6, 8.8, 3.2, 0, 0, TAU); g.fill(); g.lineWidth = .7; g.strokeStyle = OL; g.stroke();
+  const shell = new Path2D(); shell.arc(0, 0, 11.6, 0, TAU);
+  g.fillStyle = rad(g, -4, -5, 1, 0, 0, 13, [[0, '#ffffff'], [.55, HERO.suit], [1, HERO.suitD]]); g.fill(shell);
+  g.save(); g.clip(shell); g.fillStyle = HERO.trim; g.fillRect(-5.2, -12, 2.4, 24); g.fillStyle = 'rgba(255,255,255,.4)'; g.fillRect(-5.2, -12, .7, 24); g.restore();
+  g.lineWidth = .9; g.strokeStyle = OL; g.stroke(shell);
+  g.fillStyle = rad(g, -9, -1, .3, -8.6, 0, 3.2, [[0, '#ffffff'], [1, '#8a94ad']]); g.beginPath(); g.arc(-8.6, .2, 3.1, 0, TAU); g.fill(); g.stroke();
+  g.fillStyle = HERO.trim; g.beginPath(); g.arc(-8.6, .2, 1.3, 0, TAU); g.fill();
+  const vis = new Path2D(); vis.ellipse(4.2, .6, 7.8, 6.9, 0, 0, TAU);
+  g.lineWidth = 2.4; g.strokeStyle = lin(g, 0, -7, 0, 8, [[0, '#e6ebf5'], [1, '#7c88a6']]); g.stroke(vis);
+  g.fillStyle = HERO.visor; g.fill(vis);
+  g.save(); g.clip(vis);
+  g.globalAlpha = .78; g.fillStyle = rad(g, 3.5, -1, .5, 4.6, 1.6, 7, [[0, '#fff0e0'], [.6, HERO.skin], [1, '#d8a07a']]); g.beginPath(); g.ellipse(4.8, 1.9, 5.8, 5.6, 0, 0, TAU); g.fill();
+  g.globalAlpha = 1; g.fillStyle = '#3a2418'; g.beginPath(); g.ellipse(4.4, -3.4, 6.4, 2.6, -.1, 0, TAU); g.fill();
+  const eh = H.blink > 0 ? .3 : 1.9;
+  g.fillStyle = '#140c1e'; g.beginPath(); g.ellipse(7.4, 1.4, 1.1, eh, 0, 0, TAU); g.ellipse(3.2, 1.4, 1.05, eh * .95, 0, 0, TAU); g.fill();
+  if (H.blink <= 0) { g.fillStyle = '#ffffff'; g.beginPath(); g.arc(7.8, .6, .45, 0, TAU); g.arc(3.6, .6, .42, 0, TAU); g.fill(); }
+  g.fillStyle = 'rgba(255,110,120,.32)'; g.beginPath(); g.ellipse(8.6, 4, 1.5, .9, 0, 0, TAU); g.ellipse(2, 4, 1.4, .9, 0, 0, TAU); g.fill();
+  g.fillStyle = lin(g, 0, -6.5, 0, 7.5, [[0, 'rgba(70,140,255,.55)'], [.45, 'rgba(20,40,110,.3)'], [1, 'rgba(120,60,200,.45)']]); g.fillRect(-4, -7, 17, 15);
+  g.strokeStyle = 'rgba(255,255,255,.85)'; g.lineWidth = 1.5; g.lineCap = 'round'; g.beginPath(); g.arc(4.2, .6, 5.6, 3.55, 4.5); g.stroke();
+  g.strokeStyle = 'rgba(160,240,255,.5)'; g.lineWidth = .9; g.beginPath(); g.arc(4.2, .6, 6.4, .2, .9); g.stroke();
+  g.fillStyle = '#ffffff'; g.beginPath(); g.arc(9.3, -3.2, .9, 0, TAU); g.fill();
+  g.restore();
+  g.strokeStyle = '#9aa6c0'; g.lineWidth = 1; g.beginPath(); g.moveTo(-6, -9); g.quadraticCurveTo(-8.2, -13.5, -7.5, -16.2); g.stroke();
+  g.fillStyle = Math.sin(t * 5) > 0 ? '#ff4d7a' : '#5a2030'; g.beginPath(); g.arc(-7.5, -17, 1.5, 0, TAU); g.fill();
   g.restore();
   if (!armFirst) arm();
   g.restore();
+}
+// 계기판 초상: 헬멧 쪽을 크게 잘라 그려요
+function heroPortrait() {
+  const c = newCanvas(96, 96), g = c.getContext('2d'), k = 2.7;
+  g.fillStyle = rad(g, 38, 30, 4, 48, 48, 66, [[0, '#33509e'], [1, '#070b20']]); g.fillRect(0, 0, 96, 96);
+  g.strokeStyle = 'rgba(79,227,255,.12)'; g.lineWidth = 1; for (let i = 8; i < 96; i += 12) { g.beginPath(); g.moveTo(i, 0); g.lineTo(i, 96); g.moveTo(0, i); g.lineTo(96, i); g.stroke(); }
+  g.translate(44 - 1.5 * HS * k, 46 + 19.5 * HS * k); g.scale(k, k);
+  drawHero(g, { x: 0, y: 0, aimA: .3, walk: 0, moving: false, t: 0, muzzleT: 0, recoil: 0, blink: 0, evo: false, scarf: null });
+  return c.toDataURL();
 }
 
 /* ---------- 소품: 높이가 있는 물건은 앞뒤를 가려 그리고, 납작한 건 바닥에 깔아요 ---------- */
@@ -1912,7 +2002,7 @@ function fireEvent(ev) {
 }
 function spawnBoss(kind) {
   const st = run.st, final = kind === 'bossB', name = final ? st.bossB : st.bossA;
-  banner(name, final ? '마지막 보스! 쓰러뜨리면 새벽이 와요' : '중간 보스가 나타났어요');
+  banner(name, final ? '마지막 보스! 쓰러뜨리면 새벽이 와요' : '중간 보스가 나타났어요', '', final ? 'FINAL BOSS' : 'WARNING');
   Sfx.warn(); Sfx.setIntensity(1);
   let x, y;
   if (final) {
@@ -1975,7 +2065,7 @@ function playerDown() {
   if (run.revive > 0) {
     run.revive--; player.hp = Math.round(player.maxHp * .6); player.invT = 2.5;
     shockwave(player.x, player.y, 320);
-    banner('부활!', '한 번 더 일어났어요', 'gold'); Sfx.revive(); return;
+    banner('부활!', '한 번 더 일어났어요', 'gold', 'REVIVE'); Sfx.revive(); return;
   }
   player.hp = 0; player.dead = true; run.over = 1; run.overT = 1.8;
   burst(player.x, player.y, '#ffffff', 30, 240, 5, .8); burst(player.x, player.y, '#ff7a2f', 20, 180, 4, .8); puff(player.x, player.y, 8, 16, '#3a3448', 1.4);
@@ -2122,7 +2212,7 @@ function killEnemy(e) {
   if (e.boss === 'A') {
     dropItem('chest', e.x, e.y, { big: true });
     if (run.boss === e) { run.boss = null; hideBossBar(); }
-    Sfx.setIntensity(0); banner('보스 처치!', '보물 상자를 주워요', 'gold'); shake(10);
+    Sfx.setIntensity(0); banner('보스 처치!', '보물 상자를 주워요', 'gold', 'BOSS DOWN'); shake(10);
     for (let i = 0; i < 5; i++) fx.push({ k: 'boom', x: e.x + rand(-40, 40), y: e.y + rand(-40, 40), r: rand(50, 90), life: .5, max: .5, delay: i * .1 });
     return;
   }
@@ -2138,7 +2228,7 @@ function victory(e) {
   for (const o of enemies) if (!o.dead && o !== e) { o.dead = true; burst(o.x, o.y, EPAL[o.type][run.si][0], 6, 120); }
   for (let i = 0; i < 9; i++) fx.push({ k: 'boom', x: e.x + rand(-70, 70), y: e.y + rand(-70, 70), r: rand(60, 120), life: .55, max: .55, delay: i * .14 });
   eshots.length = 0; shake(14); player.invT = 99;
-  banner('새벽이 밝았어요!', `${run.st.name} 클리어`, 'gold'); Sfx.win(); Sfx.setIntensity(0);
+  banner('새벽이 밝았어요!', `${run.st.name} 클리어`, 'gold', 'MISSION CLEAR'); Sfx.win(); Sfx.setIntensity(0);
 }
 
 /* ---------- 줍는 것들 ---------- */
@@ -2325,7 +2415,7 @@ function updateShots(dt) {
         const sp = Math.hypot(b.vx, b.vy) || 1;
         queryCircle(b.x, b.y, b.r, e => {
           if (b.life <= 0 || b.hits.includes(e.id)) return;
-          b.hits.push(e.id); dealDamage(e, b.dmg, b.w, b.vx / sp, b.vy / sp, 90); sparks(b.x, b.y, '#ffe6a0', 2, 200, Math.atan2(-b.vy, -b.vx), .9);
+          b.hits.push(e.id); dealDamage(e, b.dmg, b.w, b.vx / sp, b.vy / sp, 90); sparks(b.x, b.y, b.evo ? '#ffe6a0' : '#bff4ff', 2, 200, Math.atan2(-b.vy, -b.vx), .9);
           if (b.hits.length > b.pierce) { b.life = 0; burst(b.x, b.y, '#fff1b0', 3, 90, 3, .2); }
         });
         break;
@@ -2462,7 +2552,7 @@ function chestPick() {
 function applyChoice(c) {
   if (c.type === 'w') { const w = hasW(c.id); if (w) w.lv++; else addWeapon(c.id); }
   else if (c.type === 'p') { if (!run.pass[c.id]) { run.pass[c.id] = 1; run.passOrder.push(c.id); } else run.pass[c.id]++; recalc(); }
-  else if (c.type === 'evo') { const w = hasW(c.id); w.evo = true; w.st = {}; w.t = .2; Sfx.evo(); banner(WEAPONS[c.id].evoName, `${josa(WEAPONS[c.id].name, '이', '가')} 진화했어요!`, 'gold'); }
+  else if (c.type === 'evo') { const w = hasW(c.id); w.evo = true; w.st = {}; w.t = .2; Sfx.evo(); banner(WEAPONS[c.id].evoName, `${josa(WEAPONS[c.id].name, '이', '가')} 진화했어요!`, 'gold', 'EVOLUTION'); }
   else if (c.type === 'heal') heal(player.maxHp * .4);
   else if (c.type === 'coin') run.coins += Math.round(30 * run.st.gold);
   run.buildVer++;
@@ -2658,7 +2748,7 @@ function drawParticles(additive) {
 }
 function collectLights() {
   const p = player;
-  if (!p.dead) { const [lx, ly] = heroLantern(p); const f = 1 + wave(7.3) * .08; addLight(p.x, p.y, 330 * f, 1); addTint(lx, ly, 150, .16, '#ffb050'); if (p.muzzleT > 0) { const [mx, my] = heroMuzzle(p); addLight(mx, my, 150, p.muzzleT / .06); addTint(mx, my, 90, .5 * p.muzzleT / .06, '#ffd27a'); } }
+  if (!p.dead) { const f = 1 + wave(7.3) * .08; addLight(p.x, p.y, 330 * f, 1); addTint(p.x, p.y, 170, .13, '#9fe6ff'); if (p.muzzleT > 0) { const [mx, my] = heroMuzzle(p); addLight(mx, my, 150, p.muzzleT / .06); addTint(mx, my, 90, .5 * p.muzzleT / .06, p.evo ? '#ffd27a' : '#6fe8ff'); } }
   let nb = 0; for (const b of shots) { if (b.k === 'bullet' && nb++ < 90) addLight(b.x, b.y, 55, .35); else if (b.k === 'missile') addLight(b.x, b.y, 60, .5); else if (b.k === 'boomer') addLight(b.x, b.y, 40, .2); }
   let ne = 0; for (const b of eshots) if (ne++ < 90) { addLight(b.x, b.y, 50, .6); }
   for (const b of beams) { const k = Math.min(1, b.life / b.max * 3), ca = Math.cos(b.a), sa = Math.sin(b.a); for (let i = 1; i <= 4; i++) { const d = b.len * i / 4.5; addLight(player.x + ca * d, player.y + sa * d, b.wd * 6, .7 * k); } }
@@ -2706,8 +2796,8 @@ function drawGlowPass(spr) {
   ctx.globalAlpha = 1;
   const p = player;
   if (!p.dead) {
-    const [lx, ly] = heroLantern(p); ctx.globalAlpha = .9; ctx.drawImage(glowSprite('#ffc060'), lx - 13, ly - 13, 26, 26);
-    if (p.muzzleT > 0) { const [mx, my] = heroMuzzle(p), k = p.muzzleT / .06, s = (p.evo ? 30 : 24) * (.7 + .3 * k); ctx.globalAlpha = k; ctx.drawImage(glowSprite('#ffd27a'), mx - s, my - s, s * 2, s * 2); ctx.save(); ctx.translate(mx, my); ctx.rotate(p.aimA); ctx.fillStyle = '#fff6d0'; ctx.beginPath(); ctx.moveTo(0, -s * .22); ctx.lineTo(s * .9, 0); ctx.lineTo(0, s * .22); ctx.lineTo(s * .25, 0); ctx.closePath(); ctx.fill(); ctx.restore(); }
+    heroGlows(p);
+    if (p.muzzleT > 0) { const [mx, my] = heroMuzzle(p), k = p.muzzleT / .06, s = (p.evo ? 30 : 24) * (.7 + .3 * k); ctx.globalAlpha = k; ctx.drawImage(glowSprite(p.evo ? '#ffd27a' : '#6fe8ff'), mx - s, my - s, s * 2, s * 2); ctx.save(); ctx.translate(mx, my); ctx.rotate(p.aimA); ctx.fillStyle = p.evo ? '#fff6d0' : '#e8fdff'; ctx.beginPath(); ctx.moveTo(0, -s * .22); ctx.lineTo(s * .9, 0); ctx.lineTo(0, s * .22); ctx.lineTo(s * .25, 0); ctx.closePath(); ctx.fill(); ctx.restore(); }
     if (p.hurtT > 0) { ctx.globalAlpha = p.hurtT * 2.4; ctx.drawImage(glowSprite('#ff4d6a'), p.x - 30, p.y - 38, 60, 60); }
   }
   ctx.globalAlpha = 1;
@@ -2730,9 +2820,9 @@ function drawGlowPass(spr) {
   for (const b of shots) {
     if (b.k === 'bullet') {
       const sp = Math.hypot(b.vx, b.vy) || 1, ux = b.vx / sp, uy = b.vy / sp, L = b.evo ? 26 : 18;
-      ctx.strokeStyle = b.evo ? 'rgba(255,110,20,.55)' : 'rgba(255,180,40,.5)'; ctx.lineWidth = b.r * 1.1; ctx.beginPath(); ctx.moveTo(b.x - ux * L * 1.4, b.y - uy * L * 1.4); ctx.lineTo(b.x, b.y); ctx.stroke();
+      ctx.strokeStyle = b.evo ? 'rgba(255,110,20,.55)' : 'rgba(60,200,255,.6)'; ctx.lineWidth = b.r * 1.1; ctx.beginPath(); ctx.moveTo(b.x - ux * L * 1.4, b.y - uy * L * 1.4); ctx.lineTo(b.x, b.y); ctx.stroke();
       ctx.strokeStyle = '#fffbe8'; ctx.lineWidth = Math.max(1.4, b.r * .45); ctx.beginPath(); ctx.moveTo(b.x - ux * L * .7, b.y - uy * L * .7); ctx.lineTo(b.x, b.y); ctx.stroke();
-      ctx.drawImage(glowSprite(b.evo ? '#ffb060' : '#ffe08a'), b.x - b.r * 2, b.y - b.r * 2, b.r * 4, b.r * 4);
+      ctx.drawImage(glowSprite(b.evo ? '#ffb060' : '#7fe8ff'), b.x - b.r * 2.2, b.y - b.r * 2.2, b.r * 4.4, b.r * 4.4);
     } else if (b.k === 'missile') { const s = 22; ctx.globalAlpha = .9; ctx.drawImage(glowSprite(b.evo ? '#ffd27a' : '#ff9a3c'), b.x - Math.cos(b.a) * 10 - s / 2, b.y - Math.sin(b.a) * 10 - s / 2, s, s); ctx.globalAlpha = 1; }
     else if (b.k === 'boomer') { ctx.globalAlpha = .35; ctx.strokeStyle = b.evo ? '#ffd27a' : '#ffad5a'; ctx.lineWidth = b.r * .9; ctx.beginPath(); ctx.arc(b.x, b.y, b.r * .9, b.spin, b.spin + 2.2); ctx.stroke(); ctx.globalAlpha = 1; }
     else if (b.k === 'grenade' && b.t >= 0 && ((b.t * 14) | 0) % 2) { ctx.drawImage(glowSprite('#ff4d4d'), b.x - 8, b.y - b.z - 12, 14, 14); }
@@ -2764,6 +2854,14 @@ function drawGlowPass(spr) {
   }
   ctx.globalAlpha = 1;
   drawParticles(true);
+}
+// 우주복의 빛: 배낭 빛줄, 안테나 깜빡임, 걸을 때 배낭 분사구 불꽃
+function heroGlows(H, k = 1) {
+  const at = ([x, y]) => [H.x + (x - H.x) * k, H.y + (y - H.y) * k];
+  const [lx, ly] = at(heroLantern(H)); ctx.globalAlpha = .75; ctx.drawImage(glowSprite('#4fe3ff'), lx - 8 * k, ly - 14 * k, 16 * k, 28 * k);
+  if (Math.sin(H.t * 5) > 0) { const [ax, ay] = at(heroAntenna(H)); ctx.globalAlpha = .95; ctx.drawImage(glowSprite('#ff4d7a'), ax - 7 * k, ay - 7 * k, 14 * k, 14 * k); }
+  if (H.moving) { const [tx, ty] = at(heroThruster(H)), f = .7 + Math.random() * .5; ctx.globalAlpha = .85; ctx.drawImage(glowSprite('#6fe8ff'), tx - 6 * k * f, ty - 2 * k, 12 * k * f, 22 * k * f); ctx.drawImage(glowSprite('#ffffff'), tx - 2.5 * k, ty, 5 * k, 8 * k * f); }
+  ctx.globalAlpha = 1;
 }
 function drawEshotCores() { for (const b of eshots) { ctx.beginPath(); ctx.arc(b.x, b.y, b.r * .62, 0, TAU); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = b.col; ctx.stroke(); } }
 function newDrop(kind, cx, cy, hw, hh, init) {
@@ -2869,11 +2967,11 @@ function render(dt) {
   drawParticles(false);
   // 어둠과 빛
   if (run) collectLights();
-  else { const [lx, ly] = heroLantern(menuHero); addLight(menuHero.x, menuHero.y, 270, 1); addTint(lx, ly, 150, .18, '#ffb050'); }
+  else { addLight(menuHero.x, menuHero.y, 280, 1); addTint(menuHero.x, menuHero.y, 160, .14, '#9fe6ff'); }
   applyDarkness(si, cx, cy);
   ctx.globalCompositeOperation = 'lighter';
   propGlows(props);
-  if (!run) { const k = menuScale(), [lx0, ly0] = heroLantern(menuHero), lx = menuHero.x + (lx0 - menuHero.x) * k, ly = menuHero.y + (ly0 - menuHero.y) * k; ctx.globalAlpha = .9; ctx.drawImage(glowSprite('#ffc060'), lx - 13 * k, ly - 13 * k, 26 * k, 26 * k); ctx.globalAlpha = .5; for (const c of critters) { const E = EYES[c.type], r = ENEMIES[c.type].r, s = r * E[2], f = Math.cos(c.a) < 0 ? -1 : 1; ctx.drawImage(glowSprite(spr[c.type].eye), c.x + f * E[0] * r - s / 2, c.y + E[1] * r - s / 2, s, s); } ctx.globalAlpha = 1; drawParticles(true); }
+  if (!run) { heroGlows(menuHero, menuScale()); ctx.globalAlpha = .5; for (const c of critters) { const E = EYES[c.type], r = ENEMIES[c.type].r, s = r * E[2], f = Math.cos(c.a) < 0 ? -1 : 1; ctx.drawImage(glowSprite(spr[c.type].eye), c.x + f * E[0] * r - s / 2, c.y + E[1] * r - s / 2, s, s); } ctx.globalAlpha = 1; drawParticles(true); }
   drawGlowPass(spr);
   ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
   if (run) drawEshotCores();
@@ -2914,24 +3012,30 @@ const el = {};
 ['xpfill', 'lvl', 'kills', 'coins', 'timer', 'wslots', 'pslots', 'bossbar', 'bossname', 'bossfill', 'toast', 'banner', 'bannerT', 'bannerS', 'joy', 'hud', 'menu', 'shop',
   'mCoins', 'sCoins', 'stageCard', 'stNo', 'stName', 'stDesc', 'stBest', 'stPrev', 'stNext', 'startBtn', 'shopBtn', 'shopBadge', 'codexBtn', 'helpBtn', 'setBtn', 'shopBack', 'ups',
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
-  'heroSpot', 'chestImg', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose']
+  'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
 
 let toastTimer = 0;
-function toast(msg, kind = '') { el.toast.textContent = msg; el.toast.className = 'show ' + kind; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.toast.className = kind; }, 2600); }
-function banner(title, sub, kind = '') { el.bannerT.textContent = title; el.bannerS.textContent = sub || ''; el.banner.className = ''; void el.banner.offsetWidth; el.banner.className = 'show ' + kind; }
+function toast(msg, kind = '') { el.toast.textContent = msg; el.toast.className = 'hx show ' + kind; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.toast.className = 'hx ' + kind; }, 2600); }
+function banner(title, sub, kind = '', label = kind === 'gold' ? 'MISSION UPDATE' : 'WARNING') { el.bannerL.textContent = label; el.bannerT.textContent = title; el.bannerS.textContent = sub || ''; el.banner.className = ''; void el.banner.offsetWidth; el.banner.className = 'show ' + kind; }
 function showBossBar(e) { el.bossbar.hidden = false; el.bossname.textContent = e.name; el.bossfill.style.transform = 'scaleX(1)'; hud.boss = -1; }
 function hideBossBar() { el.bossbar.hidden = true; }
 const pips = (l, max, next = false) => Array.from({ length: max }, (_, i) => `<i class="${i < l ? 'on' : next && i === l ? 'next' : ''}"></i>`).join('');
 
 const hud = {};
-function hudReset() { Object.assign(hud, { lv: -1, t: -1, kills: -1, coins: -1, build: -1, xp: -1, boss: -1 }); }
+function hudReset() { Object.assign(hud, { lv: -1, t: -1, kills: -1, coins: -1, build: -1, xp: -1, boss: -1, hp: -1, mhp: -1, dawn: -1 }); }
 function hudUpdate() {
   if (!run) return;
   const xp = clamp(run.xp / run.need, 0, 1);
   if (Math.abs(xp - hud.xp) > .002) { hud.xp = xp; el.xpfill.style.transform = `scaleX(${xp})`; }
-  if (run.lv !== hud.lv) { hud.lv = run.lv; el.lvl.textContent = 'Lv ' + run.lv; }
+  if (run.lv !== hud.lv) { hud.lv = run.lv; el.lvl.textContent = run.lv; }
+  const hp = Math.max(0, Math.ceil(player.hp)), hpk = clamp(player.hp / player.maxHp, 0, 1);
+  if (hp !== hud.hp || player.maxHp !== hud.mhp) {
+    hud.hp = hp; hud.mhp = player.maxHp; el.hptext.textContent = `${hp} / ${player.maxHp}`;
+    el.hpfill.style.transform = el.hpghost.style.transform = `scaleX(${hpk})`; el.hpbar.className = 'hpbar' + (hpk < .25 ? ' low' : hpk < .5 ? ' mid' : '');
+  }
+  const dawn = Math.min(1, Math.floor(run.t) / STAGE_TIME); if (dawn !== hud.dawn) { hud.dawn = dawn; el.dawnfill.style.transform = `scaleX(${dawn})`; }
   const ts = Math.floor(run.t); if (ts !== hud.t) { hud.t = ts; el.timer.textContent = fmtTime(ts); el.timer.classList.toggle('late', ts >= STAGE_TIME - 60); }
   if (run.kills !== hud.kills) { hud.kills = run.kills; el.kills.textContent = fmtNum(run.kills); }
   const c = Math.floor(run.coins); if (c !== hud.coins) { hud.coins = c; el.coins.textContent = fmtNum(c); }
@@ -2946,24 +3050,38 @@ function renderSlots() {
   el.wslots.innerHTML = ws.join(''); el.pslots.innerHTML = ps.join('');
 }
 
+function drawThumb(si) {
+  const c = el.stThumb, g = c.getContext('2d'), S = c.width, spr = spritesFor(si);
+  g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, S, S);
+  g.save(); g.scale(.62, .62); g.fillStyle = g.createPattern(groundTile(si), 'repeat'); g.fillRect(0, 0, S / .62, S / .62); g.restore();
+  const P = propsFor(si)[0].spr[0]; g.drawImage(P.c, S * .62 - P.ax * .62, S * .62 - P.ay * .62, P.w * .62, P.h * .62);
+  for (const [type, x, y, s] of [['shade', .24, .4, .9], ['ghoul', .72, .82, .8], ['bat', .2, .8, .8]]) { const sp = spr[type], z = sp.size * s; g.drawImage(sp.n[x > .5 ? 1 : 0][0], S * x - z / 2, S * y - z / 2, z, z); }
+  g.fillStyle = rad(g, S * .5, S * .55, S * .05, S * .5, S * .55, S * .75, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(4,3,14,.82)']]); g.fillRect(0, 0, S, S);
+  g.globalCompositeOperation = 'lighter';
+  for (const [type, x, y] of [['shade', .27, .37], ['ghoul', .7, .8], ['bat', .2, .78]]) { g.globalAlpha = .8; g.drawImage(glowSprite(spr[type].eye), S * x - 9, S * y - 9, 18, 18); }
+  g.globalAlpha = .5; g.drawImage(glowSprite(STAGES[si].color), -S * .3, -S * .3, S * 1.6, S * 1.6);
+  g.globalAlpha = 1; g.globalCompositeOperation = 'source-over';
+}
 function renderMenu() {
   el.mCoins.textContent = fmtNum(save.coins);
   const si = save.stage, st = STAGES[si], locked = si + 1 > save.unlocked, b = save.best[si];
   el.stageCard.style.setProperty('--stage-c', st.color);
-  el.stNo.textContent = `STAGE ${si + 1}`; el.stName.textContent = st.name;
+  el.stNo.textContent = `STAGE 0${si + 1}`; el.stName.textContent = st.name;
+  el.stDanger.innerHTML = '위험도 ' + [0, 1, 2].map(i => `<i class="${i <= si ? 'on' : ''}"></i>`).join('');
+  drawThumb(si);
   el.stDesc.textContent = st.desc + (si ? ` 적 체력 ×${st.hp} · 코인 ×${st.gold}` : '');
   el.stBest.innerHTML = locked ? `<span class="lock">${josa(STAGES[si - 1].name, '을', '를')} 깨면 열려요</span>`
     : b ? `<span class="best">${b.clear ? '클리어 ✓ · ' : ''}최고 ${fmtTime(b.time)} · 처치 ${fmtNum(b.kills)}</span>` : '아직 도전하지 않았어요';
   el.stPrev.disabled = si === 0; el.stNext.disabled = si === STAGES.length - 1;
-  el.startBtn.disabled = locked; el.startBtn.textContent = locked ? '잠겨 있어요' : '출격!';
+  el.startBtn.disabled = locked; el.startBtn.innerHTML = locked ? '<b>잠겨 있어요</b><small>LOCKED</small>' : '<b>출격!</b><small>DEPLOY</small>';
   el.shopBadge.hidden = !META.some(m => (save.up[m.id] || 0) < m.max && save.coins >= metaCost(m, save.up[m.id] || 0));
 }
 function renderShop() {
   el.sCoins.textContent = fmtNum(save.coins);
   el.ups.innerHTML = META.map(m => {
     const l = save.up[m.id] || 0, max = l >= m.max, cost = metaCost(m, l);
-    return `<div class="up"><img src="${iconURL(m.icon)}" alt=""><div><h3>${m.name}</h3><div class="val">${m.val(l)}${max ? '' : ` → <b>${m.val(l + 1)}</b>`}</div></div>
-      <div class="up-foot"><div class="pips">${pips(l, m.max)}</div><button class="buy" data-id="${m.id}" ${max || save.coins < cost ? 'disabled' : ''}>${max ? '최대' : `<span class="coin-dot"></span>${fmtNum(cost)}`}</button></div></div>`;
+    return `<div class="up hx"><img src="${iconURL(m.icon)}" alt=""><div><h3>${m.name}</h3><div class="val">${m.val(l)}${max ? '' : ` → <b>${m.val(l + 1)}</b>`}</div></div>
+      <div class="up-foot"><div class="pips">${pips(l, m.max)}</div><button class="buy hx" data-id="${m.id}" ${max || save.coins < cost ? 'disabled' : ''}>${max ? '최대' : `<span class="coin-dot"></span>${fmtNum(cost)}`}</button></div></div>`;
   }).join('');
 }
 function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(t => t.setAttribute('aria-checked', String(!!save.set[t.dataset.set]))); }
@@ -2977,6 +3095,7 @@ function showMenu() {
 function startRun() {
   Sfx.init(); if (save.set.music) Sfx.musicStart();
   newRun(save.stage); hudReset(); hideBossBar(); el.banner.className = '';
+  if (!el.portrait.src) el.portrait.src = heroPortrait();
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
   el.menu.hidden = true; el.shop.hidden = true; el.hud.hidden = false;
   state = 'play'; hudUpdate();
@@ -3006,7 +3125,8 @@ function renderCards() {
   el.lvSub.textContent = run.pendingLv > 1 ? `하나를 골라요 · 이어서 ${run.pendingLv - 1}번 더 골라요` : '하나를 골라요';
   el.cards.innerHTML = choices.map((c, i) => {
     const f = cardInfo(c);
-    return `<button class="card ${f.evo ? 'evo' : c.type}" data-i="${i}"><span class="key">${i + 1}</span><img src="${f.icon}" alt=""><div class="c-body">
+    const typ = f.evo ? 'EVOLUTION' : c.type === 'w' ? 'WEAPON' : c.type === 'p' ? 'GEAR' : 'BONUS';
+    return `<button class="card hx ${f.evo ? 'evo' : c.type}" data-i="${i}"><div class="c-top"><span class="c-type">${typ}</span><span class="key">[${i + 1}]</span></div><div class="medal"><img src="${f.icon}" alt=""></div><div class="c-body">
       <div class="c-head"><span class="c-name">${f.name}</span><span class="tag ${f.tagCls}">${f.tag}</span></div>
       ${f.lv !== undefined ? `<div class="pips">${pips(f.lv, MAX_LV, true)}</div>` : ''}
       <p class="c-desc">${f.desc}</p>${f.sub ? `<p class="c-hint">${f.sub}</p>` : ''}${f.hint ? `<p class="c-hint">${f.hint}</p>` : ''}</div></button>`;
@@ -3034,7 +3154,7 @@ function openChest(n) {
   clearTimeout(chestTimer);
   chestTimer = setTimeout(() => {
     el.chestStage.className = 'chest-stage open'; el.chestImg.src = chestArt.open; Sfx.chest();
-    el.rewards.innerHTML = got.map(f => `<div class="reward${f.evo ? ' evo' : ''}"><img src="${f.icon}" alt=""><div><b>${f.name}</b> <span class="tag">${f.tag}</span><p>${f.desc}</p></div></div>`).join('');
+    el.rewards.innerHTML = got.map(f => `<div class="reward hx${f.evo ? ' evo' : ''}"><img src="${f.icon}" alt=""><div><b>${f.name}</b> <span class="tag">${f.tag}</span><p>${f.desc}</p></div></div>`).join('');
     el.chestOk.hidden = false;
   }, 950);
 }
@@ -3046,8 +3166,8 @@ function pauseGame() {
   if (state !== 'play') return;
   state = 'pause'; joyReset(); keys.clear(); Sfx.musicStop();
   el.pauseSub.textContent = `${run.st.name} · ${fmtTime(run.t)} · Lv ${run.lv} · 처치 ${fmtNum(run.kills)}`;
-  el.pW.innerHTML = run.weapons.map(w => { const d = WEAPONS[w.id]; return `<div class="build-item${w.evo ? ' evo' : ''}"><img src="${iconURL(w.id, w.evo)}" alt=""><div><b>${w.evo ? d.evoName : d.name}</b><span>${w.evo ? '진화 완료' : `Lv ${w.lv} / ${MAX_LV}`}</span></div></div>`; }).join('') || '<p class="empty">없음</p>';
-  el.pP.innerHTML = run.passOrder.map(id => `<div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${PASSIVES[id].name}</b><span>Lv ${run.pass[id]} · ${PASSIVES[id].val(run.pass[id])}</span></div></div>`).join('') || '<p class="empty">아직 없어요</p>';
+  el.pW.innerHTML = run.weapons.map(w => { const d = WEAPONS[w.id]; return `<div class="build-item hx${w.evo ? ' evo' : ''}"><img src="${iconURL(w.id, w.evo)}" alt=""><div><b>${w.evo ? d.evoName : d.name}</b><span>${w.evo ? '진화 완료' : `Lv ${w.lv} / ${MAX_LV}`}</span></div></div>`; }).join('') || '<p class="empty">없음</p>';
+  el.pP.innerHTML = run.passOrder.map(id => `<div class="build-item hx"><img src="${iconURL(id)}" alt=""><div><b>${PASSIVES[id].name}</b><span>Lv ${run.pass[id]} · ${PASSIVES[id].val(run.pass[id])}</span></div></div>`).join('') || '<p class="empty">아직 없어요</p>';
   el.pEvo.innerHTML = run.weapons.map(w => {
     const d = WEAPONS[w.id], p = PASSIVES[d.pair];
     if (w.evo) return `<div>${d.name} → <b>${d.evoName}</b> · 진화 완료</div>`;
@@ -3077,6 +3197,10 @@ function showResult(win) {
   if (win && run.si + 1 < STAGES.length && save.unlocked < run.si + 2) { save.unlocked = run.si + 2; save.stage = run.si + 1; unlockMsg = ` · 새 스테이지 ${josa(STAGES[run.si + 1].name, '이', '가')} 열렸어요!`; }
   persist();
   el.resTitle.textContent = win ? '새벽이 밝았어요!' : '쓰러졌어요';
+  el.resLabel.textContent = win ? 'MISSION CLEAR' : 'MISSION FAILED'; el.resLabel.className = 'label' + (win ? ' gold' : ' hot');
+  el.resultPanel.className = 'panel hx' + (win ? ' gold' : '');
+  const grade = win ? (run.t <= STAGE_TIME + 45 ? 'S' : 'A') : run.t >= STAGE_TIME ? 'B' : run.t >= 360 ? 'C' : 'D';
+  el.rGrade.className = 'grade hx ' + grade; el.rGrade.innerHTML = `${grade}<small>RANK</small>`;
   el.resTitle.className = 'title result-title ' + (win ? 'win' : 'lose');
   el.resSub.textContent = `${st.name}${newBest ? ' · 최고 기록!' : ''}${unlockMsg}`;
   el.rTime.textContent = fmtTime(run.t); el.rKills.textContent = fmtNum(run.kills); el.rLv.textContent = run.lv; el.rCoins.textContent = '+' + fmtNum(earned);
@@ -3115,13 +3239,13 @@ document.querySelectorAll('.toggle[data-set]').forEach(t => t.addEventListener('
 }));
 function openHelp(kind) {
   if (kind === 'codex') {
-    el.helpTitle.textContent = '무기 도감';
+    el.helpTitle.textContent = '무기 도감'; el.helpLabel.textContent = 'ARMORY';
     el.helpBody.innerHTML = `<p>무기는 6칸, 보조 장비도 6칸까지 가질 수 있어요. 무기를 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>진화</b>할 수 있어요.</p>
       <div class="evo-table">${W_IDS.map(id => { const d = WEAPONS[id]; return `<div class="codex-item"><div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${d.name}</b><span style="white-space:normal">${d.lv[0]}</span></div></div>
         <div class="evo-row"><img src="${iconURL(d.pair)}" alt=""><span class="op">${josa(PASSIVES[d.pair].name, '과', '와')} 함께 →</span><img src="${iconURL(id, true)}" alt=""><b>${d.evoName}</b><p>${d.evoInfo}</p></div></div>`; }).join('')}</div>
       <h3>보조 장비</h3><div class="help-items">${P_IDS.map(id => `<div><img src="${iconURL(id)}" alt=""><span><b style="color:var(--text)">${PASSIVES[id].name}</b><br>${PASSIVES[id].info}</span></div>`).join('')}</div>`;
   } else {
-    el.helpTitle.textContent = '하는 법';
+    el.helpTitle.textContent = '하는 법'; el.helpLabel.textContent = 'BRIEFING';
     el.helpBody.innerHTML = `<div><h3>목표</h3><ul><li>그림자들이 사방에서 몰려와요. <b>10분</b>을 버티면 마지막 보스가 나와요. 보스를 쓰러뜨리면 새벽이 오고 스테이지를 깨요.</li><li>5분에는 중간 보스, 2분마다 정예 몬스터가 나와요. 둘 다 <b>보물 상자</b>를 떨어뜨려요.</li></ul></div>
       <div><h3>움직이기</h3><ul><li>PC: <b>WASD</b>나 <b>방향키</b>. 마우스로 끌어도 돼요. <b>Esc</b>나 <b>P</b>로 멈춰요.</li><li>폰: 화면 아무 곳이나 누른 채 끌면 그쪽으로 움직여요.</li><li>공격은 무기가 알아서 해요. 피하고, 줍고, 고르기만 하면 돼요.</li></ul></div>
       <div><h3>성장</h3><ul><li>적을 쓰러뜨리면 나오는 <b>경험치 보석</b>을 주워 레벨을 올려요. 레벨이 오르면 무기나 보조 장비를 하나 골라요(PC는 숫자 1·2·3).</li><li>무기를 Lv ${MAX_LV}까지 키우고 짝 장비를 갖고 있으면 <b>진화</b>해요. 짝은 무기 도감에서 볼 수 있어요.</li><li>판이 끝나면 코인이 쌓여요. 메인 화면의 <b>강화</b>에서 영구 능력을 올려요.</li></ul></div>
