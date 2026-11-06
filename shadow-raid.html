@@ -139,6 +139,7 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 .logo .a{text-shadow:5px 5px 0 #6b4dff,10px 10px 0 #3b2a96,15px 15px 0 #1c1450}
 .logo .b{color:var(--hot); text-shadow:5px 5px 0 #8e1530,10px 10px 0 #4c0a1a,15px 15px 0 #22050c; margin-top:6px}
 .hero-spot{height:clamp(56px,13vh,140px); flex:none}
+@media (max-height:880px){ .logo{font-size:clamp(54px,9.5vh,86px)} .hero-spot{height:clamp(44px,9vh,96px)} .menu-main{gap:11px} }
 .stage{--c:16px; display:grid; grid-template-columns:34px 78px minmax(0,1fr) 34px; align-items:center; gap:10px; padding:12px 8px}
 .stage .arrow{--c:6px; width:34px; height:52px; font-size:22px; line-height:1; color:var(--cyan)}
 .stage .arrow:disabled{opacity:.25}
@@ -195,9 +196,142 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 .buy:disabled{color:var(--dim); --edge-c:rgba(140,150,200,.25); --fill:rgba(20,24,50,.9)}
 .buy:active:not(:disabled){transform:translateY(2px)}
 
+/* ---------- 메뉴: 주무기 줄 ---------- */
+.loadout{--c:12px; --rc:#9fb4d8; --rca:rgba(159,180,216,.36); display:grid; grid-template-columns:54px minmax(0,1fr) auto; align-items:center; gap:12px; padding:8px 10px 8px 8px; text-align:left}
+.loadout:hover{filter:brightness(1.15)}
+.loadout:active{transform:translateY(2px)}
+.lo-icon{position:relative; width:54px; height:54px; display:grid; place-items:center}
+.lo-icon::before{content:""; position:absolute; inset:-6px; border-radius:50%; background:radial-gradient(closest-side,var(--rca),transparent)}
+.lo-icon img{position:relative; width:50px; height:50px; filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.lo-info{display:flex; flex-direction:column; min-width:0; line-height:1.25}
+.lo-info .label{font-size:9px; letter-spacing:.22em; color:var(--rc)}
+.lo-info b{font-family:var(--f-display); font-weight:400; font-size:22px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lo-sub{font-size:var(--t-xs); color:var(--muted); line-height:1.35}
+.lo-sub .stars{font-size:11px; letter-spacing:0}
+.lo-info .label{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+@media (max-width:400px){ .lo-info .label{letter-spacing:.1em} .loadout{gap:9px} .lo-go{padding:0 9px} }
+.stars{color:var(--gold); letter-spacing:.04em; text-shadow:0 0 8px rgba(255,207,77,.45); white-space:nowrap}
+.stars i{font-style:normal; color:rgba(255,255,255,.16); text-shadow:none}
+.lo-go{display:inline-flex; align-items:center; gap:5px; height:38px; padding:0 12px; font-weight:900; font-size:var(--t-sm); color:#2a1a00; white-space:nowrap; background:linear-gradient(180deg,#ffe08a,#e89a1e); clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+.lo-go i{font-style:normal; font-size:20px; line-height:1}
+.lo-go .badge-dot{background:#2a1a00; color:var(--gold); min-width:18px; height:18px; line-height:18px; font-size:10px; padding:0 5px}
+
+/* ---------- 무기고 ---------- */
+.hx.epic{--edge-c:linear-gradient(135deg,#f3d9ff,rgba(194,123,255,.55) 36%,rgba(194,123,255,.15) 64%,#9a4dff)}
+.rar{display:inline-block; align-self:flex-start; font-family:var(--f-tech); font-size:10px; font-weight:900; letter-spacing:.16em; padding:2px 10px; background:var(--rc); color:#090a14; white-space:nowrap; clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.rar.sm{font-size:9px; padding:1px 7px; vertical-align:2px; letter-spacing:.08em}
+.muted{color:var(--muted); font-weight:500}
+em.rar,em.muted{font-style:normal}
+.arm-show{--c:16px; --rc:#9fb4d8; --rca:rgba(159,180,216,.36); --edge-c:linear-gradient(135deg,#fff,var(--rc) 30%,rgba(110,225,255,.12) 64%,var(--rc)); width:min(100%,760px); display:grid; grid-template-columns:124px minmax(0,1fr); gap:10px 18px; align-items:center; padding:16px 18px}
+.arm-big{position:relative; width:124px; height:124px; display:grid; place-items:center; grid-row:1/3}
+.arm-big::before{content:""; position:absolute; inset:-10px; border-radius:50%; background:radial-gradient(closest-side,var(--rca),transparent 80%)}
+.arm-big::after{content:""; position:absolute; inset:-4px; border-radius:50%; background:conic-gradient(from 0deg,transparent,var(--rc),transparent 30%,transparent 50%,var(--rc),transparent 80%); animation:spin 6s linear infinite; -webkit-mask:radial-gradient(closest-side,transparent 86%,#000 88%,#000 95%,transparent 97%); mask:radial-gradient(closest-side,transparent 86%,#000 88%,#000 95%,transparent 97%); opacity:.8}
+.arm-big img{position:relative; width:104px; height:104px; filter:drop-shadow(0 8px 14px rgba(0,0,0,.55))}
+.arm-big.locked img{filter:brightness(.08) drop-shadow(0 0 2px var(--rc)); opacity:.9}
+.arm-meta{display:flex; flex-direction:column; gap:4px; min-width:0}
+.arm-meta h3{font-family:var(--f-display); font-size:30px; line-height:1.1}
+.star-row{display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:18px; line-height:1.2}
+.star-row .sub{font-size:var(--t-xs); color:var(--muted)}
+.arm-meta p{font-size:var(--t-sm); color:#dfe6ff; line-height:1.45}
+.arm-meta .evo-line{font-size:var(--t-xs); color:var(--muted)}
+.arm-meta .evo-line b{color:var(--orange); font-weight:700}
+.arm-act{grid-column:2; display:flex; gap:12px; align-items:center; flex-wrap:wrap}
+.arm-act .btn{height:44px; min-width:132px}
+.arm-act .bonus{font-family:var(--f-tech); font-size:var(--t-xs); font-weight:800; color:var(--gold)}
+.lock-note{font-size:var(--t-sm); font-weight:700; color:var(--rc)}
+.arm-grid{width:min(100%,760px); display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px}
+.arm{--c:12px; --rc:#9fb4d8; display:flex; flex-direction:column; align-items:center; gap:3px; padding:12px 6px 10px; min-width:0; text-align:center; transition:transform .14s ease, filter .14s ease}
+.arm.sel{--edge-c:linear-gradient(135deg,#ffffff,var(--rc) 35%,rgba(255,255,255,.08) 70%,var(--rc)); --fill:linear-gradient(180deg,rgba(30,40,88,.97),rgba(8,10,28,.97))}
+.arm:hover{filter:brightness(1.15)} .arm:active{transform:translateY(2px)}
+.arm .rline{width:56%; height:3px; background:var(--rc); box-shadow:0 0 10px var(--rc); margin-bottom:5px}
+.a-ic{position:relative; width:60px; height:60px}
+.a-ic img{width:60px; height:60px}
+.arm.locked .a-ic img{filter:brightness(.1) saturate(0); opacity:.85}
+.a-ic .lock{position:absolute; left:50%; top:50%; width:18px; height:14px; margin:-3px 0 0 -9px; background:var(--rc); border-radius:2px}
+.a-ic .lock::before{content:""; position:absolute; left:3px; top:-9px; width:12px; height:12px; box-sizing:border-box; border:3px solid var(--rc); border-bottom:0; border-radius:7px 7px 0 0}
+.arm b{max-width:100%; font-size:var(--t-sm); font-weight:900; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.arm .stars{font-size:11px}
+.arm .sub{font-size:11px; color:var(--rc); font-weight:700}
+.arm.locked b{color:var(--muted)}
+.arm .eq{font-family:var(--f-tech); font-size:10px; font-weight:900; letter-spacing:.06em; padding:1px 8px; background:var(--green); color:#03170b; clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.gacha{--c:16px; width:min(100%,760px); display:grid; grid-template-columns:96px minmax(0,1fr) auto; align-items:center; gap:14px; padding:10px 14px 10px 10px}
+.g-art img{display:block; width:96px; height:117px; animation:podIdle 3.2s ease-in-out infinite}
+@keyframes podIdle{50%{transform:translateY(-5px)}}
+.g-info{min-width:0}
+.g-info h3{font-family:var(--f-display); font-size:24px; line-height:1.15}
+.g-info p{font-size:var(--t-xs); color:var(--muted); line-height:1.6; margin-top:2px}
+.g-info .rt{display:inline-block; margin-right:10px; white-space:nowrap; color:#dfe6ff}
+.g-info .rt::before{content:""; display:inline-block; width:7px; height:7px; margin-right:5px; background:var(--rc); box-shadow:0 0 6px var(--rc); transform:rotate(45deg); vertical-align:1px}
+.g-info .rt b{font-family:var(--f-tech); color:var(--text)}
+.g-info .sure{color:var(--green)}
+.draw-btn{position:relative; min-width:156px; height:70px; padding:0 18px; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1.1; overflow:hidden; color:#2a1a00; background:linear-gradient(180deg,#ffe58f,#f2a622 58%,#c4760a); clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
+.draw-btn b{font-family:var(--f-display); font-weight:400; font-size:24px}
+.draw-btn small{display:inline-flex; align-items:center; gap:5px; font-family:var(--f-tech); font-size:12px; font-weight:900; margin-top:4px}
+.draw-btn::before{content:""; position:absolute; inset:0; background:repeating-linear-gradient(-60deg,rgba(255,255,255,.1) 0 9px,transparent 9px 18px)}
+.draw-btn::after{content:""; position:absolute; inset:0; background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 50%,transparent 65%); transform:translateX(-120%); animation:sweep 2.8s ease-in-out infinite}
+.draw-btn:hover:not(:disabled){filter:brightness(1.1)}
+.draw-btn:active:not(:disabled){transform:translateY(2px)}
+.draw-btn:disabled{filter:grayscale(.9) brightness(.5)}
+.draw-btn:disabled::after{display:none}
+@media (max-width:600px){
+  .arm-grid{grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px}
+  .arm-show{grid-template-columns:92px minmax(0,1fr); gap:8px 14px; padding:14px}
+  .arm-big{width:92px; height:92px; grid-row:auto}
+  .arm-big img{width:80px; height:80px}
+  .arm-meta h3{font-size:24px}
+  .arm-act{grid-column:1/3}
+  .arm-act .btn{flex:1}
+  .gacha{grid-template-columns:72px minmax(0,1fr)}
+  .g-art img{width:72px; height:88px}
+  .draw-btn{grid-column:1/3; width:100%; height:62px}
+}
+
+/* ---------- 뽑기 연출 ---------- */
+.draw-panel{--rc:#4fe3ff; --rca:rgba(79,227,255,.3); overflow-x:hidden}
+.pod-stage{position:relative; height:240px; display:grid; place-items:center; margin-top:4px}
+.pod-rays{position:absolute; left:50%; top:50%; width:380px; height:380px; margin:-190px 0 0 -190px; border-radius:50%; background:repeating-conic-gradient(var(--rca) 0 7deg,transparent 7deg 20deg); -webkit-mask:radial-gradient(closest-side,#000 22%,transparent); mask:radial-gradient(closest-side,#000 22%,transparent); opacity:0; transform:scale(.3); transition:opacity .4s, transform .7s}
+.pod-img{position:relative; width:140px; height:170px; margin-top:40px; filter:drop-shadow(0 12px 18px rgba(0,0,0,.6))}
+.pod-item{position:absolute; left:50%; top:50%; width:112px; height:112px; margin:-118px 0 0 -56px; z-index:2; opacity:0; filter:drop-shadow(0 0 16px var(--rc)) drop-shadow(0 8px 12px rgba(0,0,0,.6))}
+.pod-flash{position:absolute; inset:-60px; z-index:3; pointer-events:none; opacity:0; background:radial-gradient(circle,#ffffff 0,var(--rc) 30%,transparent 62%)}
+.pod-stage.shake .pod-img{animation:shake .13s linear infinite}
+.pod-stage.shake2 .pod-img{animation:shake .07s linear infinite; filter:drop-shadow(0 0 20px var(--rc)) drop-shadow(0 12px 18px rgba(0,0,0,.6))}
+.pod-stage.shake2 .pod-rays{opacity:.45; transform:scale(.55); transition-duration:.6s}
+.pod-stage.open .pod-rays{opacity:1; transform:scale(1); animation:spin 10s linear infinite}
+.pod-stage.open .pod-item{animation:itemUp .75s cubic-bezier(.2,1.5,.4,1) forwards, itemFloat 2.6s ease-in-out .75s infinite}
+.pod-stage.open .pod-flash{animation:podFlash .7s ease-out}
+@keyframes itemUp{from{opacity:0; transform:translateY(70px) scale(.25)} to{opacity:1; transform:none}}
+@keyframes itemFloat{0%,100%{opacity:1; transform:none} 50%{opacity:1; transform:translateY(-6px)}}
+@keyframes podFlash{0%{opacity:.95} 100%{opacity:0}}
+.draw-res{min-height:120px; display:flex; flex-direction:column; align-items:center; gap:4px; text-align:center}
+.draw-res .rar{align-self:center}
+.draw-res h3{font-family:var(--f-display); font-size:32px; line-height:1.1; text-shadow:0 0 20px var(--rca)}
+.draw-res .stars{font-size:20px}
+.draw-res .gain{font-family:var(--f-tech); font-size:var(--t-sm); font-weight:900; letter-spacing:.06em; color:var(--green)}
+.draw-res .d{font-size:var(--t-sm); color:var(--muted)}
+.draw-res > *{animation:resIn .45s cubic-bezier(.2,1.2,.4,1) both}
+.draw-res > :nth-child(2){animation-delay:.06s} .draw-res > :nth-child(3){animation-delay:.12s} .draw-res > :nth-child(4){animation-delay:.18s} .draw-res > :nth-child(5){animation-delay:.24s}
+@keyframes resIn{from{opacity:0; transform:translateY(12px)}}
+.draw-acts{margin-top:14px}
+.draw-acts .wide{grid-column:1/3}
+.draw-panel:focus{outline:none}
+@media (max-height:520px){ .pod-stage{height:150px} .pod-img{width:96px; height:117px; margin-top:24px} .pod-item{width:78px; height:78px; margin:-82px 0 0 -39px} .draw-res{min-height:0} .draw-acts{margin-top:10px} }
+.draw-acts .coin-dot{margin-left:4px; box-shadow:0 0 0 1.5px #6a4200}
+.draw-acts.wait{visibility:hidden}
+.draw-res{min-height:150px}
+
+/* 주무기 칸 · 카드 */
+.slot.main{background:linear-gradient(135deg,#ffd0a0,#ff5a6a)}
+.slot.main.evo{background:linear-gradient(135deg,#ffe9a0,#ff8a3d)}
+.card.main{--edge-c:linear-gradient(160deg,#ffd9c0,#ff6a5a 40%,rgba(255,106,90,.22) 70%,#ff9a3c); --fill:linear-gradient(180deg,rgba(70,20,30,.96),rgba(24,6,12,.97))}
+.card.main .c-type{color:#ffb39a}
+.card.main .medal::before{background:conic-gradient(from 0deg,transparent,rgba(255,120,100,.7),transparent 35%,rgba(255,180,90,.6),transparent 70%)}
+
 /* ---------- 모달 ---------- */
 .modal{position:fixed; inset:0; z-index:20; display:flex; align-items:center; justify-content:center; padding-block:calc(env(safe-area-inset-top,0px) + 16px) calc(env(safe-area-inset-bottom,0px) + 16px); padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); background:radial-gradient(circle at 50% 45%,rgba(10,14,40,.55),rgba(3,4,12,.88)),repeating-linear-gradient(0deg,rgba(79,227,255,.04) 0 1px,transparent 1px 40px),repeating-linear-gradient(90deg,rgba(79,227,255,.04) 0 1px,transparent 1px 40px); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px)}
 .panel{--c:18px; width:min(100%,720px); max-height:100%; overflow-y:auto; padding:22px}
+/* 긴 창은 창 안이 아니라 바깥 막이 스크롤돼요(깎은 모서리 유리판이 끝까지 이어지게) */
+.modal{overflow-y:auto; align-items:flex-start}
+.modal > .panel{max-height:none; overflow:visible; margin:auto}
 .panel.narrow{width:min(100%,440px)}
 .p-head{text-align:center; margin-bottom:4px}
 .panel h2.title{font-family:var(--f-display); font-size:34px; line-height:1.1; text-align:center}
@@ -348,6 +482,8 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 @media (prefers-reduced-motion:reduce){
   .lv-head::before,.card.evo::after,.chest-stage.open .chest-rays,.medal::before,.start::after{animation:none}
   .card,.reward{animation:none}
+  .arm-big::after,.draw-btn::after,.pod-stage.open .pod-rays,.g-art img,.pod-stage.shake .pod-img,.pod-stage.shake2 .pod-img,.draw-res > *{animation:none}
+  .pod-stage.open .pod-item{animation:none; opacity:1}
 }
 </style>
 </head>
@@ -403,10 +539,15 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
       </div>
       <button class="arrow hx" id="stNext" aria-label="다음 스테이지">›</button>
     </div>
+    <button class="loadout hx" id="loadout">
+      <span class="lo-icon" id="loRing"><img id="loIcon" alt=""></span>
+      <span class="lo-info"><span class="label">MAIN WEAPON · 주무기</span><b id="loName">연발총</b><span class="lo-sub" id="loSub"></span></span>
+      <span class="lo-go">무기고<i aria-hidden="true">›</i><span class="badge-dot" id="armBadge" hidden>!</span></span>
+    </button>
     <div class="start-wrap"><button class="start" id="startBtn"><b>출격!</b><small>DEPLOY</small></button></div>
     <div class="row2">
       <button class="btn hx" id="shopBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#4fe3ff" d="M8 1.5l5.5 5.2H10V14H6V6.7H2.5z"/></svg>강화 <span class="badge-dot" id="shopBadge" hidden>!</span></button>
-      <button class="btn hx" id="codexBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" d="M2 3.2c2-.9 4-.9 6 .4v10c-2-1.3-4-1.3-6-.4zM14 3.2c-2-.9-4-.9-6 .4v10c2-1.3 4-1.3 6-.4z"/></svg>무기 도감</button>
+      <button class="btn hx" id="codexBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" d="M2 3.2c2-.9 4-.9 6 .4v10c-2-1.3-4-1.3-6-.4zM14 3.2c-2-.9-4-.9-6 .4v10c2-1.3 4-1.3 6-.4z"/></svg>도감</button>
     </div>
     <p class="foot-note" id="footNote">WASD·방향키로 움직이고 Esc로 멈춰요</p>
   </div>
@@ -424,6 +565,26 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
     <p>코인으로 영구 능력을 올려요. 판이 끝나도 사라지지 않아요.</p>
   </div>
   <div class="ups" id="ups"></div>
+</section>
+
+<!-- 무기고: 주무기 고르기 · 뽑기 -->
+<section id="armory" class="screen" hidden>
+  <div class="topbar">
+    <button class="ghost hx" id="armBack">‹ 돌아가기</button>
+    <span class="wallet hx"><span class="coin-dot"></span><span id="aCoins">0</span></span>
+  </div>
+  <div class="shop-head hx">
+    <span class="label">ARMORY</span>
+    <h2>무기고</h2>
+    <p>주무기는 한 판에 <b>하나만</b> 들고 나가요. 보급 캡슐을 열어 새 무기를 얻고, 같은 무기가 또 나오면 별(★)이 올라 더 세져요.</p>
+  </div>
+  <div class="arm-show hx" id="armShow"></div>
+  <div class="arm-grid" id="armGrid"></div>
+  <div class="gacha hx gold">
+    <div class="g-art"><img id="podImg" alt=""></div>
+    <div class="g-info"><span class="label gold">SUPPLY POD</span><h3>보급 캡슐</h3><p id="gRates"></p></div>
+    <button class="draw-btn" id="drawBtn"></button>
+  </div>
 </section>
 
 <!-- 레벨 업 -->
@@ -445,6 +606,20 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
   </div>
 </div>
 
+<!-- 뽑기 -->
+<div class="modal" id="drawModal" hidden>
+  <div class="panel narrow hx draw-panel" id="drawPanel" role="dialog" aria-modal="true" aria-labelledby="drawTitle" tabindex="-1">
+    <div class="p-head"><span class="label" id="drawLabel">SUPPLY POD</span><h2 class="title" id="drawTitle">보급 캡슐</h2></div>
+    <div class="pod-stage" id="podStage"><div class="pod-rays"></div><img class="pod-img" id="podBig" alt=""><img class="pod-item" id="podItem" alt=""><div class="pod-flash"></div></div>
+    <div class="draw-res" id="drawRes" aria-live="polite"></div>
+    <div class="actions draw-acts wait" id="drawActs">
+      <button class="btn primary hx" id="drawEquip">장착하기</button>
+      <button class="btn hx" id="drawOk">확인</button>
+      <button class="btn gold hx wide" id="drawAgain"></button>
+    </div>
+  </div>
+</div>
+
 <!-- 일시정지 -->
 <div class="modal" id="pauseModal" hidden>
   <div class="panel hx" role="dialog" aria-modal="true" aria-labelledby="pauseTitle">
@@ -454,7 +629,7 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
       <button class="btn danger hx" id="quitBtn">포기하기</button>
     </div>
     <div class="build">
-      <div class="build-col"><div class="sec-title" style="margin:0">WEAPONS · 무기</div><div class="stack" id="pW" style="gap:6px"></div></div>
+      <div class="build-col"><div class="sec-title" style="margin:0">WEAPON · 무기·스킬</div><div class="stack" id="pW" style="gap:6px"></div></div>
       <div class="build-col"><div class="sec-title" style="margin:0">GEAR · 보조 장비</div><div class="stack" id="pP" style="gap:6px"></div></div>
     </div>
     <div class="sec-title">EVOLUTION · 진화 조건</div>
@@ -539,12 +714,12 @@ const isTouch = (() => { try { return matchMedia('(pointer: coarse)').matches; }
 
 /* ---------- 저장 ---------- */
 const SAVE_KEY = 'shadow-raid-v1';
-const DEFAULT_SAVE = () => ({ coins: 0, up: {}, unlocked: 1, stage: 0, best: {}, runs: 0, set: { sfx: true, music: true, nums: true, shake: !reduceMotion } });
+const DEFAULT_SAVE = () => ({ coins: 0, up: {}, unlocked: 1, stage: 0, best: {}, runs: 0, arms: { blaster: 1 }, equip: 'blaster', draws: 0, pity: 0, set: { sfx: true, music: true, nums: true, shake: !reduceMotion } });
 function loadSave() {
   const base = DEFAULT_SAVE();
   try {
     const s = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (s && typeof s === 'object') return { ...base, ...s, up: { ...(s.up || {}) }, best: { ...(s.best || {}) }, set: { ...base.set, ...(s.set || {}) } };
+    if (s && typeof s === 'object') { const o = { ...base, ...s, up: { ...(s.up || {}) }, best: { ...(s.best || {}) }, arms: { blaster: 1, ...(s.arms || {}) }, set: { ...base.set, ...(s.set || {}) } }; if (!(o.arms[o.equip] > 0)) o.equip = 'blaster'; return o; }
   } catch (e) { /* 저장소를 못 쓰면 이번 세션만 */ }
   return base;
 }
@@ -745,8 +920,8 @@ const WEAPONS = {
     lv: ['앞쪽 부채꼴로 불을 뿜어 적을 태워요.', '불길이 더 멀리 닿아요.', '불길 피해 +40%.', '더 오래, 더 넓게 뿜어요.', '피해 +30%, 화상이 더 뜨거워요.'],
     evoInfo: '쉬지 않고 넓게 불을 뿜고, 불길이 닿은 자리에 불바다를 남겨요.',
     stat(lv, evo) {
-      return evo ? { perm: true, dmg: 13, range: 230, ang: .62, tick: .15, burn: 5, pool: true, cd: 0, dur: 0 }
-        : { perm: false, dmg: [6, 6, 8, 8, 10][lv - 1], range: lv >= 2 ? 165 : 140, ang: lv >= 4 ? .46 : .36, tick: .15, burn: lv >= 5 ? 3 : 2, pool: false, cd: 2.4, dur: lv >= 4 ? 1.4 : 1.0 };
+      return evo ? { perm: true, dmg: 18, range: 260, ang: .64, tick: .15, burn: 6, pool: true, cd: 0, dur: 0 }
+        : { perm: false, dmg: [9, 9, 12.5, 12.5, 16][lv - 1], range: lv >= 2 ? 190 : 165, ang: lv >= 4 ? .48 : .4, tick: .15, burn: lv >= 5 ? 4 : 3, pool: false, cd: 1.4, dur: lv >= 4 ? 1.7 : 1.25 };
     },
   },
   frost: {
@@ -763,8 +938,8 @@ const WEAPONS = {
     lv: ['작은 블랙홀을 던져 적을 빨아들이며 갈아 버려요.', '빨아들이는 범위가 넓어져요.', '피해 +40%.', '블랙홀이 더 오래 버텨요.', '블랙홀을 2개 던져요.'],
     evoInfo: '거대한 블랙홀이 모든 걸 빨아들이고, 사라질 때 크게 폭발해요.',
     stat(lv, evo) {
-      return evo ? { cd: 4.2, n: 1, pull: 210, core: 88, dmg: 13, dur: 3.2, boom: 110, boomR: 165, size: 1.5 }
-        : { cd: 4.5, n: lv >= 5 ? 2 : 1, pull: lv >= 2 ? 150 : 125, core: 62, dmg: [7, 7, 10, 10, 10][lv - 1], dur: lv >= 4 ? 3.2 : 2.5, boom: 0, boomR: 0, size: 1 };
+      return evo ? { cd: 3.0, n: 1, pull: 220, core: 92, dmg: 20, dur: 3.2, boom: 170, boomR: 170, size: 1.5 }
+        : { cd: 3.0, n: lv >= 5 ? 2 : 1, pull: lv >= 2 ? 170 : 145, core: 70, dmg: [12, 12, 17, 17, 17][lv - 1], dur: lv >= 4 ? 3.2 : 2.6, boom: 0, boomR: 0, size: 1 };
     },
   },
   meteor: {
@@ -799,8 +974,8 @@ const WEAPONS = {
     lv: ['가까운 적 쪽을 초승달 모양으로 길게 베어요.', '피해 +40%.', '반대쪽도 함께 베어요.', '베는 범위가 넓어져요.', '피해 +35%, 더 빨리 베어요.'],
     evoInfo: '앞뒤로 커다란 쌍월 참격을 날리고, 벤 적의 기운으로 체력을 회복해요.',
     stat(lv, evo) {
-      return evo ? { cd: .95, dmg: 54, len: 235, wid: 72, both: true, heal: .5 }
-        : { cd: lv >= 5 ? 1.05 : 1.3, dmg: [23, 32, 32, 32, 44][lv - 1], len: lv >= 4 ? 190 : 160, wid: lv >= 4 ? 56 : 44, both: lv >= 3, heal: 0 };
+      return evo ? { cd: .8, dmg: 72, len: 265, wid: 78, both: true, heal: .5 }
+        : { cd: lv >= 5 ? .9 : 1.1, dmg: [26, 36, 36, 36, 48][lv - 1], len: lv >= 4 ? 210 : 180, wid: lv >= 4 ? 60 : 48, both: lv >= 3, heal: 0 };
     },
   },
   shotgun: {
@@ -808,12 +983,38 @@ const WEAPONS = {
     lv: ['가까운 적에게 산탄을 흩뿌리고 세게 밀쳐 내요.', '산탄이 2발 늘어요.', '산탄 피해 +40%.', '산탄이 적 1명을 더 꿰뚫어요.', '산탄 2발 추가, 더 자주 쏴요.'],
     evoInfo: '산탄 12발이 맞은 뒤 튕겨 다른 적까지 맞혀요. 밀쳐 내는 힘이 아주 세요.',
     stat(lv, evo) {
-      return evo ? { cd: 1.1, n: 12, dmg: 16, spread: .62, spd: 720, range: 300, pierce: 1, bounce: 1, kb: 260 }
-        : { cd: lv >= 5 ? 1.3 : 1.6, n: [5, 7, 7, 7, 9][lv - 1], dmg: [9, 9, 13, 13, 13][lv - 1], spread: .5, spd: 650, range: 230, pierce: lv >= 4 ? 1 : 0, bounce: 0, kb: 170 };
+      return evo ? { cd: .9, n: 12, dmg: 20, spread: .62, spd: 740, range: 320, pierce: 1, bounce: 1, kb: 260 }
+        : { cd: lv >= 5 ? 1.0 : 1.25, n: [5, 7, 7, 7, 9][lv - 1], dmg: [13, 13, 18, 18, 18][lv - 1], spread: .5, spd: 680, range: 275, pierce: lv >= 4 ? 1 : 0, bounce: 0, kb: 190 };
     },
   },
 };
 const W_IDS = Object.keys(WEAPONS);
+
+/* ---------- 주무기 · 스킬 ----------
+   주무기: 한 판에 딱 하나만 들고 나가요. 연발총은 처음부터 있고, 나머지 넷은 무기고에서 뽑기로 얻어요.
+   스킬: 레벨 업과 보물 상자에서 고르는 것들. 총·검 위주 무기는 스킬로 나오지 않아요. */
+const ARMS = ['blaster', 'shotgun', 'whip', 'flame', 'gravity'];
+const GACHA = ['shotgun', 'whip', 'flame', 'gravity'];
+const SKILLS = ['blades', 'lightning', 'grenade', 'boomerang', 'aura', 'drone', 'laser', 'frost', 'meteor', 'orb', 'mine'];
+const RARITY = {
+  base: { name: '기본', en: 'STANDARD', col: '#9fb4d8' },
+  rare: { name: '희귀', en: 'RARE', col: '#4fb8ff' },
+  epic: { name: '영웅', en: 'EPIC', col: '#c27bff' },
+  legend: { name: '전설', en: 'LEGENDARY', col: '#ffb43d' },
+};
+// w: 뽑힐 비율. 같은 무기가 또 나오면 별(★)이 올라 그 무기의 피해가 10%씩 늘어요.
+const ARM_INFO = { blaster: { r: 'base', w: 0 }, shotgun: { r: 'rare', w: 34 }, whip: { r: 'rare', w: 30 }, flame: { r: 'epic', w: 22 }, gravity: { r: 'legend', w: 14 } };
+const STAR_MAX = 5, DRAW_COST = 250, PITY = 3;
+const armStars = id => save.arms[id] || 0;
+const armBonus = id => 1 + .1 * Math.max(0, armStars(id) - 1);
+const isArm = id => ARMS.includes(id);
+// 저장된 무기 목록 정리: 모르는 무기는 빼고, 별은 1~5로, 장착 무기가 없으면 연발총
+(() => {
+  const a = save.arms && typeof save.arms === 'object' ? save.arms : {}, clean = { blaster: 1 };
+  for (const id of GACHA) { const n = Math.min(STAR_MAX, Math.floor(+a[id] || 0)); if (n > 0) clean[id] = n; }
+  save.arms = clean; if (!isArm(save.equip) || !(clean[save.equip] > 0)) save.equip = 'blaster';
+  save.draws = Math.max(0, +save.draws || 0); save.pity = Math.max(0, +save.pity || 0);
+})();
 
 /* ---------- 보조 장비 ---------- */
 const PASSIVES = {
@@ -894,13 +1095,16 @@ const WAVES = [
   [60, 2.0, { shade: 3, bat: 2 }],
   [100, 2.4, { shade: 3, bat: 2, ghoul: 1 }],
   [150, 3.0, { shade: 2, bat: 2, ghoul: 2, spike: 1 }],
-  [210, 3.4, { bat: 2, ghoul: 3, spike: 2, spitter: 1 }],
-  [270, 3.8, { ghoul: 2, spike: 3, spitter: 1, charger: 1 }],
-  [330, 4.4, { shade: 2, ghoul: 2, spike: 2, spitter: 2, charger: 2 }],
-  [400, 5.0, { ghoul: 2, spike: 3, charger: 2, spitter: 2, tank: 1 }],
-  [470, 5.6, { bat: 3, spike: 2, charger: 2, spitter: 2, tank: 2 }],
-  [540, 6.4, { ghoul: 2, spike: 2, charger: 3, spitter: 2, tank: 3 }],
+  [210, 3.4, { shade: 1, bat: 2, ghoul: 3, spike: 2 }],
+  [270, 3.8, { bat: 1, ghoul: 2, spike: 3, charger: 1 }],
+  [330, 4.4, { shade: 2, ghoul: 3, spike: 3, charger: 2 }],
+  [400, 5.0, { bat: 1, ghoul: 3, spike: 3, charger: 2, tank: 1 }],
+  [470, 5.6, { bat: 3, ghoul: 1, spike: 3, charger: 2, tank: 2 }],
+  [540, 6.4, { ghoul: 3, spike: 2, charger: 3, tank: 3 }],
 ].map(([t, rate, w]) => { const types = Object.keys(w), tot = types.reduce((s, k) => s + w[k], 0); return { t, rate, types, cum: types.map((k, i) => types.slice(0, i + 1).reduce((s, j) => s + w[j], 0) / tot) }; });
+
+// 침쟁이(멀리서 침을 쏘는 적)는 무작위로 나오지 않아요. 스테이지마다 정해진 때에 한 마리씩, 3·5·7마리만 나와요.
+const SPITTERS = [[150, 330, 470], [120, 210, 330, 420, 510], [100, 170, 250, 330, 400, 460, 530]];
 
 const EVENTS = [
   { t: 45, kind: 'ring', type: 'shade', n: 24, msg: '그림자 무리가 둘러쌌어요!' },
@@ -1224,8 +1428,8 @@ const ICON = {
     g.fillStyle = '#9a6a10'; g.fillRect(40, 38, 8, 20);
   },
 };
-const ICON_KIND = id => WEAPONS[id] ? 'w' : PASSIVES[id] ? 'p' : 'x';
-const TILE = { w: ['#3a2f7a', '#191338', '#8f7bff'], p: ['#1d5560', '#0b2228', '#5fe0d0'], x: ['#5a3a20', '#22140a', '#ffc070'], e: ['#9a4a12', '#2e1204', '#ffd27a'] };
+const ICON_KIND = id => WEAPONS[id] ? (isArm(id) ? 'a' : 'w') : PASSIVES[id] ? 'p' : 'x';
+const TILE = { a: ['#7c2c36', '#2a0b12', '#ff8a6a'], w: ['#3a2f7a', '#191338', '#8f7bff'], p: ['#1d5560', '#0b2228', '#5fe0d0'], x: ['#5a3a20', '#22140a', '#ffc070'], e: ['#9a4a12', '#2e1204', '#ffd27a'] };
 const iconCache = new Map();
 function iconURL(id, evo = false) {
   const key = id + (evo ? '+' : '');
@@ -1318,6 +1522,58 @@ function drawChest(g, open) { // 120×110 칸
 }
 itemSprites.chest = itemCanvas(g => { g.scale(.4, .4); drawChest(g, false); }, 48, 44);
 const chestArt = { closed: itemCanvas(g => drawChest(g, false), 120, 110).toDataURL(), open: itemCanvas(g => drawChest(g, true), 120, 110).toDataURL() };
+
+// 무기 뽑기용 보급 캡슐 (140×170 칸). col: 이음매·창에서 새어 나오는 빛 색
+function drawPod(g, col, open) {
+  const cx = 70, steel = [[0, '#1a2038'], [.18, '#56648c'], [.34, '#c9d4ee'], [.5, '#7b88ad'], [.78, '#36405f'], [1, '#141a30']];
+  softShadow(g, cx, 156, 58, 11, .6);
+  // 받침대: 금속 원판 + 빛나는 테
+  g.fillStyle = lin(g, 0, 140, 0, 160, [[0, '#3a4466'], [1, '#121628']]); g.beginPath(); g.ellipse(cx, 150, 56, 13, 0, 0, TAU); g.fill();
+  g.fillStyle = lin(g, 0, 136, 0, 150, [[0, '#7a86aa'], [1, '#2a3150']]); g.beginPath(); g.ellipse(cx, 144, 56, 13, 0, 0, TAU); g.fill();
+  g.save(); g.shadowColor = col; g.shadowBlur = 12; g.strokeStyle = col; g.lineWidth = 2.2; g.beginPath(); g.ellipse(cx, 144, 48, 10, 0, 0, TAU); g.stroke(); g.restore();
+  for (let i = 0; i < 8; i++) { const a = i * TAU / 8 + .2; g.fillStyle = i % 2 ? lt(col, .5) : '#1a1f36'; g.beginPath(); g.arc(cx + Math.cos(a) * 52, 144 + Math.sin(a) * 11.5, 1.6, 0, TAU); g.fill(); }
+  // 아래쪽 반: 몸통
+  const body = new Path2D(); body.moveTo(cx - 40, 84); body.lineTo(cx + 40, 84); body.lineTo(cx + 38, 122); body.quadraticCurveTo(cx + 34, 140, cx, 141); body.quadraticCurveTo(cx - 34, 140, cx - 38, 122); body.closePath();
+  g.fillStyle = lin(g, cx - 40, 0, cx + 40, 0, steel); g.fill(body);
+  g.save(); g.clip(body);
+  g.fillStyle = lin(g, 0, 84, 0, 142, [[0, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.45)']]); g.fillRect(cx - 44, 80, 88, 64);
+  for (let i = -3; i <= 3; i++) { g.fillStyle = i % 2 ? 'rgba(255,207,77,.75)' : 'rgba(20,16,10,.8)'; g.beginPath(); g.moveTo(cx + i * 12 - 6, 124); g.lineTo(cx + i * 12 + 6, 124); g.lineTo(cx + i * 12, 136); g.lineTo(cx + i * 12 - 12, 136); g.closePath(); g.fill(); }
+  g.strokeStyle = 'rgba(10,12,24,.55)'; g.lineWidth = 1.2; for (const x of [-22, 22]) { g.beginPath(); g.moveTo(cx + x, 88); g.lineTo(cx + x, 122); g.stroke(); }
+  g.restore();
+  g.lineWidth = 1.6; g.strokeStyle = '#0c0f1e'; g.stroke(body);
+  for (const x of [-31, 31]) { g.fillStyle = rad(g, cx + x - .6, 95, .3, cx + x, 96, 2.6, [[0, '#e8eeff'], [1, '#4a5578']]); g.beginPath(); g.arc(cx + x, 96, 2.4, 0, TAU); g.fill(); }
+  // 이음매 빛
+  const seam = (y, a) => { g.save(); g.globalAlpha = a; g.shadowColor = col; g.shadowBlur = 16; g.fillStyle = lin(g, cx - 40, 0, cx + 40, 0, [[0, dk(col, .3)], [.5, lt(col, .65)], [1, dk(col, .3)]]); rr(g, cx - 41, y, 82, 6, 3); g.fill(); g.restore(); };
+  if (open) {
+    // 열린 캡슐: 안쪽에서 빛이 솟구치고 뚜껑은 위로 들려요
+    g.save(); g.globalCompositeOperation = 'lighter';
+    g.fillStyle = lin(g, 0, 0, 0, 86, [[0, rgba(col, 0)], [.6, rgba(col, .35)], [1, rgba(lt(col, .5), .8)]]);
+    g.beginPath(); g.moveTo(cx - 36, 86); g.lineTo(cx - 56, 0); g.lineTo(cx + 56, 0); g.lineTo(cx + 36, 86); g.closePath(); g.fill();
+    g.fillStyle = rad(g, cx, 84, 2, cx, 84, 46, [[0, 'rgba(255,255,255,.95)'], [.3, rgba(lt(col, .4), .7)], [1, rgba(col, 0)]]); g.beginPath(); g.ellipse(cx, 84, 46, 18, 0, 0, TAU); g.fill();
+    g.restore();
+    g.fillStyle = lin(g, 0, 80, 0, 90, [[0, lt(col, .7)], [1, col]]); g.beginPath(); g.ellipse(cx, 85, 39, 7, 0, 0, TAU); g.fill();
+    g.strokeStyle = '#0c0f1e'; g.lineWidth = 1.6; g.beginPath(); g.ellipse(cx, 85, 40, 7.5, 0, 0, TAU); g.stroke();
+    seam(86, .9);
+    return;
+  }
+  seam(81, 1);
+  // 위쪽 반: 둥근 뚜껑 + 창
+  const lid = new Path2D(); lid.moveTo(cx - 40, 82); lid.lineTo(cx - 40, 56); lid.bezierCurveTo(cx - 40, 18, cx + 40, 18, cx + 40, 56); lid.lineTo(cx + 40, 82); lid.closePath();
+  g.fillStyle = lin(g, cx - 40, 0, cx + 40, 0, steel); g.fill(lid);
+  g.save(); g.clip(lid); g.fillStyle = lin(g, 0, 20, 0, 84, [[0, 'rgba(255,255,255,.18)'], [.5, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.3)']]); g.fillRect(cx - 44, 16, 88, 70); g.restore();
+  g.lineWidth = 1.6; g.strokeStyle = '#0c0f1e'; g.stroke(lid);
+  const win = new Path2D(); win.ellipse(cx, 56, 22, 15, 0, 0, TAU);
+  g.fillStyle = '#0a0d1c'; g.fill(win);
+  g.save(); g.clip(win); g.fillStyle = rad(g, cx, 60, 2, cx, 58, 24, [[0, open ? '#ffffff' : lt(col, .55)], [.45, col], [1, dk(col, .7)]]); g.fillRect(cx - 24, 40, 48, 32);
+  g.globalAlpha = .35; g.strokeStyle = '#ffffff'; g.lineWidth = 1; for (let i = 0; i < 5; i++) { g.beginPath(); g.moveTo(cx - 24, 46 + i * 5); g.lineTo(cx + 24, 46 + i * 5); g.stroke(); } g.restore();
+  g.lineWidth = 3; g.strokeStyle = '#2a3150'; g.stroke(win); g.lineWidth = 1; g.strokeStyle = '#9aa6c8'; g.stroke(win);
+  spec(g, cx - 9, 50, 9, 4, .7, -.3); spec(g, cx - 18, 36, 12, 4, .4, -.5);
+  // 꼭대기 표시등
+  g.fillStyle = lin(g, cx - 5, 0, cx + 5, 0, [[0, '#3a4466'], [.5, '#aab6d8'], [1, '#2a3150']]); g.fillRect(cx - 4, 18, 8, 9);
+  g.save(); g.shadowColor = col; g.shadowBlur = 14; g.fillStyle = lt(col, .4); g.beginPath(); g.arc(cx, 16, 4.5, 0, TAU); g.fill(); g.restore();
+}
+const podCache = new Map();
+function podArt(col, open) { const k = col + open; if (!podCache.has(k)) podCache.set(k, itemCanvas(g => drawPod(g, col, open), 140, 170).toDataURL()); return podCache.get(k); }
 
 /* ---------- 빛 · 연기 · 얼룩 스프라이트 ---------- */
 const glowCache = new Map();
@@ -2098,14 +2354,16 @@ function newRun(si) {
   run = {
     si, st, t: 0, kills: 0, coins: 0, lv: 1, xp: 0, need: xpNeed(1), pendingLv: 0, pendingChest: [],
     weapons: [], pass: {}, passOrder: [], stats: {}, rerolls: save.up.reroll || 0, revive: save.up.revive ? 1 : 0,
-    spawnAcc: 0, ev: 0, crateT: 16, boss: null, arena: null, over: 0, overT: 0, won: false, dmgBy: {},
+    spawnAcc: 0, ev: 0, sp: 0, crateT: 16, boss: null, arena: null, over: 0, overT: 0, won: false, dmgBy: {},
     shake: 0, hurtFlash: 0, flashT: 0, buildVer: 1, live: 0, gems: 0, hurtBy: {},
   };
   enemies = []; shots = []; eshots = []; pickups = []; fx = []; parts = []; texts = []; beams = []; decals = []; zones = [];
   Object.assign(player, { x: 0, y: 0, hp: 100, maxHp: 0, face: 1, dx: 1, dy: 0, moving: false, anim: 0, invT: 1, hurtT: 0, dead: false, aimA: 0, walk: 0, muzzleT: 0, recoil: 0, lastShot: -9, scarf: null, evo: false });
   recalc(); player.hp = player.maxHp;
   cam.x = 0; cam.y = 0;
-  addWeapon('blaster');
+  // 무기고에서 장착한 주무기 하나만 들고 시작해요
+  run.main = isArm(save.equip) && armStars(save.equip) > 0 ? save.equip : 'blaster'; run.mainK = armBonus(run.main);
+  addWeapon(run.main); run.weapons[0].main = true;
 }
 function addWeapon(id) { run.weapons.push({ id, lv: 1, evo: false, t: .3, key: 'w' + id, st: {} }); run.buildVer++; }
 
@@ -2171,7 +2429,9 @@ function spawnPos(margin = 70) {
 }
 function spawnEnemy(type, x, y, o = {}) {
   const D = ENEMIES[type], st = run.st, t = run.t, elite = !!o.elite;
-  const hp = D.hp * st.hp * (1 + t / 240 + (t / 420) ** 2) * (elite ? 12 : 1);
+  // 처음 4분 동안은 체력이 낮게 시작해서(절반) 천천히 원래대로 올라가요
+  const early = Math.min(1, .5 + t / 480);
+  const hp = D.hp * st.hp * early * (1 + t / 240 + (t / 420) ** 2) * (elite ? 12 : 1);
   const e = {
     id: uid++, type, x, y, vx: 0, vy: 0, r: D.r * (elite ? 1.45 : 1), hp, maxHp: hp,
     spd: D.spd * (1 + t / 1500) * (elite ? .92 : 1) * (o.spdMul || 1), dmg: D.dmg * st.dmg * (1 + t / 500) * (elite ? 1.4 : 1),
@@ -2185,6 +2445,8 @@ function director(dt) {
   const t = run.t;
   while (run.ev < EVENTS.length && EVENTS[run.ev].t <= t) fireEvent(EVENTS[run.ev++]);
   if (run.arena) return;
+  const SP = SPITTERS[run.si];
+  if (run.sp < SP.length && SP[run.sp] <= t) { run.sp++; const p = spawnPos(40); spawnEnemy('spitter', p.x, p.y); }
   let wv = WAVES[0]; for (const w of WAVES) { if (w.t <= t) wv = w; else break; }
   run.spawnAcc += wv.rate * run.st.rate * (run.boss ? .5 : 1) * dt;
   while (run.spawnAcc >= 1) {
@@ -2414,7 +2676,7 @@ function bossThink(e, dt, dx, dy, dist) {
 function dealDamage(e, base, w, kx = 0, ky = 0, kp = 0, quiet = false) {
   if (e.dead) return;
   if (e.prop) { killEnemy(e); return; }
-  const S = run.stats; let dmg = base * S.might * rand(.9, 1.1), crit = false;
+  const S = run.stats; let dmg = base * S.might * (w && w.main ? run.mainK : 1) * rand(.9, 1.1), crit = false;
   if (Math.random() < S.crit) { dmg *= 2; crit = true; }
   if (e.frozenT > 0) dmg *= 1.5;
   dmg = Math.max(1, Math.round(dmg));
@@ -2800,9 +3062,9 @@ function buildPool() {
   for (const w of run.weapons) {
     const def = WEAPONS[w.id];
     if (!w.evo && w.lv >= MAX_LV && run.pass[def.pair]) pool.push({ type: 'evo', id: w.id, wt: 1000 });
-    else if (w.lv < MAX_LV) pool.push({ type: 'w', id: w.id, wt: 10 + (run.pass[def.pair] ? 3 : 0) });
+    else if (w.lv < MAX_LV) pool.push({ type: 'w', id: w.id, wt: 10 + (run.pass[def.pair] ? 3 : 0) + (w.main ? 4 : 0) });
   }
-  if (nW < MAX_SLOTS) { const fresh = W_IDS.filter(id => !hasW(id)), tot = nW < 3 ? 50 : 24; for (const id of fresh) pool.push({ type: 'w', id, isNew: true, wt: tot / fresh.length * (run.pass[WEAPONS[id].pair] ? 1.6 : 1) }); }
+  if (nW < MAX_SLOTS) { const fresh = SKILLS.filter(id => !hasW(id)), tot = nW < 3 ? 50 : 24; for (const id of fresh) pool.push({ type: 'w', id, isNew: true, wt: tot / fresh.length * (run.pass[WEAPONS[id].pair] ? 1.6 : 1) }); }
   for (const id of run.passOrder) if (run.pass[id] < pmax(id)) pool.push({ type: 'p', id, wt: 7 });
   if (nP < MAX_SLOTS) { const fresh = P_IDS.filter(id => !run.pass[id]); for (const id of fresh) pool.push({ type: 'p', id, isNew: true, wt: 30 / fresh.length * (pairsWanted.has(id) ? 2.2 : 1) }); }
   return pool;
@@ -2837,11 +3099,12 @@ function applyChoice(c) {
 function cardInfo(c) {
   if (c.type === 'w') {
     const def = WEAPONS[c.id], w = hasW(c.id), lv = w ? w.lv : 0, pid = def.pair;
-    return { icon: iconURL(c.id), name: def.name, tag: lv ? `Lv ${lv + 1}` : '새 무기', tagCls: '', desc: def.lv[lv], lv, hint: `진화 짝: <b>${PASSIVES[pid].name}</b>${run.pass[pid] ? ' · 갖고 있어요' : ''}` };
+    return { icon: iconURL(c.id), name: def.name, main: !!(w && w.main), tag: lv ? `Lv ${lv + 1}` : '새 스킬', tagCls: '', desc: def.lv[lv], lv, hint: `진화 짝: <b>${PASSIVES[pid].name}</b>${run.pass[pid] ? ' · 갖고 있어요' : ''}` };
   }
   if (c.type === 'p') {
-    const def = PASSIVES[c.id], lv = run.pass[c.id] || 0, ws = W_IDS.filter(k => WEAPONS[k].pair === c.id);
-    return { icon: iconURL(c.id), name: def.name, tag: lv ? `Lv ${lv + 1}` : '새 장비', tagCls: 'p', desc: def.info, sub: lv ? `${def.val(lv)} → ${def.val(lv + 1)}` : def.val(1), lv, max: pmax(c.id), hint: `진화 짝: <b>${ws.map(k => WEAPONS[k].name).join(' · ')}</b>${ws.some(k => hasW(k)) ? ' · 갖고 있어요' : ''}` };
+    // 이번 판에 나올 수 있는 무기(장착한 주무기 + 스킬)만 짝으로 알려 줘요
+    const def = PASSIVES[c.id], lv = run.pass[c.id] || 0, ws = W_IDS.filter(k => WEAPONS[k].pair === c.id && (k === run.main || SKILLS.includes(k)));
+    return { icon: iconURL(c.id), name: def.name, tag: lv ? `Lv ${lv + 1}` : '새 장비', tagCls: 'p', desc: def.info, sub: lv ? `${def.val(lv)} → ${def.val(lv + 1)}` : def.val(1), lv, max: pmax(c.id), hint: ws.length ? `진화 짝: <b>${ws.map(k => WEAPONS[k].name).join(' · ')}</b>${ws.some(k => hasW(k)) ? ' · 갖고 있어요' : ''}` : '' };
   }
   if (c.type === 'evo') { const def = WEAPONS[c.id]; return { icon: iconURL(c.id, true), name: def.evoName, tag: '진화', tagCls: 'e', desc: def.evoInfo, evo: true, hint: `${def.name} + ${PASSIVES[def.pair].name}` }; }
   if (c.type === 'heal') return { icon: iconURL('medkit'), name: '구급상자', tag: '회복', tagCls: 'x', desc: '체력을 40% 회복해요.' };
@@ -2864,7 +3127,7 @@ function boost(id, s, S) {
   if (S.pspd !== 1) { if (s.spd) s.spd *= S.pspd; if (s.range) s.range *= S.pspd; }
   return s;
 }
-function ignite(e, dps, w) { if (e.prop || e.dead) return; e.burnD = Math.max(e.burnT > 0 ? e.burnD : 0, dps * run.stats.dot); e.burnT = 2.2; e.burnW = w; if (!(e.burnTk > 0)) e.burnTk = .5; }
+function ignite(e, dps, w) { if (e.prop || e.dead) return; const d = dps * run.stats.dot; if (!(e.burnT > 0) || d >= e.burnD) { e.burnD = d; e.burnW = w; } e.burnT = 2.2; if (!(e.burnTk > 0)) e.burnTk = .5; }
 function chill(e, t) { if (e.prop || e.dead) return; const k = t * run.stats.chill; e.slow = Math.max(e.slow, k); e.chillT = Math.max(e.chillT || 0, k); }
 function freeze(e, t) { if (e.prop || e.dead) return; if (e.boss) { chill(e, t); return; } const k = t * run.stats.chill; e.frozenT = Math.max(e.frozenT || 0, k); e.chillT = Math.max(e.chillT || 0, k + .6); }
 function addZone(k, x, y, r, life, dmg, w) { if (zones.length > 40) zones.shift(); zones.push({ k, x, y, r, life, max: life, dmg, w, tk: 0, h: Math.random() }); }
@@ -2877,17 +3140,18 @@ function updateZones(dt) {
   compact(zones, z => z.life > 0);
 }
 function nearestOther(ex, x, y, R, hits) { let best = null, bd = R * R; queryCircle(x, y, R, e => { if (e === ex || e.prop || hits.includes(e.id)) return; const dd = d2(x, y, e.x, e.y); if (dd < bd) { bd = dd; best = e; } }); return best; }
-function slash(w, s, S, side) {
-  const len = s.len * S.area, wid = s.wid * Math.sqrt(S.area), cy = player.y - 4; let healed = 0;
-  queryCircle(player.x + side * len / 2, cy, len / 2 + wid, e => {
-    const dx = (e.x - player.x) * side; if (dx < -14 || dx > len + e.r) return;
+// 채찍: a 방향(가장 가까운 적 쪽)으로 초승달 모양으로 베어요
+function slash(w, s, S, a) {
+  const len = s.len * S.area, wid = s.wid * Math.sqrt(S.area), cy = player.y - 4, ca = Math.cos(a), sa = Math.sin(a); let healed = 0;
+  queryCircle(player.x + ca * len / 2, cy + sa * len / 2, len / 2 + wid, e => {
+    const ox = e.x - player.x, oy = e.y - cy, dx = ox * ca + oy * sa; if (dx < -14 || dx > len + e.r) return;
     const half = wid * (.35 + .65 * Math.sin(clamp(dx / len, 0, 1) * Math.PI));
-    if (Math.abs(e.y - cy) > half + e.r) return;
-    dealDamage(e, s.dmg, w, side, 0, 150);
+    if (Math.abs(-ox * sa + oy * ca) > half + e.r) return;
+    dealDamage(e, s.dmg, w, ca, sa, 150);
     if (s.heal && healed < 3) healed += s.heal;
   });
   if (healed > 0 && !player.dead) player.hp = Math.min(player.maxHp, player.hp + healed);
-  fx.push({ k: 'slash', x: player.x, y: cy, side, len, wid, life: .26, max: .26, evo: w.evo });
+  fx.push({ k: 'slash', x: player.x, y: cy, a, len, wid, life: .26, max: .26, evo: w.evo });
   Sfx.slash();
 }
 function meteorImpact(m) {
@@ -2956,9 +3220,11 @@ Object.assign(TICK, {
     w.t -= dt; if (w.t > 0) return; w.t += s.cd * S.cd; if (w.t < 0) w.t = 0;
     const near = []; for (const e of enemies) if (!e.dead && !e.prop && d2(e.x, e.y, player.x, player.y) < 400 * 400) near.push(e);
     for (let i = 0; i < s.n; i++) {
-      let tx, ty; if (near.length) { const e = pick(near); tx = e.x; ty = e.y; } else { const a = Math.random() * TAU; tx = player.x + Math.cos(a) * 200; ty = player.y + Math.sin(a) * 200; }
+      // 첫 블랙홀은 보스·정예를 먼저 노려요
+      const big = i === 0 && near.find(e => e.boss || e.elite);
+      let tx, ty; if (big) { tx = big.x; ty = big.y; } else if (near.length) { const e = pick(near); tx = e.x; ty = e.y; } else { const a = Math.random() * TAU; tx = player.x + Math.cos(a) * 200; ty = player.y + Math.sin(a) * 200; }
       const life = s.dur * S.dur + .45;
-      shots.push({ k: 'hole', x: player.x, y: player.y, x0: player.x, y0: player.y - 6, tx, ty, t: 0, T: .45, life, max: life, pull: s.pull * S.area, core: s.core * S.area, dmg: s.dmg, tk: 0, w, boom: s.boom, boomR: s.boomR * S.area, size: s.size, age: 0, h: Math.random() * 10 });
+      shots.push({ k: 'hole', x: player.x, y: player.y, x0: player.x, y0: player.y - 6, tx, ty, t: 0, T: .45, life, max: life, pull: s.pull * S.area, core: s.core * S.area, dmg: s.dmg, tk: 0, w, boom: s.boom, boomR: s.boomR * S.area, size: s.size, age: 0, h: Math.random() * 10, tgt: big || null });
     }
     Sfx.whoosh();
   },
@@ -2989,10 +3255,11 @@ Object.assign(TICK, {
   },
   whip(w, s, dt, S) {
     const st = w.st;
-    if (st.pend) { st.pend.t -= dt; if (st.pend.t <= 0) { slash(w, s, S, st.pend.side); st.pend = null; } }
+    if (st.pend) { st.pend.t -= dt; if (st.pend.t <= 0) { slash(w, s, S, st.pend.a); st.pend = null; } }
     w.t -= dt; if (w.t > 0) return; w.t += s.cd * S.cd; if (w.t < 0) w.t = 0;
-    const tg = nearestEnemy(player.x, player.y, 400), side = tg ? (tg.x >= player.x ? 1 : -1) : (Math.cos(player.aimA) >= 0 ? 1 : -1);
-    slash(w, s, S, side); if (s.both) st.pend = { side: -side, t: .14 };
+    const tg = nearestEnemy(player.x, player.y, 400), a = tg ? Math.atan2(tg.y - player.y, tg.x - player.x) : player.aimA;
+    if (run.t - player.lastShot > .3) player.aimA = a;
+    slash(w, s, S, a); if (s.both) st.pend = { a: a + Math.PI, t: .14 };
   },
   shotgun(w, s, dt, S) {
     w.t -= dt; if (w.t > 0) return; w.t += s.cd * S.cd; if (w.t < 0) w.t = 0;
@@ -3023,7 +3290,8 @@ function updateNewShot(b, dt) {
       b.life -= dt;
       if (b.t < b.T) { b.t += dt; const p = Math.min(1, b.t / b.T), q = 1 - (1 - p) ** 2; b.x = lerp(b.x0, b.tx, q); b.y = lerp(b.y0, b.ty, q) - Math.sin(p * Math.PI) * 30; break; }
       b.age += dt; const grow = Math.min(1, b.age / .35);
-      queryCircle(b.x, b.y, b.pull * grow, e => { if (e.boss || e.prop) return; const dx = b.x - e.x, dy = b.y - e.y, d = Math.hypot(dx, dy) || 1, f = (260 * (1 - d / (b.pull + e.r)) + 50) * dt; e.x += dx / d * Math.min(f, d); e.y += dy / d * Math.min(f, d); });
+      if (b.tgt) { if (b.tgt.dead) b.tgt = null; else { const dx = b.tgt.x - b.x, dy = b.tgt.y - b.y, d = Math.hypot(dx, dy) || 1, v = Math.min(d, 95 * dt); b.x += dx / d * v; b.y += dy / d * v; } }
+      queryCircle(b.x, b.y, b.pull * grow, e => { if (e.boss || e.prop) return; e.slow = Math.max(e.slow, .12); const dx = b.x - e.x, dy = b.y - e.y, d = Math.hypot(dx, dy) || 1, f = (260 * (1 - d / (b.pull + e.r)) + 50) * dt; e.x += dx / d * Math.min(f, d); e.y += dy / d * Math.min(f, d); });
       b.tk -= dt; if (b.tk <= 0) { b.tk = .25; queryCircle(b.x, b.y, b.core * grow, e => dealDamage(e, b.dmg, b.w, 0, 0, 0, true)); }
       if (b.life <= 0) {
         if (b.boom) { explode(b.x, b.y, b.boomR, b.boom, b.w); fx.push({ k: 'ring', x: b.x, y: b.y, r0: b.boomR, r1: 10, life: .3, max: .3, col: '#c9a8ff', w: 8 }); shake(5); }
@@ -3328,7 +3596,7 @@ function collectLights() {
     else if (b.k === 'pellet') addLight(b.x, b.y, 36, .3);
   }
   for (const z of zones) { const a = Math.min(1, z.life / .6); addLight(z.x, z.y, z.r * 2.6, .7 * a); addTint(z.x, z.y, z.r * 1.8, .25 * a, '#ff6a1a'); }
-  for (const f of fx) if (f.k === 'slash') addLight(f.x + f.side * f.len * .5, f.y, f.len * .7, .6 * f.life / f.max); else if (f.k === 'blast') addLight(f.x, f.y, 140, f.life / f.max);
+  for (const f of fx) if (f.k === 'slash') addLight(f.x + Math.cos(f.a) * f.len * .5, f.y + Math.sin(f.a) * f.len * .5, f.len * .7, .6 * f.life / f.max); else if (f.k === 'blast') addLight(f.x, f.y, 140, f.life / f.max);
   let nburn = 0; for (const e of enemies) if (e.burnT > 0 && nburn++ < 24) addLight(e.x, e.y, 46, .35);
   let ng = 0; for (const q of pickups) { if (q.kind === 'chest') { addLight(q.x, q.y, 110, .6); addTint(q.x, q.y, 80, .25, '#ffc94d'); } else if (q.kind === 'xp' && ng++ < 160) addLight(q.x, q.y, 26, .3); }
   for (const e of enemies) { if (e.boss) { addLight(e.x, e.y, 210, .5); addTint(e.x, e.y, 160, .2, EPAL[e.type][run.si][2]); } else if (e.elite) addLight(e.x, e.y, 90, .4); }
@@ -3513,7 +3781,7 @@ function drawNewGlows() {
     if (f.k === 'slash') {
       const rev = Math.min(1, p / .3), L = f.len, wd = f.wid, cx = L * .45, rx = L * .56, ry = wd * 1.05, a0 = -2.35, a1 = lerp(-2.35, .55, rev);
       const c1 = f.evo ? '255,110,20' : '150,60,255', c2 = f.evo ? '255,220,120' : '220,170,255';
-      ctx.save(); ctx.translate(f.x, f.y); ctx.scale(f.side, 1);
+      ctx.save(); ctx.translate(f.x, f.y); ctx.rotate(f.a); if (Math.cos(f.a) < 0) ctx.scale(1, -1);
       ctx.beginPath(); ctx.ellipse(cx, 0, rx, ry, 0, a0, a1); ctx.ellipse(cx, ry * .3, rx * .86, ry * .62, 0, a1, a0, true); ctx.closePath();
       ctx.globalAlpha = k; ctx.fillStyle = lin(ctx, -L * .1, 0, L, 0, [[0, `rgba(${c1},0)`], [.4, `rgba(${c1},1)`], [.75, `rgba(${c2},1)`], [1, 'rgba(255,255,255,1)']]); ctx.fill(); ctx.globalAlpha = k * .6; ctx.fill();
       ctx.lineWidth = 2.6; ctx.strokeStyle = `rgba(${c2},${k})`; ctx.beginPath(); ctx.ellipse(cx, 0, rx, ry, 0, Math.max(a0, a1 - 1.6), a1); ctx.stroke();
@@ -3703,7 +3971,9 @@ const el = {};
 ['xpfill', 'lvl', 'kills', 'coins', 'timer', 'wslots', 'pslots', 'bossbar', 'bossname', 'bossfill', 'toast', 'banner', 'bannerT', 'bannerS', 'joy', 'hud', 'menu', 'shop',
   'mCoins', 'sCoins', 'stageCard', 'stNo', 'stName', 'stDesc', 'stBest', 'stPrev', 'stNext', 'startBtn', 'shopBtn', 'shopBadge', 'codexBtn', 'helpBtn', 'setBtn', 'shopBack', 'ups',
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
-  'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose']
+  'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose',
+  'loadout', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
+  'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
 
@@ -3734,7 +4004,7 @@ function hudUpdate() {
   if (run.boss) { const p = Math.round(clamp(run.boss.hp / run.boss.maxHp, 0, 1) * 200) / 200; if (p !== hud.boss) { hud.boss = p; el.bossfill.style.transform = `scaleX(${p})`; } }
 }
 function renderSlots() {
-  const ws = run.weapons.map(w => `<div class="slot${w.evo ? ' evo' : ''}"><img src="${iconURL(w.id, w.evo)}" alt="${w.evo ? WEAPONS[w.id].evoName : WEAPONS[w.id].name}"><b>${w.evo ? '★' : w.lv}</b></div>`);
+  const ws = run.weapons.map(w => `<div class="slot${w.evo ? ' evo' : ''}${w.main ? ' main' : ''}"><img src="${iconURL(w.id, w.evo)}" alt="${w.evo ? WEAPONS[w.id].evoName : WEAPONS[w.id].name}"><b>${w.evo ? '★' : w.lv}</b></div>`);
   while (ws.length < MAX_SLOTS) ws.push('<div class="slot empty"></div>');
   const ps = run.passOrder.map(id => `<div class="slot sm"><img src="${iconURL(id)}" alt="${PASSIVES[id].name}"><b>${run.pass[id]}</b></div>`);
   while (ps.length < MAX_SLOTS) ps.push('<div class="slot sm empty"></div>');
@@ -3766,6 +4036,7 @@ function renderMenu() {
   el.stPrev.disabled = si === 0; el.stNext.disabled = si === STAGES.length - 1;
   el.startBtn.disabled = locked; el.startBtn.innerHTML = locked ? '<b>잠겨 있어요</b><small>LOCKED</small>' : '<b>출격!</b><small>DEPLOY</small>';
   el.shopBadge.hidden = !META.some(m => (save.up[m.id] || 0) < m.max && save.coins >= metaCost(m, save.up[m.id] || 0));
+  renderLoadout();
 }
 function renderShop() {
   el.sCoins.textContent = fmtNum(save.coins);
@@ -3775,12 +4046,105 @@ function renderShop() {
       <div class="up-foot"><div class="pips">${pips(l, m.max)}</div><button class="buy hx" data-id="${m.id}" ${max || save.coins < cost ? 'disabled' : ''}>${max ? '최대' : `<span class="coin-dot"></span>${fmtNum(cost)}`}</button></div></div>`;
   }).join('');
 }
+/* 무기고: 주무기 고르기 · 보급 캡슐 뽑기 */
+const rarOf = id => RARITY[ARM_INFO[id].r];
+const starStr = n => `<span class="stars" aria-label="별 ${n}개">${'★'.repeat(n)}<i>${'★'.repeat(Math.max(0, STAR_MAX - n))}</i></span>`;
+function setRc(node, id) { const c = rarOf(id).col; node.style.setProperty('--rc', c); node.style.setProperty('--rca', rgba(c, .36)); }
+const drawPool = () => GACHA.filter(k => armStars(k) < STAR_MAX);
+const bonusTxt = n => n > 1 ? `피해 +${(n - 1) * 10}%` : '';
+let armSel = 'blaster';
+function renderLoadout() {
+  const id = save.equip, r = rarOf(id), n = armStars(id);
+  setRc(el.loadout, id);
+  el.loIcon.src = iconURL(id); el.loName.textContent = WEAPONS[id].name;
+  el.loSub.innerHTML = id === 'blaster' ? '기본 무기' : `${starStr(n)} ${r.name}${n > 1 ? ' · ' + bonusTxt(n) : ''}`;
+  const free = !save.draws, can = drawPool().length && (free || save.coins >= DRAW_COST);
+  el.armBadge.hidden = !can; el.armBadge.textContent = free ? '무료' : '!';
+}
+function drawRates() {
+  const pool = drawPool(), fresh = pool.filter(k => !armStars(k)), sure = fresh.length && save.pity >= PITY, from = sure ? fresh : pool;
+  const tot = from.reduce((a, k) => a + ARM_INFO[k].w, 0);
+  return { pool, from, sure, p: k => from.includes(k) ? Math.round(ARM_INFO[k].w / tot * 100) : 0 };
+}
+function renderArmory() {
+  el.aCoins.textContent = fmtNum(save.coins);
+  const id = armSel, d = WEAPONS[id], r = rarOf(id), n = armStars(id), own = n > 0, eq = save.equip === id, R = drawRates();
+  setRc(el.armShow, id);
+  const act = own ? (eq ? '<button class="btn hx" disabled>장착 중</button>' : `<button class="btn primary hx" data-equip="${id}">장착하기</button>`)
+    : `<span class="lock-note">보급 캡슐에서 나와요 · 지금 확률 ${R.p(id)}%</span>`;
+  const starInfo = id === 'blaster' ? '<span class="sub">기본 무기 · 처음부터 갖고 있어요</span>'
+    : `${starStr(n)}<span class="sub">${own ? (n < STAR_MAX ? `같은 무기가 또 나오면 ★${n + 1}` : '최고 등급') : '아직 없어요'}</span>`;
+  el.armShow.innerHTML = `<div class="arm-big${own ? '' : ' locked'}"><img src="${iconURL(id)}" alt=""></div>
+    <div class="arm-meta"><span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3><div class="star-row">${starInfo}</div>
+      <p>${d.lv[0]}</p><p class="evo-line">진화: Lv ${MAX_LV} + <b>${PASSIVES[d.pair].name}</b> → <b>${d.evoName}</b></p></div>
+    <div class="arm-act">${act}${own && n > 1 ? `<span class="bonus">★${n} · ${bonusTxt(n)}</span>` : ''}</div>`;
+  el.armGrid.innerHTML = ARMS.map(k => {
+    const m = armStars(k), o = m > 0;
+    return `<button class="arm hx${k === armSel ? ' sel' : ''}${o ? '' : ' locked'}" data-id="${k}" style="--rc:${rarOf(k).col}" aria-pressed="${k === armSel}"><span class="rline"></span>
+      <span class="a-ic"><img src="${iconURL(k)}" alt="">${o ? '' : '<i class="lock" aria-label="잠김"></i>'}</span><b>${WEAPONS[k].name}</b>
+      ${k === 'blaster' ? '<span class="sub">기본</span>' : o ? starStr(m) : `<span class="sub">${rarOf(k).name}</span>`}${save.equip === k ? '<span class="eq">장착</span>' : ''}</button>`;
+  }).join('');
+  el.podImg.src = podArt('#ffcf4d', false);
+  const anyNew = R.pool.some(k => !armStars(k));
+  el.gRates.innerHTML = R.pool.length ? `${R.sure ? '<b class="sure">이번 캡슐은 새 무기 확정!</b><br>' : ''}${GACHA.map(k => `<span class="rt" style="--rc:${rarOf(k).col}">${WEAPONS[k].name} <b>${R.p(k)}%</b></span>`).join('')}<br>같은 무기는 별이 올라요(최대 ★${STAR_MAX})${anyNew && !R.sure ? ` · ${PITY}번 연속 겹치면 다음은 새 무기 (${Math.min(save.pity, PITY)}/${PITY})` : ''}`
+    : '모든 무기를 최고 등급까지 모았어요!';
+  const free = !save.draws;
+  el.drawBtn.disabled = !R.pool.length || (!free && save.coins < DRAW_COST);
+  el.drawBtn.innerHTML = !R.pool.length ? '<b>모두 모았어요</b><small>COMPLETE</small>' : free ? '<b>무료로 열기</b><small>첫 캡슐은 공짜</small>'
+    : `<b>캡슐 열기</b><small><span class="coin-dot"></span>${fmtNum(DRAW_COST)}</small>`;
+}
+function equipArm(id) { if (!(armStars(id) > 0)) return; save.equip = id; armSel = id; persist(); Sfx.init(); Sfx.select(); renderArmory(); }
+function rollArm() {
+  const R = drawRates(), free = !save.draws;
+  if (!R.pool.length || (!free && save.coins < DRAW_COST)) return null;
+  let tot = R.from.reduce((a, k) => a + ARM_INFO[k].w, 0), x = Math.random() * tot, id = R.from[R.from.length - 1];
+  for (const k of R.from) { x -= ARM_INFO[k].w; if (x <= 0) { id = k; break; } }
+  if (!free) save.coins -= DRAW_COST;
+  const was = armStars(id); save.arms[id] = was + 1; save.draws = (save.draws || 0) + 1; save.pity = was ? (save.pity || 0) + 1 : 0;
+  persist();
+  return { id, isNew: !was, stars: was + 1 };
+}
+let drawTimers = [], lastDraw = null;
+function openDraw() {
+  if (!el.drawModal.hidden && el.drawActs.classList.contains('wait')) return; // 캡슐이 열리는 중이면 다시 뽑지 않아요
+  const res = rollArm(); if (!res) return;
+  lastDraw = res; Sfx.init();
+  if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  drawTimers.forEach(clearTimeout); drawTimers = [];
+  const r = rarOf(res.id), d = WEAPONS[res.id], rk = ARM_INFO[res.id].r;
+  el.drawPanel.className = 'panel narrow hx draw-panel'; el.drawPanel.style.setProperty('--rc', '#4fe3ff'); el.drawPanel.style.setProperty('--rca', rgba('#4fe3ff', .3));
+  el.drawLabel.textContent = 'SUPPLY POD'; el.drawLabel.className = 'label'; el.drawTitle.textContent = '보급 캡슐';
+  el.podBig.src = podArt('#4fe3ff', false); el.podItem.src = iconURL(res.id);
+  el.podStage.className = 'pod-stage shake'; el.drawRes.innerHTML = ''; el.drawActs.classList.add('wait');
+  el.drawModal.hidden = false; el.drawPanel.focus({ preventScroll: true }); Sfx.rattle();
+  el.aCoins.textContent = fmtNum(save.coins); // 뒤의 무기고는 캡슐이 열린 뒤에 바꿔요(결과가 미리 보이지 않게)
+  // 흔들리다가 캡슐 빛이 등급 색으로 바뀌고, 열리며 무기가 솟아올라요
+  drawTimers.push(setTimeout(() => { setRc(el.drawPanel, res.id); el.podBig.src = podArt(r.col, false); el.podStage.className = 'pod-stage shake2'; Sfx.rattle(); }, 800));
+  drawTimers.push(setTimeout(() => {
+    el.podBig.src = podArt(r.col, true); el.podStage.className = 'pod-stage open';
+    if (rk === 'legend') Sfx.evo(); else Sfx.chest();
+    if (rk !== 'rare') el.drawPanel.classList.add(rk === 'legend' ? 'gold' : 'epic');
+    el.drawLabel.textContent = r.en; el.drawLabel.className = 'label' + (rk === 'legend' ? ' gold' : '');
+    el.drawTitle.textContent = res.isNew ? '새 무기!' : res.stars >= STAR_MAX ? '최고 등급!' : '별이 올랐어요!';
+    el.drawRes.innerHTML = `<span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3>${starStr(res.stars)}
+      <p class="gain">${res.isNew ? 'NEW · 무기고에 들어왔어요' : `★${res.stars} · ${bonusTxt(res.stars)}`}</p><p class="d">${d.lv[0]}</p>`;
+    renderDrawActs(); el.drawActs.classList.remove('wait'); renderArmory();
+    el.drawOk.focus({ preventScroll: true }); el.drawActs.scrollIntoView({ block: 'nearest' });
+  }, 1500));
+}
+function renderDrawActs() {
+  const eq = save.equip === lastDraw.id, can = drawPool().length && save.coins >= DRAW_COST;
+  el.drawEquip.disabled = eq; el.drawEquip.textContent = eq ? '장착 중' : '장착하기';
+  el.drawAgain.disabled = !can; el.drawAgain.innerHTML = drawPool().length ? `한 번 더 열기 <span class="coin-dot"></span>${fmtNum(DRAW_COST)}` : '모두 모았어요';
+}
+function closeDraw() { drawTimers.forEach(clearTimeout); drawTimers = []; el.drawModal.hidden = true; renderArmory(); }
+function showArmory() { armSel = save.equip; el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
 function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(t => t.setAttribute('aria-checked', String(!!save.set[t.dataset.set]))); }
 
 function showMenu() {
   state = 'menu'; run = null; joyReset(); Sfx.musicStop(); Sfx.setIntensity(0);
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
-  el.hud.hidden = true; el.shop.hidden = true; el.menu.hidden = false; el.banner.className = '';
+  el.hud.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.drawModal.hidden = true; el.menu.hidden = false; el.banner.className = '';
   renderMenu();
 }
 function startRun() {
@@ -3788,7 +4152,7 @@ function startRun() {
   newRun(save.stage); hudReset(); hideBossBar(); el.banner.className = '';
   if (!el.portrait.src) el.portrait.src = heroPortrait();
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
-  el.menu.hidden = true; el.shop.hidden = true; el.hud.hidden = false;
+  el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.hud.hidden = false;
   state = 'play'; hudUpdate();
   toast(isTouch ? '화면을 끌어서 움직여요. 무기는 저절로 쏴요!' : 'WASD·방향키로 움직여요. 무기는 저절로 쏴요!');
   save.runs = (save.runs || 0) + 1; persist();
@@ -3816,8 +4180,8 @@ function renderCards() {
   el.lvSub.textContent = run.pendingLv > 1 ? `하나를 골라요 · 이어서 ${run.pendingLv - 1}번 더 골라요` : '하나를 골라요';
   el.cards.innerHTML = choices.map((c, i) => {
     const f = cardInfo(c);
-    const typ = f.evo ? 'EVOLUTION' : c.type === 'w' ? 'WEAPON' : c.type === 'p' ? 'GEAR' : 'BONUS';
-    return `<button class="card hx ${f.evo ? 'evo' : c.type}" data-i="${i}"><div class="c-top"><span class="c-type">${typ}</span><span class="key">[${i + 1}]</span></div><div class="medal"><img src="${f.icon}" alt=""></div><div class="c-body">
+    const typ = f.evo ? 'EVOLUTION' : c.type === 'w' ? (f.main ? 'WEAPON' : 'SKILL') : c.type === 'p' ? 'GEAR' : 'BONUS';
+    return `<button class="card hx ${f.evo ? 'evo' : c.type}${f.main ? ' main' : ''}" data-i="${i}"><div class="c-top"><span class="c-type">${typ}</span><span class="key">[${i + 1}]</span></div><div class="medal"><img src="${f.icon}" alt=""></div><div class="c-body">
       <div class="c-head"><span class="c-name">${f.name}</span><span class="tag ${f.tagCls}">${f.tag}</span></div>
       ${f.lv !== undefined ? `<div class="pips">${pips(f.lv, f.max || MAX_LV, true)}</div>` : ''}
       <p class="c-desc">${f.desc}</p>${f.sub ? `<p class="c-hint">${f.sub}</p>` : ''}${f.hint ? `<p class="c-hint">${f.hint}</p>` : ''}</div></button>`;
@@ -3857,7 +4221,7 @@ function pauseGame() {
   if (state !== 'play') return;
   state = 'pause'; joyReset(); keys.clear(); Sfx.musicStop();
   el.pauseSub.textContent = `${run.st.name} · ${fmtTime(run.t)} · Lv ${run.lv} · 처치 ${fmtNum(run.kills)}`;
-  el.pW.innerHTML = run.weapons.map(w => { const d = WEAPONS[w.id]; return `<div class="build-item hx${w.evo ? ' evo' : ''}"><img src="${iconURL(w.id, w.evo)}" alt=""><div><b>${w.evo ? d.evoName : d.name}</b><span>${w.evo ? '진화 완료' : `Lv ${w.lv} / ${MAX_LV}`}</span></div></div>`; }).join('') || '<p class="empty">없음</p>';
+  el.pW.innerHTML = run.weapons.map(w => { const d = WEAPONS[w.id]; return `<div class="build-item hx${w.evo ? ' evo' : ''}"><img src="${iconURL(w.id, w.evo)}" alt=""><div><b>${w.evo ? d.evoName : d.name}</b><span>${w.main ? '주무기 · ' : ''}${w.evo ? '진화 완료' : `Lv ${w.lv} / ${MAX_LV}`}</span></div></div>`; }).join('') || '<p class="empty">없음</p>';
   el.pP.innerHTML = run.passOrder.map(id => `<div class="build-item hx"><img src="${iconURL(id)}" alt=""><div><b>${PASSIVES[id].name}</b><span>Lv ${run.pass[id]} · ${PASSIVES[id].val(run.pass[id])}</span></div></div>`).join('') || '<p class="empty">아직 없어요</p>';
   el.pEvo.innerHTML = run.weapons.map(w => {
     const d = WEAPONS[w.id], p = PASSIVES[d.pair];
@@ -3909,6 +4273,14 @@ el.stPrev.addEventListener('click', () => { save.stage = Math.max(0, save.stage 
 el.stNext.addEventListener('click', () => { save.stage = Math.min(STAGES.length - 1, save.stage + 1); persist(); critters.length = 0; renderMenu(); });
 el.shopBtn.addEventListener('click', () => { el.menu.hidden = true; el.shop.hidden = false; renderShop(); });
 el.shopBack.addEventListener('click', () => { el.shop.hidden = true; el.menu.hidden = false; renderMenu(); });
+el.loadout.addEventListener('click', () => { Sfx.init(); showArmory(); });
+el.armBack.addEventListener('click', () => { el.armory.hidden = true; el.menu.hidden = false; renderMenu(); });
+el.armGrid.addEventListener('click', e => { const b = e.target.closest('.arm'); if (!b) return; armSel = b.dataset.id; Sfx.init(); Sfx.select(); renderArmory(); });
+el.armShow.addEventListener('click', e => { const b = e.target.closest('[data-equip]'); if (b) equipArm(b.dataset.equip); });
+el.drawBtn.addEventListener('click', () => { if (el.drawModal.hidden) openDraw(); });
+el.drawEquip.addEventListener('click', () => { if (lastDraw) { equipArm(lastDraw.id); renderDrawActs(); } });
+el.drawOk.addEventListener('click', closeDraw);
+el.drawAgain.addEventListener('click', openDraw);
 el.ups.addEventListener('click', e => {
   const b = e.target.closest('.buy'); if (!b || b.disabled) return;
   const m = META.find(x => x.id === b.dataset.id), l = save.up[m.id] || 0, cost = metaCost(m, l);
@@ -3919,7 +4291,7 @@ el.setBtn.addEventListener('click', () => { syncToggles(); resetArm = false; el.
 el.setClose.addEventListener('click', () => { el.setModal.hidden = true; renderMenu(); });
 let resetArm = false;
 el.resetBtn.addEventListener('click', () => {
-  if (!resetArm) { resetArm = true; el.resetBtn.textContent = '코인·강화·기록이 모두 지워져요. 한 번 더 누르세요'; return; }
+  if (!resetArm) { resetArm = true; el.resetBtn.textContent = '코인·강화·모은 무기(별)·기록이 모두 지워져요. 한 번 더 누르세요'; return; }
   const set = save.set; save = DEFAULT_SAVE(); save.set = set; persist(); resetArm = false; el.resetBtn.textContent = '지웠어요'; renderMenu();
 });
 document.querySelectorAll('.toggle[data-set]').forEach(t => t.addEventListener('click', () => {
@@ -3930,26 +4302,29 @@ document.querySelectorAll('.toggle[data-set]').forEach(t => t.addEventListener('
 }));
 function openHelp(kind) {
   if (kind === 'codex') {
-    el.helpTitle.textContent = '무기 도감'; el.helpLabel.textContent = 'ARMORY';
-    el.helpBody.innerHTML = `<p>무기는 6칸, 보조 장비도 6칸까지 가질 수 있어요. 무기를 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>진화</b>할 수 있어요.</p>
-      <div class="evo-table">${W_IDS.map(id => { const d = WEAPONS[id]; return `<div class="codex-item"><div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${d.name}</b><span style="white-space:normal">${d.lv[0]}</span></div></div>
-        <div class="evo-row"><img src="${iconURL(d.pair)}" alt=""><span class="op">${josa(PASSIVES[d.pair].name, '과', '와')} 함께 →</span><img src="${iconURL(id, true)}" alt=""><b>${d.evoName}</b><p>${d.evoInfo}</p></div></div>`; }).join('')}</div>
+    el.helpTitle.textContent = '도감'; el.helpLabel.textContent = 'CODEX';
+    const entry = (id, extra = '') => { const d = WEAPONS[id]; return `<div class="codex-item"><div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${d.name}${extra}</b><span style="white-space:normal">${d.lv[0]}</span></div></div>
+        <div class="evo-row"><img src="${iconURL(d.pair)}" alt=""><span class="op">${josa(PASSIVES[d.pair].name, '과', '와')} 함께 →</span><img src="${iconURL(id, true)}" alt=""><b>${d.evoName}</b><p>${d.evoInfo}</p></div></div>`; };
+    el.helpBody.innerHTML = `<p><b>주무기</b>는 한 판에 하나만 들고 나가요. 무기고의 보급 캡슐에서 얻고, 장착한 무기만 레벨 업 때 나와요. <b>스킬</b>은 레벨 업과 보물 상자에서 골라 ${MAX_SLOTS - 1}칸까지 가질 수 있어요. 보조 장비는 ${MAX_SLOTS}칸이에요.</p>
+      <p>무기나 스킬을 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>진화</b>해요.</p>
+      <h3>주무기</h3><div class="evo-table">${ARMS.map(id => entry(id, ` <em class="rar sm" style="--rc:${rarOf(id).col}">${rarOf(id).name}</em>${armStars(id) ? '' : ' <em class="muted">· 아직 없어요</em>'}`)).join('')}</div>
+      <h3>스킬</h3><div class="evo-table">${SKILLS.map(id => entry(id)).join('')}</div>
       <h3>보조 장비</h3><div class="help-items">${P_IDS.map(id => `<div><img src="${iconURL(id)}" alt=""><span><b style="color:var(--text)">${PASSIVES[id].name}</b><br>${PASSIVES[id].info}</span></div>`).join('')}</div>`;
   } else {
     el.helpTitle.textContent = '하는 법'; el.helpLabel.textContent = 'BRIEFING';
     el.helpBody.innerHTML = `<div><h3>목표</h3><ul><li>그림자들이 사방에서 몰려와요. <b>10분</b>을 버티면 마지막 보스가 나와요. 보스를 쓰러뜨리면 새벽이 오고 스테이지를 깨요.</li><li>5분에는 중간 보스, 2분마다 정예 몬스터가 나와요. 둘 다 <b>보물 상자</b>를 떨어뜨려요.</li></ul></div>
-      <div><h3>움직이기</h3><ul><li>PC: <b>WASD</b>나 <b>방향키</b>. 마우스로 끌어도 돼요. <b>Esc</b>나 <b>P</b>로 멈춰요.</li><li>폰: 화면 아무 곳이나 누른 채 끌면 그쪽으로 움직여요.</li><li>공격은 무기가 알아서 해요. 피하고, 줍고, 고르기만 하면 돼요.</li></ul></div>
-      <div><h3>성장</h3><ul><li>적을 쓰러뜨리면 나오는 <b>경험치 보석</b>을 주워 레벨을 올려요. 레벨이 오르면 무기나 보조 장비를 하나 골라요(PC는 숫자 1·2·3).</li><li>무기를 Lv ${MAX_LV}까지 키우고 짝 장비를 갖고 있으면 <b>진화</b>해요. 짝은 무기 도감에서 볼 수 있어요.</li><li>판이 끝나면 코인이 쌓여요. 메인 화면의 <b>강화</b>에서 영구 능력을 올려요.</li></ul></div>
+      <div><h3>움직이기</h3><ul><li>PC: <b>WASD</b>나 <b>방향키</b>. 마우스로 끌어도 돼요. <b>Esc</b>나 <b>P</b>로 멈춰요.</li><li>폰: 화면 아무 곳이나 누른 채 끌면 그쪽으로 움직여요.</li><li>공격은 무기가 알아서 해요. 피하고, 줍고, 고르기만 하면 돼요.</li><li>주무기는 <b>하나만</b> 들고 나가요. 메인 화면의 무기고에서 바꿔 끼워요.</li></ul></div>
+      <div><h3>성장</h3><ul><li>적을 쓰러뜨리면 나오는 <b>경험치 보석</b>을 주워 레벨을 올려요. 레벨이 오르면 스킬이나 보조 장비를 하나 골라요(PC는 숫자 1·2·3).</li><li>무기·스킬을 Lv ${MAX_LV}까지 키우고 짝 장비를 갖고 있으면 <b>진화</b>해요. 짝은 도감에서 볼 수 있어요.</li><li>판이 끝나면 코인이 쌓여요. 메인 화면의 <b>강화</b>에서 영구 능력을 올리고, <b>무기고</b>에서 보급 캡슐을 열어 새 주무기를 얻어요.</li></ul></div>
       <div><h3>아이템</h3><div class="help-items">
         <div><img src="${iconURL('gem')}" alt=""><span>경험치 보석. 파랑 → 초록 → 분홍 순으로 많이 줘요</span></div>
         <div><img src="${iconURL('medkit')}" alt=""><span>구급상자. 체력 30% 회복</span></div>
         <div><img src="${iconURL('magnet')}" alt=""><span>자석. 흩어진 보석을 모두 끌어와요</span></div>
         <div><img src="${iconURL('bomb')}" alt=""><span>폭탄. 화면 안의 적을 날려 버려요</span></div>
-        <div><img src="${iconURL('chest')}" alt=""><span>보물 상자. 무기·장비를 키우거나 진화시켜요</span></div>
-        <div><img src="${iconURL('coin')}" alt=""><span>코인. 강화에 써요</span></div></div>
-        <ul><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li></ul></div>`;
+        <div><img src="${iconURL('chest')}" alt=""><span>보물 상자. 무기·스킬·장비를 키우거나 진화시켜요</span></div>
+        <div><img src="${iconURL('coin')}" alt=""><span>코인. 강화와 무기 뽑기에 써요</span></div></div>
+        <ul><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li><li>멀리서 침을 뱉는 <b>침쟁이</b>는 스테이지마다 정해진 수만 나와요(3 · 5 · 7마리).</li></ul></div>`;
   }
-  el.helpModal.hidden = false; el.helpBody.parentElement.scrollTop = 0;
+  el.helpModal.hidden = false; el.helpModal.scrollTop = 0;
 }
 el.helpBtn.addEventListener('click', () => openHelp('help'));
 el.codexBtn.addEventListener('click', () => openHelp('codex'));
@@ -3984,6 +4359,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Escape' || e.code === 'KeyP') {
     if (state === 'play') pauseGame(); else if (state === 'pause') resumeFromPause();
     else if (!el.helpModal.hidden) el.helpModal.hidden = true; else if (!el.setModal.hidden) { el.setModal.hidden = true; renderMenu(); }
+    else if (!el.drawModal.hidden) { if (!el.drawActs.classList.contains('wait')) closeDraw(); } else if (!el.armory.hidden) el.armBack.click(); else if (!el.shop.hidden) el.shopBack.click();
   }
   if (state === 'levelup') {
     const n = { Digit1: 0, Digit2: 1, Digit3: 2, Numpad1: 0, Numpad2: 1, Numpad3: 2 }[e.code];
@@ -4030,7 +4406,7 @@ window.__shadowRaid = {
   get run() { return run; }, get state() { return state; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get eshots() { return eshots; }, player,
   setTimeScale(v) { timeScale = v; }, setMove(x, y) { botMove = x === null ? null : { x, y }; }, pick: i => { cardLock = 0; pickChoice(i); },
   fastForward(sec, tick) { const n = Math.round(sec * 60); for (let i = 0; i < n && state !== 'result'; i++) { if (tick) tick(); if (state === 'play') { update(1 / 60); if (run) hudUpdate(); } } },
-  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, perf, kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
+  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), perf, kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
 };
 })();
 </script>
