@@ -2228,7 +2228,7 @@ const HS = 1.2; // 주인공 크기 배율
 const heroBob = H => (H.moving ? -Math.abs(Math.cos(H.walk)) * 2.2 : Math.sin(H.t * 2.6) * .7) * HS;
 const heroFlip = H => Math.cos(H.aimA) < 0 ? -1 : 1;
 const heroAt = (H, lx, ly) => [H.x + heroFlip(H) * lx * HS, H.y + heroBob(H) + ly * HS];
-function heroMuzzle(H) { const L = ((H.evo ? 31 : 26.5) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
+function heroMuzzle(H) { const wp = H.wpn || 'blaster', L = ((wp === 'blaster' && H.evo ? 31 : WPN_LEN[wp] || 26.5) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
 const heroLantern = H => heroAt(H, -13.2, -4.5);
 const heroAntenna = H => heroAt(H, -6, -36.5);
 const heroThruster = H => heroAt(H, -11, 7);
@@ -2292,21 +2292,7 @@ function drawHero(g, H) {
     const kx = -H.recoil * 3;
     g.fillStyle = lin(g, 0, -2.6, 0, 2.6, [[0, '#ffffff'], [1, HERO.suitM]]); rr(g, -1 + kx * .5, -2.6, 10, 5.2, 2.6); g.fill(); g.lineWidth = .7; g.strokeStyle = OL; g.stroke();
     g.fillStyle = HERO.trim; g.fillRect(6 + kx * .5, -2.6, 1.6, 5.2);
-    if (!H.evo) {
-      g.fillStyle = '#20263a'; g.beginPath(); g.moveTo(10 + kx, 1.8); g.lineTo(13 + kx, 1.8); g.lineTo(12 + kx, 7); g.lineTo(9 + kx, 6.6); g.closePath(); g.fill();
-      g.fillStyle = lin(g, 0, -3.8, 0, 2.8, [[0, '#ffffff'], [.5, '#d4dbea'], [1, '#8a94ad']]); rr(g, 7 + kx, -3.8, 14, 6.4, 2.2); g.fill(); g.lineWidth = .6; g.strokeStyle = '#3a4258'; g.stroke();
-      g.fillStyle = HERO.glow; rr(g, 9.6 + kx, -1.3, 7, 1.9, .9); g.fill();
-      g.fillStyle = '#262c40'; rr(g, 19 + kx, -2.2, 6.6, 3.6, 1.4); g.fill();
-      g.fillStyle = HERO.glow; g.fillRect(25 + kx, -2.2, 1.4, 3.6);
-      g.fillStyle = '#ff7a2f'; g.fillRect(8 + kx, -3.8, 3, 1.2);
-    } else {
-      g.fillStyle = rad(g, 9 + kx, 4, .5, 10 + kx, 5, 4.5, [[0, '#ffe08a'], [1, '#8a4a0a']]); g.beginPath(); g.arc(10 + kx, 5, 4.2, 0, TAU); g.fill();
-      g.fillStyle = lin(g, 0, -4.5, 0, 4.5, [[0, '#ffffff'], [.45, '#ffd27a'], [1, '#a8620f']]); rr(g, 5 + kx, -4.5, 14, 9, 3); g.fill(); g.lineWidth = .7; g.strokeStyle = '#4a2604'; g.stroke();
-      for (const y of [-2.6, -.2, 2.2]) { g.fillStyle = lin(g, 0, y - 1, 0, y + 1, [[0, '#e6ebf5'], [1, '#2a2e3a']]); g.fillRect(18 + kx, y - .9, 13, 1.8); }
-      const sp = (t * 60) % 4; g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(20 + kx + sp, -3.5, 1, 7);
-      g.fillStyle = '#2a2e3a'; g.fillRect(29 + kx, -3.8, 2, 7.6);
-      g.fillStyle = HERO.glow; g.fillRect(8 + kx, -1.2, 7, 1);
-    }
+    drawHeldWeapon(g, H, kx, t);
     g.fillStyle = '#5d6882'; g.beginPath(); g.arc(9.5 + kx, .4, 2.7, 0, TAU); g.fill();
     g.restore();
   };
@@ -2341,6 +2327,76 @@ function drawHero(g, H) {
   g.restore();
   if (!armFirst) arm();
   g.restore();
+}
+// 손에 든 주무기 그림 (팔 좌표계: +x가 겨누는 방향, 손잡이는 x≈9.5)
+const WPN_LEN = { blaster: 26.5, shotgun: 28.5, whip: 16, flame: 28, gravity: 25 };
+function drawHeldWeapon(g, H, kx, t) {
+  const w = H.wpn || 'blaster', evo = H.evo, OUTL = '#1a1e2c';
+  const stroke = (c = OUTL, lw = .6) => { g.lineWidth = lw; g.strokeStyle = c; g.stroke(); };
+  if (w === 'shotgun') {
+    const metal = evo ? [[0, '#fff3c4'], [.5, '#ffb43a'], [1, '#8a4a0a']] : [[0, '#aab3cc'], [.5, '#4a5272'], [1, '#1e2436']];
+    g.fillStyle = lin(g, 0, -2, 0, 4, evo ? [[0, '#ffd27a'], [1, '#8a4a0a']] : [[0, '#7a5638'], [1, '#3a2414']]);
+    g.beginPath(); g.moveTo(2.5 + kx, -1.4); g.lineTo(8 + kx, -2.6); g.lineTo(8 + kx, 2.4); g.lineTo(2 + kx, 4.4); g.closePath(); g.fill(); stroke();
+    g.fillStyle = '#20263a'; g.beginPath(); g.moveTo(10 + kx, 2.8); g.lineTo(13 + kx, 2.8); g.lineTo(12 + kx, 7.6); g.lineTo(9 + kx, 7.2); g.closePath(); g.fill();
+    g.fillStyle = lin(g, 0, -4.4, 0, 3.4, metal); rr(g, 7 + kx, -4.4, 11.5, 7.8, 2); g.fill(); stroke();
+    for (const y of [-3.6, -.6]) { g.fillStyle = lin(g, 0, y, 0, y + 2.8, [[0, '#eef2fa'], [1, '#3a4258']]); rr(g, 17.5 + kx, y, 10.5, 2.8, 1.2); g.fill(); stroke('#2a2e3a', .4); }
+    g.fillStyle = lin(g, 0, 2, 0, 4.8, evo ? [[0, '#fff0b0'], [1, '#d07a10']] : [[0, '#ffb070'], [1, '#c4561a']]); rr(g, 19 + kx, 2, 6.4, 2.8, 1.1); g.fill(); stroke('#4a2004', .4);
+    g.fillStyle = '#262c40'; g.fillRect(27.6 + kx, -4, 1.7, 6.6);
+    g.fillStyle = evo ? '#ffffff' : '#ff8a3d'; g.fillRect(9 + kx, -2.6, 6.5, 1);
+    if (evo) { g.fillStyle = 'rgba(255,240,180,.8)'; for (let i = 0; i < 3; i++) g.fillRect(10 + i * 2.4 + kx, .6, 1.2, 1.6); }
+  } else if (w === 'flame') {
+    const tank = evo ? [[0, '#fff0b0'], [.45, '#ff9a3c'], [1, '#8a2a06']] : [[0, '#ffb070'], [.45, '#e2541c'], [1, '#6a1806']];
+    g.fillStyle = lin(g, 0, 1.4, 0, 7.6, tank); rr(g, 5.5 + kx, 1.4, 10.5, 6, 3); g.fill(); stroke('#3a1004');
+    g.fillStyle = 'rgba(20,10,4,.75)'; for (let i = 0; i < 3; i++) g.fillRect(8 + i * 2.6 + kx, 1.6, 1.1, 5.6);
+    g.fillStyle = lin(g, 0, -3.8, 0, 2, [[0, '#eef2fa'], [1, '#5a6480']]); rr(g, 7 + kx, -3.8, 12.5, 5.4, 1.8); g.fill(); stroke();
+    g.fillStyle = lin(g, 0, -2.4, 0, 1.6, [[0, '#9aa3bd'], [1, '#2a2e3a']]); rr(g, 18.5 + kx, -2.6, 8, 3.8, 1); g.fill(); stroke('#2a2e3a', .4);
+    g.fillStyle = evo ? '#ffe08a' : '#ff8a3d'; for (const x of [20.4, 22.8]) g.fillRect(x + kx, -2.9, .9, 4.4);
+    g.fillStyle = '#262c40'; g.fillRect(26 + kx, -3, 1.7, 4.8);
+    const f = 1 + Math.sin(t * 31) * .22 + Math.sin(t * 17) * .12, fx = 29.2 + kx;
+    g.fillStyle = rad(g, fx, -.6, .2, fx, -.6, 3.4 * f, [[0, '#fff6c8'], [.45, evo ? '#ffd27a' : '#ffb347'], [1, 'rgba(255,90,20,0)']]); g.beginPath(); g.ellipse(fx, -.6, 3.4 * f, 2 * f, 0, 0, TAU); g.fill();
+    g.fillStyle = '#4fe3ff'; g.globalAlpha = .9; g.beginPath(); g.arc(fx - 2, -.6, .8, 0, TAU); g.fill(); g.globalAlpha = 1;
+  } else if (w === 'whip') {
+    const col = evo ? '#ffd27a' : '#d78cff', col2 = evo ? '#ff9a3c' : '#8f4dff';
+    g.fillStyle = lin(g, 0, -2.3, 0, 2.3, [[0, '#eef2fa'], [1, '#3a4258']]); rr(g, 6 + kx, -2.3, 9.5, 4.6, 1.8); g.fill(); stroke();
+    g.fillStyle = col2; g.fillRect(8.4 + kx, -2.3, 1.1, 4.6); g.fillRect(11.4 + kx, -2.3, 1.1, 4.6);
+    g.fillStyle = '#262c40'; rr(g, 15 + kx, -3, 2.8, 6, 1); g.fill();
+    g.fillStyle = col; g.fillRect(17.4 + kx, -1.6, .8, 3.2);
+    // 출렁이는 에너지 줄
+    const s1 = Math.sin(t * 3.4) * 3.5, s2 = Math.cos(t * 2.6) * 4.5, x0 = 18 + kx, ex = 21 + s1 * .6 + kx, ey = 17 + s2 * .4;
+    const strand = off => { g.beginPath(); g.moveTo(x0, 0); g.bezierCurveTo(x0 + 9, 2 + s1 + off, x0 + 10, 10 + s2 + off, ex + off, ey); };
+    g.lineCap = 'round';
+    for (const off of evo ? [-1.2, 1.2] : [0]) {
+      strand(off); g.globalAlpha = .35; g.lineWidth = 3.4; g.strokeStyle = col; g.stroke();
+      strand(off); g.globalAlpha = 1; g.lineWidth = 1.1; g.strokeStyle = lt(col, .55); g.stroke();
+    }
+    g.fillStyle = rad(g, ex, ey, .2, ex, ey, 2.6, [[0, '#ffffff'], [.5, col], [1, 'rgba(0,0,0,0)']]); g.beginPath(); g.arc(ex, ey, 2.6, 0, TAU); g.fill();
+    g.lineCap = 'butt';
+  } else if (w === 'gravity') {
+    const ring = evo ? '#ffd27a' : '#c9a8ff';
+    g.fillStyle = lin(g, 0, -3.6, 0, 3.6, evo ? [[0, '#fff0c0'], [.5, '#a77bff'], [1, '#3a1a6a']] : [[0, '#c4b4ff'], [.5, '#4a3a8a'], [1, '#1a1438']]); rr(g, 6 + kx, -3.6, 11, 7.2, 2.6); g.fill(); stroke('#140c2a');
+    g.fillStyle = '#2a2448'; rr(g, 15.5 + kx, -4.6, 6.4, 1.8, .9); g.fill(); rr(g, 15.5 + kx, 2.8, 6.4, 1.8, .9); g.fill();
+    g.fillStyle = ring; g.fillRect(9 + kx, -1, 5, 1);
+    const R = evo ? 3.4 : 2.8, cx = 23.5 + kx, p = 1 + Math.sin(t * 6) * .08;
+    g.fillStyle = rad(g, cx, 0, R * .6, cx, 0, R * 2.6, [[0, rgba(ring, .5)], [1, rgba(ring, 0)]]); g.beginPath(); g.arc(cx, 0, R * 2.6, 0, TAU); g.fill();
+    g.save(); g.translate(cx, 0); g.rotate(t * 2.2); g.scale(1, .4); g.strokeStyle = ring; g.lineWidth = 1.3; g.beginPath(); g.arc(0, 0, R * 1.9, 0, TAU); g.stroke(); g.restore();
+    g.fillStyle = '#05020c'; g.beginPath(); g.arc(cx, 0, R * p, 0, TAU); g.fill(); g.lineWidth = .8; g.strokeStyle = lt(ring, .4); g.stroke();
+  } else {
+  if (!evo) {
+      g.fillStyle = '#20263a'; g.beginPath(); g.moveTo(10 + kx, 1.8); g.lineTo(13 + kx, 1.8); g.lineTo(12 + kx, 7); g.lineTo(9 + kx, 6.6); g.closePath(); g.fill();
+      g.fillStyle = lin(g, 0, -3.8, 0, 2.8, [[0, '#ffffff'], [.5, '#d4dbea'], [1, '#8a94ad']]); rr(g, 7 + kx, -3.8, 14, 6.4, 2.2); g.fill(); g.lineWidth = .6; g.strokeStyle = '#3a4258'; g.stroke();
+      g.fillStyle = HERO.glow; rr(g, 9.6 + kx, -1.3, 7, 1.9, .9); g.fill();
+      g.fillStyle = '#262c40'; rr(g, 19 + kx, -2.2, 6.6, 3.6, 1.4); g.fill();
+      g.fillStyle = HERO.glow; g.fillRect(25 + kx, -2.2, 1.4, 3.6);
+      g.fillStyle = '#ff7a2f'; g.fillRect(8 + kx, -3.8, 3, 1.2);
+    } else {
+      g.fillStyle = rad(g, 9 + kx, 4, .5, 10 + kx, 5, 4.5, [[0, '#ffe08a'], [1, '#8a4a0a']]); g.beginPath(); g.arc(10 + kx, 5, 4.2, 0, TAU); g.fill();
+      g.fillStyle = lin(g, 0, -4.5, 0, 4.5, [[0, '#ffffff'], [.45, '#ffd27a'], [1, '#a8620f']]); rr(g, 5 + kx, -4.5, 14, 9, 3); g.fill(); g.lineWidth = .7; g.strokeStyle = '#4a2604'; g.stroke();
+      for (const y of [-2.6, -.2, 2.2]) { g.fillStyle = lin(g, 0, y - 1, 0, y + 1, [[0, '#e6ebf5'], [1, '#2a2e3a']]); g.fillRect(18 + kx, y - .9, 13, 1.8); }
+      const sp = (t * 60) % 4; g.fillStyle = 'rgba(255,255,255,.55)'; g.fillRect(20 + kx + sp, -3.5, 1, 7);
+      g.fillStyle = '#2a2e3a'; g.fillRect(29 + kx, -3.8, 2, 7.6);
+      g.fillStyle = HERO.glow; g.fillRect(8 + kx, -1.2, 7, 1);
+    }
+  }
 }
 // 계기판 초상: 헬멧 쪽을 크게 잘라 그려요
 function heroPortrait() {
@@ -2542,7 +2598,7 @@ function newRun(si) {
   cam.x = 0; cam.y = 0;
   // 무기고에서 장착한 주무기 하나만 들고 시작해요
   run.main = isArm(save.equip) && armStars(save.equip) > 0 ? save.equip : 'blaster'; run.mainK = armBonus(run.main);
-  addWeapon(run.main); run.weapons[0].main = true;
+  addWeapon(run.main); run.weapons[0].main = true; player.wpn = run.main; // 주인공이 장착한 주무기를 들고 나가요
 }
 function addWeapon(id) { run.weapons.push({ id, lv: 1, evo: false, t: .3, key: 'w' + id, st: {} }); run.buildVer++; }
 
@@ -3576,6 +3632,7 @@ function update(dt) {
   updatePlayer(dt);
   updateEnemies(dt);
   separate();
+  if (run.weapons[0]) player.evo = run.weapons[0].evo; // 주무기가 진화하면 손에 든 무기 모양도 바뀌어요
   if (!run.over) for (const w of run.weapons) TICK[w.id](w, boost(w.id, WEAPONS[w.id].stat(w.lv, w.evo), run.stats), dt, run.stats);
   updateShots(dt); updateBeams(dt); updateZones(dt); updateEshots(dt); updatePickups(dt); updateFx(dt);
   let live = 0; compact(enemies, e => { if (e.dead) return false; if (!e.prop) live++; return true; }); run.live = live;
@@ -4107,7 +4164,7 @@ function menuScene(dt, hw, hh) {
   }
   else { menuHero.x = cam.x; menuHero.y = cam.y + 40; }
   menuHero.t += dt; menuHero.walk += dt * 6.5; menuHero.blinkT -= dt; if (menuHero.blink > 0) menuHero.blink -= dt; if (menuHero.blinkT <= 0) { menuHero.blink = .12; menuHero.blinkT = rand(2, 4.5); }
-  menuHero.aimA = .38 + Math.sin(T * .7) * .15; menuHero.sy = menuHero.y + 12;
+  menuHero.aimA = .38 + Math.sin(T * .7) * .15; menuHero.sy = menuHero.y + 12; menuHero.wpn = save.equip;
   updateScarf(menuHero, dt);
   if (!critters.length) for (let i = 0; i < 18; i++) critters.push({ type: pick(['shade', 'shade', 'shade', 'bat', 'ghoul', 'spike', 'spitter', 'charger', 'tank']), x: cam.x + rand(-hw, hw), y: cam.y + rand(-hh, hh), a: Math.random() * TAU, anim: Math.random() * 10, dk: 4, sy: 0 });
   for (const c of critters) {
