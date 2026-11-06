@@ -34,6 +34,8 @@ html,body{height:100%; margin:0; overflow:hidden; overscroll-behavior:none}
 body{background:var(--night); color:var(--text); font-family:var(--f-body); font-size:var(--t-md); line-height:1.5; -webkit-font-smoothing:antialiased; -webkit-user-select:none; user-select:none; -webkit-touch-callout:none; -webkit-tap-highlight-color:transparent}
 button{font:inherit; color:inherit; touch-action:manipulation; cursor:pointer; border:0; background:none; padding:0}
 button:focus-visible{outline:2px solid var(--cyan); outline-offset:3px}
+/* 깎은 모서리(clip-path) 단추는 바깥 테두리가 잘려 보이지 않아서 안쪽에 그려요 */
+button.hx:focus-visible,.start:focus-visible{outline-offset:-4px}
 button:disabled{cursor:default}
 h1,h2,h3,p{margin:0}
 h1,h2,h3{text-wrap:balance; font-weight:400}
@@ -236,10 +238,11 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 .dtrack .m5{position:absolute; left:50%; top:-3px; width:2px; height:12px; background:var(--hot); box-shadow:0 0 6px var(--hot); text-decoration:none}
 .dtrack::after{content:""; position:absolute; right:-5px; top:-2px; width:10px; height:10px; border-radius:50%; background:radial-gradient(circle,#fff6c8,var(--gold) 55%,transparent 70%)}
 .dtrack.clear i{background:linear-gradient(90deg,var(--gold),#fff1b8)}
-.stage-info .dt-txt{font-size:var(--t-sm); font-weight:700; color:var(--gold); margin-top:0}
+.stage-info .dt-txt{display:flex; flex-wrap:wrap; column-gap:10px; font-size:var(--t-sm); font-weight:700; color:var(--gold); margin-top:0}
+.dt-txt > span{white-space:nowrap}
 .dt-txt .num{font-family:var(--f-tech); font-weight:900}
 .dt-txt .dim{color:var(--dim); font-weight:500}
-.dt-txt .nb{display:inline-block; margin-right:6px; padding:0 5px; font-family:var(--f-tech); font-size:9px; font-style:normal; font-weight:900; line-height:15px; color:#2a1a00; background:var(--gold); vertical-align:1px; animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both}
+.stage .nb{display:inline-block; margin-left:8px; padding:0 5px; letter-spacing:.06em; font-family:var(--f-tech); font-size:9px; font-style:normal; font-weight:900; line-height:15px; color:#2a1a00; background:var(--gold); vertical-align:5px; animation:stamp .5s cubic-bezier(.2,1.6,.4,1) both}
 @keyframes stamp{from{transform:scale(1.6) rotate(-8deg); opacity:0}}
 .stage .rk.grade{--c:5px; display:inline-grid; place-items:center; width:22px; height:22px; font-size:13px; font-style:normal; vertical-align:4px; margin-left:8px}
 /* 다음 목표 한 줄 */
@@ -305,6 +308,7 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 @media (max-width:999px) and (min-height:541px) and (max-height:900px){ #menu.compact .logo{font-size:clamp(44px,7.4vh,70px)} #menu.compact .hero-spot{height:clamp(72px,13vh,124px)} }
 @media (max-width:999px) and (min-height:541px) and (max-height:780px){ #menu.compact .logo{font-size:clamp(40px,6.6vh,54px)} #menu.compact .hero-spot{height:clamp(56px,15vh,104px)} }
 @media (max-width:999px) and (min-height:541px) and (max-height:640px){ #menu.compact .logo{font-size:clamp(34px,7vh,44px)} #menu .hero-spot,#menu.compact .hero-spot{height:clamp(52px,13vh,88px)} }
+@media (max-width:419px){ .dt-txt .dim{display:none} }
 @media (max-width:999px) and (max-height:600px){ #menu .hero-spot,#menu.compact .hero-spot{height:56px} #menu .dtrack{margin:4px 10px 3px 0} }
 @media (orientation:landscape) and (max-height:400px){ .goal-slot{display:none} }
 @media (orientation:landscape) and (max-height:340px){ #stBest{display:none} .goal-slot{display:none} .start{height:46px} .start small{display:none} }
@@ -730,7 +734,7 @@ em.rar,em.muted{font-style:normal}
   .card,.reward{animation:none}
   .arm-big::after,.draw-btn::after,.pod-stage.open .pod-rays,.g-art img,.pod-stage.shake .pod-img,.pod-stage.shake2 .pod-img,.draw-res > *{animation:none}
   .pod-stage.open .pod-item{animation:none; opacity:1}
-  #menu.enter *,#menu.launching *,#hud.enter *,#curtain.out,.dt-txt .nb,#stageCard.fresh::after,.badge-dot.pop,.wallet.pulse,#stageCard.in-r *,#stageCard.in-l *{animation:none}
+  #menu.enter *,#menu.launching *,#hud.enter *,#curtain.out,.stage .nb,#stageCard.fresh::after,.badge-dot.pop,.wallet.pulse,#stageCard.in-r *,#stageCard.in-l *{animation:none}
   .dtrack i,#stageCard .stage-info,#stageCard .thumb{transition:none}
   .ccard,.ccard.flip,.ccard.flip .cc-back,.ccard.flip .cc-front,.cc-medal::before,.cc-emb,.ccard.shine .cc-front::after,.ccard.g3.flip::after,.chest-stage.tease .chest-img{animation:none; transition:none}
 }
@@ -4249,19 +4253,29 @@ const menuScale = () => menuHero.k || 1.2;
 /* ---------- 메인 화면 무대: 불빛 속 생존자 한 명, 빛 가장자리에서 노려보는 그림자들 ---------- */
 const MENU_AMB = [.74, .68, .72], MENU_KEY = ['255,220,150', '190,225,255', '255,170,110'];
 const menuShots = [];
-let uiScr = [], uiScrT = 0, menuWpnShown = null, menuRefade = false;
+let uiScr = [], uiScrT = 0, menuWpnShown = null, menuRefade = false, menuEdge = 200;
 const padCol = () => save.equip === 'blaster' ? '#4fe3ff' : RARITY[ARM_INFO[save.equip].r].col;
 const wrapPi = a => Math.atan2(Math.sin(a), Math.cos(a));
 const menuLightR = () => 170 + 55 * menuScale();
-function refreshUiScr() { uiScr = ['.menu-panel', '.logo', '.topbar', '.eyebrow'].map(q => document.querySelector('#menu ' + q)).filter(Boolean).map(n => n.getBoundingClientRect()).filter(r => r.width > 0); }
+// 메인 화면이 가려져 있는 동안(무기고·강화)에는 마지막 자리를 그대로 써요
+function refreshUiScr() { if (el.menu.hidden) return; uiScr = ['.menu-panel', '.logo', '.wallet', '.top-actions', '.eyebrow'].map(q => document.querySelector('#menu ' + q)).filter(Boolean).map(n => n.getBoundingClientRect()).filter(r => r.width > 0); }
+const toScr = (x, y) => [(x - cam.x) * ZOOM + W / 2, (y - cam.y) * ZOOM + H / 2];
 function inUI(x, y) { // 월드 좌표가 화면의 단추·로고 위에 있는지
-  const sx = (x - cam.x) * ZOOM + W / 2, sy = (y - cam.y) * ZOOM + H / 2, p = 24;
+  const [sx, sy] = toScr(x, y), p = 16;
   return uiScr.some(r => sx > r.left - p && sx < r.right + p && sy > r.top - p && sy < r.bottom + p);
 }
+// 화면 안에 보이고, 단추·로고에 가리지 않는 자리인지
+function spotOk(x, y) { const [sx, sy] = toScr(x, y); return sx > 18 && sx < W - 18 && sy > 18 && sy < H - 18 && !inUI(x, y); }
+const critHidden = c => c.wait > 0 || c.out > 0;
 function critPos(c) { const ey = clamp(H / W, .75, 1.3); c.x = menuHero.x + Math.cos(c.th) * c.R; c.y = menuHero.y + Math.sin(c.th) * c.R * ey; }
-function placeCritter(c, ringR, fadeIn) {
-  for (let n = 0; n < 14; n++) { c.th = Math.random() * TAU; c.R = ringR * rand(.95, 1.35); critPos(c); if (!inUI(c.x, c.y)) break; }
-  c.w = (Math.random() < .5 ? -1 : 1) * rand(.06, .16); c.flinch = 0; c.fade = fadeIn ? 0 : 1; c.dying = 0; c.blink = 0; c.blinkT = rand(2, 5); c.hitBy = 0;
+// 빛 가장자리 띠에서 보이는 빈자리를 골라요. 서로 너무 붙지 않게 하고, 자리가 없으면 숨어 있다가 다시 찾아요
+function placeCritter(c, fadeIn) {
+  const gap = (40 / ZOOM) ** 2; c.wait = rand(.8, 2);
+  for (let n = 0; n < 24; n++) {
+    c.th = Math.random() * TAU; c.R = menuEdge * rand(1.04, 1.45); critPos(c);
+    if (spotOk(c.x, c.y) && !critters.some(o => o !== c && !critHidden(o) && d2(o.x, o.y, c.x, c.y) < gap)) { c.wait = 0; break; }
+  }
+  c.w = (Math.random() < .5 ? -1 : 1) * rand(.06, .16); c.flinch = 0; c.fade = fadeIn || c.wait > 0 ? 0 : 1; c.dying = 0; c.out = 0; c.blink = 0; c.blinkT = rand(2, 5); c.hitBy = 0;
 }
 function menuScene(dt, hw, hh) {
   const r = el.heroSpot && !el.menu.hidden ? el.heroSpot.getBoundingClientRect() : null;
@@ -4293,18 +4307,35 @@ function menuScene(dt, hw, hh) {
     menuWpnShown = save.equip;
   }
   updateScarf(menuHero, dt);
-  // 빛 가장자리를 맴도는 그림자들
-  const ringR = clamp(Math.min(hw, hh) * .8, 200, 480), edge = menuLightR() * .95, want = W < 600 ? 10 : 18;
-  while (critters.length < want) { const c = { type: pick(['shade', 'shade', 'shade', 'bat', 'ghoul', 'spike', 'spitter', 'charger', 'tank']), x: 0, y: 0, a: 0, anim: Math.random() * 10, dk: 4, sy: 0 }; placeCritter(c, ringR, menuRefade || critters.length > 0); critters.push(c); }
+  // 발판에서 피어오르는 빛 알갱이 (시간 기준이라 화면 주사율과 상관없어요)
+  if (!lowQ && !reduceMotion && (menuHero.moteT = (menuHero.moteT || 0) - dt) <= 0) { menuHero.moteT = .3; addPart('dot', hx + rand(-26, 26) * k, hy + 13 * k + rand(-6, 6) * k, 0, -rand(24, 40), rand(1, 1.6), rand(1.2, 2) * k, padCol(), 0, .4); }
+  // 빛 가장자리를 맴도는 그림자들: 띠는 빛 반지름과 화면 옆 여유 중 작은 쪽에 맞춰요
+  const [hxs] = toScr(hx, hy), want = W < 600 ? 10 : 18;
+  menuEdge = Math.max(60, Math.min(menuLightR() * .95, (Math.min(hxs, W - hxs) - 24) / ZOOM / 1.15));
+  while (critters.length < want) { const c = { type: pick(['shade', 'shade', 'shade', 'bat', 'ghoul', 'spike', 'spitter', 'charger', 'tank']), x: 0, y: 0, a: 0, anim: Math.random() * 10, dk: 4, sy: 0 }; placeCritter(c, menuRefade || critters.length > 0); critters.push(c); }
   menuRefade = false;
   if (critters.length > want) critters.length = want;
   for (const c of critters) {
-    c.anim += dt; c.fade = Math.min(1, c.fade + dt / .6);
-    if (c.dying > 0) { c.dying -= dt; if (c.dying <= 0) { placeCritter(c, ringR * 1.3, true); c.type = pick(['shade', 'shade', 'bat', 'ghoul', 'spike', 'charger']); } continue; }
-    const th0 = c.th; c.th += c.w * dt * slow;
+    c.anim += dt;
+    if (c.wait > 0) { if ((c.wait -= dt) <= 0) placeCritter(c, true); continue; }
+    if (c.out > 0) { c.out -= dt; c.fade = Math.min(c.fade, Math.max(0, c.out / .4)); if (c.out <= 0) placeCritter(c, true); continue; }
+    c.fade = Math.min(1, c.fade + dt / .6);
+    if (c.dying > 0) { c.dying -= dt; if (c.dying <= 0) { c.type = pick(['shade', 'shade', 'bat', 'ghoul', 'spike', 'charger']); placeCritter(c, true); } continue; }
+    const th0 = c.th, R0 = c.R, x0 = c.x, y0 = c.y; c.th += c.w * dt * slow;
     if (menuHero.launch > 0) c.R += 260 * dt;
-    else if (c.flinch > 0) { c.R += 150 * dt; c.flinch -= dt; } else { c.R -= 12 * dt * slow; if (c.R < edge) c.flinch = .3; }
-    critPos(c); if (inUI(c.x, c.y)) { c.th = th0; c.w = -c.w; critPos(c); }
+    else if (c.flinch > 0) { c.R += 150 * dt; c.flinch -= dt; } else { c.R -= 12 * dt * slow; if (c.R < menuEdge) c.flinch = .3; }
+    critPos(c);
+    // 화면 밖이나 단추 밑으로 가려 하면: 반지름부터 되돌리고, 그래도 막히면 방향을 바꾸고, 그래도 막히면 스르르 사라졌다 다른 자리에 나타나요
+    if (!menuHero.launch && !spotOk(c.x, c.y)) {
+      c.R = R0; critPos(c);
+      if (!spotOk(c.x, c.y)) { c.th = th0; c.w = -c.w; critPos(c); if (!spotOk(c.x, c.y)) c.out = .4; }
+    }
+    // 다른 그림자에게 더 다가가는 걸음이면 물러나서 돌아서요 (한쪽 끝에 뭉치지 않게)
+    if (!menuHero.launch && !c.out) {
+      let near = null, nd = (46 / ZOOM) ** 2;
+      for (const o of critters) if (o !== c && !critHidden(o) && !(o.dying > 0)) { const q = d2(o.x, o.y, c.x, c.y); if (q < nd) { nd = q; near = o; } }
+      if (near && nd < d2(near.x, near.y, x0, y0)) { c.th = th0; c.R = R0; c.w = -c.w; critPos(c); }
+    }
     c.a = Math.atan2(hy - c.y, hx - c.x);
     if ((c.blinkT -= dt) <= 0) { c.blink = .12; c.blinkT = rand(2, 5); } if (c.blink > 0) c.blink -= dt;
     c.sy = c.y + ENEMIES[c.type].r * .6;
@@ -4314,12 +4345,12 @@ function menuScene(dt, hw, hh) {
   if (!el.menu.hidden && !reduceMotion && !menuHero.launch) {
     menuHero.fireT = (menuHero.fireT ?? rand(1, 2)) - dt;
     if (menuHero.fireT <= 0 && !menuHero.tgt) {
-      let best = null; for (const c of critters) if (!c.dying && c.fade >= 1 && c.R < edge * 1.25 && (!best || c.R < best.R)) best = c;
+      let best = null; for (const c of critters) if (!c.dying && !critHidden(c) && c.fade >= 1 && c.R < menuEdge * 1.3 && spotOk(c.x, c.y) && (!best || c.R < best.R)) best = c;
       if (best) { menuHero.tgt = best; menuHero.aimT = 1.2; } else menuHero.fireT = .5;
     }
   }
   const tg = menuHero.tgt;
-  if (tg && (tg.dying || !critters.includes(tg))) { menuHero.tgt = null; }
+  if (tg && (tg.dying || critHidden(tg) || !critters.includes(tg))) { menuHero.tgt = null; }
   if (menuHero.tgt) {
     const [mx0, my0] = heroMuzzle(menuHero), mY = hy + (my0 - hy) * k;
     const ta = Math.atan2(tg.y - mY, tg.x - hx), d = wrapPi(ta - menuHero.aimA);
@@ -4371,7 +4402,6 @@ function menuGlows(si, spr) {
   if (H.swapT > 0) { const p = 1 - H.swapT / .5; ctx.globalAlpha = Math.min(1, H.swapT * 2); ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.beginPath(); ctx.ellipse(hx, padY, 24 * k * (1 + p * 1.5), 7.4 * k * (1 + p * 1.5), 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = Math.min(1, H.swapT * 1.4); ctx.drawImage(glowSprite('#ffffff'), hx - 45 * k, hy - 60 * k, 90 * k, 90 * k); }
   const n = save.equip === 'blaster' ? 0 : armStars(save.equip);
   for (let i = 0; i < n; i++) { const a = (reduceMotion ? 0 : T * .8) + i * TAU / n, sx = hx + Math.cos(a) * 36 * k, sy = padY + Math.sin(a) * 11 * k, s = 3.2 * k, back = Math.sin(a) < 0; ctx.globalAlpha = back ? .45 : 1; ctx.drawImage(glowSprite('#ffcf4d'), sx - s * 2, sy - s * 2, s * 4, s * 4); ctx.strokeStyle = '#fff3c4'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.moveTo(sx - s, sy); ctx.lineTo(sx + s, sy); ctx.moveTo(sx, sy - s); ctx.lineTo(sx, sy + s); ctx.stroke(); }
-  if (!lowQ && !reduceMotion && (H.moteT = (H.moteT || 0) - 1 / 60) <= 0) { H.moteT = .3; addPart('dot', hx + rand(-26, 26) * k, padY + rand(-6, 6) * k, 0, -rand(24, 40), rand(1, 1.6), rand(1.2, 2) * k, col, 0, .4); }
   // 손에 든 무기의 은은한 빛
   const [m0x, m0y] = heroMuzzle(H), mx = hx + (m0x - hx) * k, my = hy + (m0y - hy) * k, wg = { flame: ['#ffb347', 20, .55 + .2 * wave(.2)], gravity: ['#a77bff', 22, .5], whip: ['#d78cff', 14, .4], blaster: ['#6fe8ff', 10, .3] }[save.equip];
   if (wg) { const s = wg[1] * k; ctx.globalAlpha = wg[2]; ctx.drawImage(glowSprite(wg[0]), mx - s / 2, my - s / 2, s, s); }
@@ -4579,7 +4609,7 @@ function renderMenu() {
   el.stDesc.textContent = st.desc + (si ? ` 적 체력 ×${st.hp} · 코인 ×${st.gold}` : '');
   const track = p => `<div class="dtrack${b && b.clear ? ' clear' : ''}" style="--p:${p}" title="새벽까지 10분"><i></i><s class="m5" title="5:00 ${st.bossA}"></s></div>`;
   el.stBest.innerHTML = locked ? `<p><span class="lock">${josa(STAGES[si - 1].name, '을', '를')} 깨면 열려요</span></p>`
-    : b ? `${track(Math.min(1, b.time / STAGE_TIME))}<p class="dt-txt">${b.clear ? '클리어 ✓ · ' : ''}최고 <span class="num">${fmtTime(b.time)}</span><span class="dim"> / 10:00</span> · 처치 ${fmtNum(b.kills)}</p>`
+    : b ? `${track(Math.min(1, b.time / STAGE_TIME))}<p class="dt-txt">${b.clear ? '<span>클리어 ✓</span>' : ''}<span>최고 <span class="num">${fmtTime(b.time)}</span><span class="dim"> / 10:00</span></span><span>처치 ${fmtNum(b.kills)}</span></p>`
     : `${track(0)}<p>아직 도전하지 않았어요 · 10분을 버티면 새벽</p>`;
   el.stPrev.disabled = si === 0; el.stNext.disabled = si === STAGES.length - 1;
   el.startBtn.disabled = locked; el.startBtn.innerHTML = locked ? '<b>잠겨 있어요</b><small>LOCKED</small>' : '<b>출격!</b><small>DEPLOY</small>';
@@ -4601,11 +4631,14 @@ function nextGoal() {
   if (locked) return { text: `${josa(STAGES[si - 1].name, '을', '를')} 깨면 열려요` };
   if (!b && si > 0) return { text: `새 스테이지 · <i>${st.name}</i>` };
   if (!b || !b.clear) {
-    if (!b || b.time < STAGE_TIME) return { text: b ? `<i>${fmtTime(STAGE_TIME - b.time)}</i>만 더 버티면 새벽이에요` : '10분을 버티면 새벽이에요' };
+    if (!b || b.time < STAGE_TIME) return { text: b ? `<i>${fmtTime(Math.ceil(STAGE_TIME - b.time))}</i>만 더 버티면 새벽이에요` : '10분을 버티면 새벽이에요' };
     return { text: si + 1 < STAGES.length ? `<i>${josa(st.bossB, '을', '를')}</i> 쓰러뜨리면 ${josa(STAGES[si + 1].name, '이', '가')} 열려요` : `<i>${josa(st.bossB, '을', '를')}</i> 쓰러뜨리면 클리어` };
   }
   if (pool.length) return { icon: pod, text: `보급 캡슐까지 <i>${fmtNum(DRAW_COST - save.coins)}</i>코인` };
-  return { text: '<i>S 랭크</i>에 도전해 보세요' };
+  if (b.rank !== 'S') return { text: '<i>S 랭크</i>에 도전해 보세요' };
+  // 이 스테이지는 S 랭크: 아직 S가 아닌 열린 스테이지를 알려 주고, 모두 S면 축하해요
+  const nx = STAGES.findIndex((_, i) => i < save.unlocked && !(save.best[i] && save.best[i].rank === 'S'));
+  return nx >= 0 ? { text: `<i>${STAGES[nx].name}</i>에서도 S 랭크를 노려 보세요` } : { text: '모든 스테이지 <i>S 랭크</i> 달성!' };
 }
 function renderGoal() {
   const g = nextGoal();
@@ -4712,11 +4745,11 @@ function renderDrawActs() {
   el.drawAgain.disabled = !can; el.drawAgain.innerHTML = drawPool().length ? `한 번 더 열기 <span class="coin-dot"></span>${fmtNum(DRAW_COST)}` : '모두 모았어요';
 }
 function closeDraw() { drawTimers.forEach(clearTimeout); drawTimers = []; el.drawModal.hidden = true; renderArmory(); }
-function showArmory() { armSel = save.equip; el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
+function showArmory() { cancelLobbyFx(); armSel = save.equip; el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
 function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(t => t.setAttribute('aria-checked', String(!!save.set[t.dataset.set]))); }
 
 function showMenu() {
-  state = 'menu'; run = null; joyReset(); Sfx.musicStop(); Sfx.setIntensity(0);
+  cancelLobbyFx(); state = 'menu'; run = null; joyReset(); Sfx.musicStop(); Sfx.setIntensity(0);
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
   el.hud.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.drawModal.hidden = true; el.menu.hidden = false; el.banner.className = '';
   launching = false; el.menu.classList.remove('launching'); menuHero.launch = 0;
@@ -4732,42 +4765,64 @@ function menuEnter(drop) {
   if (drop) menuHero.dropT = .6;
 }
 /* 판 결과를 메인 화면에서 보여 줘요: 코인이 지갑으로 날아오고, 새벽 막대가 늘어나고, 새 스테이지가 반짝여요 */
+// 연출 도중에 메인 화면을 떠나면(출격·무기고·강화) 남은 코인·타이머를 모두 거두고 지갑을 실제 값으로 맞춰요
+let lfx = null;
+function cancelLobbyFx() {
+  if (!lfx) return; const f = lfx; lfx = null;
+  f.timers.forEach(clearTimeout); for (const a of f.anims) a.cancel(); for (const n of f.nodes) n.remove(); for (const fn of f.fin) fn();
+  el.mCoins.textContent = fmtNum(save.coins);
+  el.mCoins.parentElement.classList.remove('pulse'); el.armBadge.classList.remove('pop'); el.shopBadge.classList.remove('pop'); el.stageCard.classList.remove('fresh');
+}
 function playLobbyFx(fx) {
+  cancelLobbyFx();
+  const f = lfx = { timers: [], anims: [], nodes: [], fin: [] }, later = (fn, ms) => f.timers.push(setTimeout(fn, ms));
   const gained = save.coins - fx.prevCoins;
   if (gained > 0) {
     el.mCoins.textContent = fmtNum(fx.prevCoins);
     const w = el.mCoins.getBoundingClientRect(), tx = w.left + w.width / 2, ty = w.top + w.height / 2;
     for (let i = 0; i < 8; i++) {
-      const d = document.createElement('span'); d.className = 'coin-dot coin-fly'; document.body.appendChild(d);
+      const d = document.createElement('span'); d.className = 'coin-dot coin-fly'; d.setAttribute('aria-hidden', 'true'); document.body.appendChild(d); f.nodes.push(d);
       const sx = innerWidth / 2 + rand(-40, 40), sy = innerHeight * .45 + rand(-30, 30);
       const an = d.animate([{ transform: `translate(${sx}px,${sy}px) scale(1.3)`, opacity: 0 }, { transform: `translate(${(sx + tx) / 2}px,${Math.min(sy, ty) - 60}px) scale(1)`, opacity: 1, offset: .55 }, { transform: `translate(${tx}px,${ty}px) scale(.7)`, opacity: 1 }],
         { duration: 650 + i * 55, delay: 250, easing: 'cubic-bezier(.55,0,.35,1)', fill: 'backwards' });
-      an.onfinish = () => { d.remove(); if (i % 3 === 2) Sfx.coin(); };
+      f.anims.push(an); an.onfinish = () => { d.remove(); if (i % 3 === 2 && lfx === f) Sfx.coin(); };
     }
     const t0 = performance.now() + 600, from = fx.prevCoins, to = save.coins;
-    const tick = now => { const u = clamp((now - t0) / 700, 0, 1), e = 1 - (1 - u) ** 3; el.mCoins.textContent = fmtNum(from + (to - from) * e); if (u < 1) requestAnimationFrame(tick); else { el.mCoins.textContent = fmtNum(to); const wl = el.mCoins.parentElement; wl.classList.remove('pulse'); void wl.offsetWidth; wl.classList.add('pulse'); } };
+    const tick = now => {
+      if (lfx !== f || el.menu.hidden || save.coins !== to) { if (lfx === f) el.mCoins.textContent = fmtNum(save.coins); return; }
+      const u = clamp((now - t0) / 700, 0, 1), e = 1 - (1 - u) ** 3; el.mCoins.textContent = fmtNum(from + (to - from) * e);
+      if (u < 1) requestAnimationFrame(tick); else { el.mCoins.textContent = fmtNum(to); const wl = el.mCoins.parentElement; wl.classList.remove('pulse'); void wl.offsetWidth; wl.classList.add('pulse'); later(() => wl.classList.remove('pulse'), 500); }
+    };
     requestAnimationFrame(tick);
-    const plus = document.createElement('span'); plus.className = 'coin-plus'; plus.textContent = '+' + fmtNum(gained); plus.style.left = tx + 'px'; plus.style.top = (w.bottom + 6) + 'px';
-    setTimeout(() => { document.body.appendChild(plus); setTimeout(() => plus.remove(), 1500); }, 1250);
+    const plus = document.createElement('span'); plus.className = 'coin-plus'; plus.setAttribute('aria-hidden', 'true'); plus.textContent = '+' + fmtNum(gained); plus.style.left = tx + 'px'; plus.style.top = (w.bottom + 6) + 'px'; f.nodes.push(plus);
+    later(() => { document.body.appendChild(plus); later(() => plus.remove(), 1500); }, 1250);
   }
-  if (fx.unlocked) { el.stageCard.classList.remove('fresh'); void el.stageCard.offsetWidth; el.stageCard.classList.add('fresh'); setTimeout(() => el.stageCard.classList.remove('fresh'), 1300); setTimeout(() => Sfx.chest(), 300); }
+  if (fx.unlocked) { el.stageCard.classList.remove('fresh'); void el.stageCard.offsetWidth; el.stageCard.classList.add('fresh'); later(() => el.stageCard.classList.remove('fresh'), 1300); later(() => Sfx.chest(), 300); }
   else if (fx.newBest && save.stage === fx.si) {
-    const tr = el.stBest.querySelector('.dtrack'), txt = el.stBest.querySelector('.dt-txt');
-    if (tr) { const p = tr.style.getPropertyValue('--p'), i = tr.querySelector('i'); i.style.transition = 'none'; tr.style.setProperty('--p', Math.min(1, fx.prevBest / STAGE_TIME)); void tr.offsetWidth; i.style.transition = ''; setTimeout(() => tr.style.setProperty('--p', p), 450); }
-    if (txt) txt.insertAdjacentHTML('afterbegin', '<em class="nb">NEW</em>');
+    const tr = el.stBest.querySelector('.dtrack');
+    if (tr) { const p = tr.style.getPropertyValue('--p'), i = tr.querySelector('i'), fin = () => tr.style.setProperty('--p', p); i.style.transition = 'none'; tr.style.setProperty('--p', Math.min(1, fx.prevBest / STAGE_TIME)); void tr.offsetWidth; i.style.transition = ''; f.fin.push(fin); later(fin, 450); }
+    el.stName.insertAdjacentHTML('beforeend', '<em class="nb" title="최고 기록 갱신">NEW</em>');
   }
-  for (const [k, b] of [['arm', el.armBadge], ['shop', el.shopBadge]]) if (!fx.badges[k] && !b.hidden) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); }
+  for (const [k, b] of [['arm', el.armBadge], ['shop', el.shopBadge]]) if (!fx.badges[k] && !b.hidden) { b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); later(() => b.classList.remove('pop'), 3500); }
+  later(() => { if (lfx === f) lfx = null; }, 3600);
 }
 let launching = false;
 /* 출격: 주인공이 떠오르고 단추들이 가라앉으며 화면이 어두워진 뒤 전투가 시작돼요 */
 function launchRun() {
-  if (launching || save.stage + 1 > save.unlocked) return;
+  // 스테이지를 넘기는 중이면 출격하지 않고, 누른 순간의 스테이지로만 출격해요 (잠긴 스테이지로 새지 않게)
+  if (launching || switching || save.stage + 1 > save.unlocked) return;
+  cancelLobbyFx();
   if (reduceMotion) { startRun(); return; }
+  const si = save.stage;
   launching = true; Sfx.init(); Sfx.whoosh(); el.menu.classList.add('launching'); menuHero.launch = .001;
-  setTimeout(() => { if (!launching) return; launching = false; startRun(); el.curtain.classList.remove('out'); void el.curtain.offsetWidth; el.curtain.classList.add('out'); }, 520);
+  setTimeout(() => {
+    if (!launching) return; launching = false;
+    if (si !== save.stage || si + 1 > save.unlocked || el.menu.hidden) { el.menu.classList.remove('launching'); menuHero.launch = 0; return; }
+    startRun(); el.curtain.classList.remove('out'); void el.curtain.offsetWidth; el.curtain.classList.add('out');
+  }, 520);
 }
 function startRun() {
-  Sfx.init(); if (save.set.music) Sfx.musicStart();
+  cancelLobbyFx(); Sfx.init(); if (save.set.music) Sfx.musicStart();
   newRun(save.stage); hudReset(); hideBossBar(); el.banner.className = '';
   if (!el.portrait.src) el.portrait.src = heroPortrait();
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
@@ -4947,7 +5002,7 @@ el.startBtn.addEventListener('click', launchRun);
 /* 스테이지 바꾸기: 카드 내용이 옆으로 밀려나고, 화면을 새 스테이지 색 띠가 훑고 지나가요 */
 let switching = false, wipe = null;
 function switchStage(dir) {
-  const ns = clamp(save.stage + dir, 0, STAGES.length - 1); if (ns === save.stage || switching) return;
+  const ns = clamp(save.stage + dir, 0, STAGES.length - 1); if (ns === save.stage || switching || launching) return;
   const apply = () => { save.stage = ns; persist(); critters.length = 0; menuRefade = true; renderMenu(); };
   if (reduceMotion) { apply(); return; }
   switching = true; el.stageCard.classList.add(dir > 0 ? 'out-l' : 'out-r'); wipe = { t: 0, dir, col: STAGES[ns].color };
@@ -4962,7 +5017,7 @@ function drawWipe(dt) {
 }
 el.stPrev.addEventListener('click', () => switchStage(-1));
 el.stNext.addEventListener('click', () => switchStage(1));
-el.shopBtn.addEventListener('click', () => { el.menu.hidden = true; el.shop.hidden = false; renderShop(); });
+el.shopBtn.addEventListener('click', () => { cancelLobbyFx(); el.menu.hidden = true; el.shop.hidden = false; renderShop(); });
 el.shopBack.addEventListener('click', () => { el.shop.hidden = true; el.menu.hidden = false; renderMenu(); menuEnter(false); });
 el.loadout.addEventListener('click', () => { Sfx.init(); showArmory(); });
 el.armBtn.addEventListener('click', () => { Sfx.init(); showArmory(); });
@@ -5102,7 +5157,7 @@ window.__shadowRaid = {
   get run() { return run; }, get state() { return state; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get eshots() { return eshots; }, player,
   setTimeScale(v) { timeScale = v; }, setMove(x, y) { botMove = x === null ? null : { x, y }; }, pick: i => { cardLock = 0; pickChoice(i); },
   fastForward(sec, tick) { const n = Math.round(sec * 60); for (let i = 0; i < n && state !== 'result'; i++) { if (tick) tick(); if (state === 'play') { update(1 / 60); if (run) hudUpdate(); } } },
-  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), perf, kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
+  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), perf, menu: () => ({ critters, hero: menuHero, edge: menuEdge, spotOk, toScr, shots: menuShots }), kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
 };
 })();
 </script>
