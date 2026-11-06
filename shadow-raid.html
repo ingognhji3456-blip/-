@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>그림자 습격</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="밤마다 몰려오는 그림자 무리를 10분 동안 버텨 내는 생존 슈팅 게임. 저절로 쏘는 무기를 모아 키우고 진화시켜요.">
+<meta name="description" content="밤마다 몰려오는 그림자 무리를 10분 동안 버텨 내는 생존 슈팅 게임. 저절로 쏘는 무기를 모아 키우고 각성시켜요.">
 <meta name="theme-color" content="#070814">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -108,6 +108,23 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 
 /* 경고 띠 */
 #banner{position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 25%); z-index:6; pointer-events:none; text-align:center; padding-block:12px; background:linear-gradient(90deg,transparent,rgba(30,4,14,.9) 18%,rgba(30,4,14,.92) 82%,transparent); border-block:2px solid transparent; border-image:linear-gradient(90deg,transparent,var(--hot) 20%,var(--hot) 80%,transparent) 1; transform:scaleX(0); opacity:0}
+/* 각성 제목 */
+#awaken{position:fixed; left:0; right:0; top:calc(env(safe-area-inset-top,0px) + 17%); z-index:7; pointer-events:none; display:flex; flex-direction:column; align-items:center; gap:8px; padding-inline:12px; text-align:center}
+#awaken .aw-in{display:flex; align-items:center; gap:14px; padding:10px 34px; background:linear-gradient(90deg,transparent,rgba(42,24,2,.9) 16%,rgba(42,24,2,.9) 84%,transparent); border-block:2px solid transparent; border-image:linear-gradient(90deg,transparent,var(--gold) 18%,#fff3c4 50%,var(--gold) 82%,transparent) 1}
+#awIcon{width:62px; height:62px; flex:none; filter:drop-shadow(0 0 12px rgba(255,200,90,.9))}
+#awaken .aw-tx{display:flex; flex-direction:column; align-items:flex-start; line-height:1; text-align:left}
+#awaken .aw-l{font-family:var(--f-tech); font-size:11px; font-weight:900; letter-spacing:.6em; color:var(--gold)}
+#awaken .aw-t{font-family:var(--f-display); font-weight:400; font-size:clamp(36px,10vw,60px); letter-spacing:.06em; color:#fff6d8; text-shadow:0 0 16px rgba(255,190,70,.95),0 0 38px rgba(255,140,40,.6),0 3px 0 #6a3a06}
+#awName{font-size:var(--t-lg); font-weight:900; color:var(--gold); margin-top:2px; word-break:keep-all}
+#awInfo{max-width:min(92vw,440px); font-size:var(--t-sm); font-weight:700; color:#ffecc0; background:rgba(20,12,2,.78); padding:5px 12px; border-radius:6px; word-break:keep-all}
+#awaken.show .aw-in{animation:awIn 2.7s cubic-bezier(.2,.9,.3,1) both}
+#awaken.show #awInfo{animation:awInfo 2.7s ease both}
+#awaken.show .aw-t{animation:awGlint 2.7s ease both}
+@keyframes awIn{0%{scale:1.9; opacity:0; filter:brightness(3)} 9%{scale:1; opacity:1; filter:brightness(1.8)} 22%{filter:brightness(1)} 84%{opacity:1; scale:1; translate:0 0} 100%{opacity:0; scale:.97; translate:0 -12px}}
+@keyframes awInfo{0%,14%{opacity:0; translate:0 8px} 26%{opacity:1; translate:0 0} 84%{opacity:1} 100%{opacity:0}}
+@keyframes awGlint{0%,8%{letter-spacing:.5em} 20%{letter-spacing:.06em}}
+.slot.evo::after{content:""; position:absolute; inset:0; background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.75) 48%,transparent 60%); background-size:260% 100%; animation:slotShine 2.8s linear infinite; pointer-events:none}
+@keyframes slotShine{from{background-position:130% 0} to{background-position:-130% 0}}
 #banner .bn-in{position:relative; display:inline-block; padding-inline:22px}
 #banner .bn-in::before,#banner .bn-in::after{content:""; position:absolute; top:50%; width:46px; height:18px; margin-top:-9px; background:repeating-linear-gradient(-45deg,var(--hot) 0 6px,transparent 6px 12px); opacity:.9}
 #banner .bn-in::before{right:100%} #banner .bn-in::after{left:100%}
@@ -730,6 +747,7 @@ em.rar,em.muted{font-style:normal}
 .evo-row p{grid-column:1/-1; color:var(--muted)}
 
 @media (prefers-reduced-motion:reduce){
+  #awaken.show .aw-in,#awaken.show #awInfo,#awaken.show .aw-t,.slot.evo::after{animation:none}
   .lv-head::before,.card.evo::after,.chest-stage.open .chest-rays,.medal::before,.start::after{animation:none}
   .card,.reward{animation:none}
   .arm-big::after,.draw-btn::after,.pod-stage.open .pod-rays,.g-art img,.pod-stage.shake .pod-img,.pod-stage.shake2 .pod-img,.draw-res > *{animation:none}
@@ -765,6 +783,7 @@ em.rar,em.muted{font-style:normal}
   <div id="bossbar" class="hx" hidden><div class="bb-head"><span class="label hot">BOSS</span><span id="bossname">보스</span><span class="label hot">BOSS</span></div><div class="bb"><i id="bossfill"></i></div></div>
   <div id="toast" class="hx" role="status" aria-live="polite"></div>
 </div>
+<div id="awaken" hidden aria-live="polite"><div class="aw-in"><img id="awIcon" alt=""><div class="aw-tx"><span class="aw-l">AWAKEN</span><b class="aw-t">각성</b><span id="awName"></span></div></div><p id="awInfo"></p></div>
 <div id="banner" aria-live="assertive"><div class="bn-in"><span id="bannerL">WARNING</span><b id="bannerT">보스 출현</b><span id="bannerS"></span></div></div>
 <div id="joy" hidden><i></i></div>
 
@@ -892,7 +911,7 @@ em.rar,em.muted{font-style:normal}
       <div class="build-col"><div class="sec-title" style="margin:0">WEAPON · 무기·스킬</div><div class="stack" id="pW" style="gap:6px"></div></div>
       <div class="build-col"><div class="sec-title" style="margin:0">GEAR · 보조 장비</div><div class="stack" id="pP" style="gap:6px"></div></div>
     </div>
-    <div class="sec-title">EVOLUTION · 진화 조건</div>
+    <div class="sec-title">AWAKEN · 각성 조건</div>
     <div class="evo-hints" id="pEvo"></div>
     <div class="row2" style="margin-top:12px">
       <button class="toggle hx" role="switch" data-set="sfx" aria-checked="true">효과음<span class="sw"></span></button>
@@ -1087,6 +1106,11 @@ const Sfx = (() => {
     levelup() { if (!ac || !save.set.sfx) return; [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, 0.22, 'triangle', 0.2, 0, i * 0.065)); },
     select() { if (ac && save.set.sfx) { tone(660, 0.08, 'square', 0.07); tone(990, 0.12, 'square', 0.07, 0, 0.06); } },
     evo() { if (!ac || !save.set.sfx) return; [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'sawtooth', 0.08, 0, i * 0.07)); noise(0.6, 0.15, 'highpass', 5000, 0.4); },
+    // 각성: 빨려 드는 바람 소리가 차오르다가(charge) 쿵 하고 터지며 화음이 울려요(boom)
+    awakenCharge() { if (!ac || !save.set.sfx) return; tone(110, 0.9, 'sawtooth', 0.07, 4); tone(55, 0.9, 'sine', 0.25, 2); noise(0.85, 0.12, 'bandpass', 500, 0, sfxG, 1.5); [0, .2, .4, .6].forEach(d => tone(880 + d * 900, 0.12, 'triangle', 0.05, 1.5, d)); },
+    awakenBoom() { if (!ac || !save.set.sfx) return; tone(60, 0.8, 'sine', 0.6, 0.4); noise(0.7, 0.4, 'lowpass', 700); [261.6, 329.6, 392, 523.3, 659.3, 784].forEach((f, i) => { tone(f, 1.3, 'sawtooth', 0.045, 0, 0.04 + i * 0.03); tone(f * 2, 1.1, 'triangle', 0.035, 0, 0.1 + i * 0.03); }); noise(1.2, 0.12, 'highpass', 6000, 0.1); },
+    // 각성 무기들이 저마다 소리를 낼 때: Sfx.custom('이름', 간격, (tone, noise) => { ... })
+    custom(name, gap, fn) { if (ac && save.set.sfx && can(name, gap)) fn(tone, noise); },
     chest() { if (!ac || !save.set.sfx) return; [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.25, 'triangle', 0.16, 0, 0.5 + i * 0.08)); },
     rattle() { if (ac && save.set.sfx) for (let i = 0; i < 6; i++) noise(0.05, 0.12, 'bandpass', 1200 + i * 100, i * 0.08); },
     chestOpen() { if (!ac || !save.set.sfx) return; noise(0.3, 0.14, 'highpass', 2600, 0); [523, 784, 1047].forEach((f, i) => tone(f, 0.24, 'triangle', 0.14, 0, i * 0.05)); },
@@ -1709,7 +1733,7 @@ function iconURL(id, evo = false) {
   const key = id + (evo ? '+' : '');
   if (iconCache.has(key)) return iconCache.get(key);
   const obj = newCanvas(96, 96), o = obj.getContext('2d');
-  (ICON[id] || ICON.gem)(o);
+  ((evo && AWK[id] && AWK[id].icon) || ICON[id] || ICON.gem)(o); // 각성하면 아이콘 그림도 바뀌어요
   // 입체감: 왼쪽 위 빛, 오른쪽 아래 그늘
   o.globalCompositeOperation = 'source-atop';
   o.fillStyle = lin(o, 10, 10, 86, 86, [[0, 'rgba(255,255,255,.32)'], [.45, 'rgba(255,255,255,0)'], [.6, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.38)']]); o.fillRect(0, 0, 96, 96);
@@ -2323,7 +2347,7 @@ const HS = 1.2; // 주인공 크기 배율
 const heroBob = H => (H.moving ? -Math.abs(Math.cos(H.walk)) * 2.2 : Math.sin(H.t * 2.6) * .7) * HS;
 const heroFlip = H => Math.cos(H.aimA) < 0 ? -1 : 1;
 const heroAt = (H, lx, ly) => [H.x + heroFlip(H) * lx * HS, H.y + heroBob(H) + ly * HS];
-function heroMuzzle(H) { const wp = H.wpn || 'blaster', L = ((wp === 'blaster' && H.evo ? 31 : WPN_LEN[wp] || 26.5) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
+function heroMuzzle(H) { const wp = H.wpn || 'blaster', A = H.evo && AWK[wp], L = (((A && A.len) || (wp === 'blaster' && H.evo ? 31 : WPN_LEN[wp] || 26.5)) - H.recoil * 3) * HS; return [H.x + heroFlip(H) * HS + Math.cos(H.aimA) * L, H.y + heroBob(H) - 5 * HS + Math.sin(H.aimA) * L]; }
 const heroLantern = H => heroAt(H, -13.2, -4.5);
 const heroAntenna = H => heroAt(H, -6, -36.5);
 const heroThruster = H => heroAt(H, -11, 7);
@@ -2428,6 +2452,7 @@ const WPN_LEN = { blaster: 26.5, shotgun: 28.5, whip: 16, flame: 28, gravity: 25
 function drawHeldWeapon(g, H, kx, t) {
   const w = H.wpn || 'blaster', evo = H.evo, OUTL = '#1a1e2c';
   const stroke = (c = OUTL, lw = .6) => { g.lineWidth = lw; g.strokeStyle = c; g.stroke(); };
+  if (evo && AWK[w] && AWK[w].held) { AWK[w].held(g, H, kx, t, stroke); return; } // 각성한 주무기는 모습이 통째로 바뀌어요
   if (w === 'shotgun') {
     const metal = evo ? [[0, '#fff3c4'], [.5, '#ffb43a'], [1, '#8a4a0a']] : [[0, '#aab3cc'], [.5, '#4a5272'], [1, '#1e2436']];
     g.fillStyle = lin(g, 0, -2, 0, 4, evo ? [[0, '#ffd27a'], [1, '#8a4a0a']] : [[0, '#7a5638'], [1, '#3a2414']]);
@@ -2697,6 +2722,64 @@ function newRun(si) {
 }
 function addWeapon(id) { run.weapons.push({ id, lv: 1, evo: false, t: .3, key: 'w' + id, st: {} }); run.buildVer++; }
 
+/* ---------- 각성 ----------
+   무기·스킬이 Lv 5에 짝 장비까지 갖추면 각성해요. 각성하면 동작 · 모습 · 아이콘 · 소리가 통째로 바뀌어요.
+   무기마다 aw_*.js 에서 awaken(id, { ... })로 등록해요. 쓸 수 있는 칸:
+     name · info        각성 이름과 설명 (카드 · 도감에 나와요)
+     stat(lv)           각성했을 때 수치 (보조 장비 배율은 그 위에 곱해져요)
+     tick(w, s, dt, S)  각성했을 때 TICK 대신 불려요
+     intro(w)           각성 연출이 터지는 순간 한 번 불려요
+     ground(w) · solid(w) · lights(w) · glow(w) · lit(w)   그리기 단계마다 불려요 (바닥 · 몸체 · 빛 · 빛나는 것 · 빛 위 몸체)
+     shots: { 종류: { update(b, dt), ground(b), solid(b), lights(b), glow(b), lit(b) } }   새 발사체 종류
+     icon(g)            96×96 각성 아이콘 그림
+     held(g, H, kx, t) · len   주무기라면 손에 든 모습과 총구 길이 */
+const AWK = {}, AW_SHOT = {}, AW_DRAW = {};
+function awaken(id, A) {
+  const def = WEAPONS[id]; AWK[id] = A;
+  if (A.name) def.evoName = A.name; if (A.info) def.evoInfo = A.info;
+  if (A.stat) { const base = def.stat; def.stat = (lv, evo) => evo ? A.stat(lv) : base(lv, false); }
+  for (const k in A.shots || {}) { const S = A.shots[k]; if (S.update) AW_SHOT[k] = S.update; AW_DRAW[k] = S; }
+}
+function awakenWeapon(w) {
+  w.evo = true; w.st = {}; w.t = .2; run.buildVer++;
+  (run.awQ || (run.awQ = [])).push(w.id);
+}
+/* 각성 연출 (실제 시간 기준): 0~0.85초 시간이 느려지며 빛이 모이고 → 터지며 둘레의 적을 밀쳐 내고 → 천천히 원래 속도로 */
+const AW_REL = .85, AW_END = 2.4;
+function awSlow() {
+  const a = run && run.aw; if (!a || reduceMotion) return 1;
+  return a.t < AW_REL ? .12 : a.t < AW_REL + .7 ? lerp(.25, 1, (a.t - AW_REL) / .7) : 1;
+}
+function stepAwaken(dt) {
+  if (!run.aw && run.awQ && run.awQ.length && !run.over) {
+    const id = run.awQ.shift(), w = hasW(id); if (!w) return;
+    run.aw = { id, w, t: 0, rel: false, h: Math.random() * 10 }; Sfx.awakenCharge();
+  }
+  const a = run.aw; if (!a) return;
+  a.t += dt; player.invT = Math.max(player.invT, .35);
+  if (!a.rel && a.t < AW_REL && !reduceMotion && Math.random() < .45) { // 빛 알갱이가 주인공에게 빨려 들어요 (느린 시간 속에서도 실제 시간으로 날아오게)
+    const an = Math.random() * TAU, r = rand(120, 230), col = WEAPONS[a.id].color, k = awSlow();
+    addPart('dot', player.x + Math.cos(an) * r, player.y + Math.sin(an) * r * .8, -Math.cos(an) * r * 2.2 / k, -Math.sin(an) * r * 1.8 / k, .4 * k, rand(2, 3.4), Math.random() < .5 ? '#ffe9a8' : col, 0, 0);
+  }
+  if (!a.rel && a.t >= AW_REL) {
+    a.rel = true; Sfx.awakenBoom(); awakenTitle(a.w); shake(9);
+    const R = 300, col = WEAPONS[a.id].color;
+    queryCircle(player.x, player.y, R, e => {
+      if (e.prop) { killEnemy(e); return; }
+      const dx = e.x - player.x, dy = e.y - player.y, d = Math.hypot(dx, dy) || 1, k = 1 - d / (R + e.r) * .5;
+      dealDamage(e, (e.boss ? 160 : e.elite ? 120 : 70) * k, a.w, dx / d, dy / d, 520 * k);
+    });
+    fx.push({ k: 'ring', x: player.x, y: player.y, r0: 20, r1: R, life: .55, max: .55, col: '#ffe08a', w: 16 });
+    fx.push({ k: 'ring', x: player.x, y: player.y, r0: 10, r1: R * .7, life: .4, max: .4, col, w: 9 });
+    fx.push({ k: 'pillar', x: player.x, y: player.y + 10, life: 1.1, max: 1.1 });
+    fx.push({ k: 'flash', x: player.x, y: player.y, r: 260, life: .35, max: .35, col: '#fff2c8' });
+    sparks(player.x, player.y, '#ffe9a8', 28, 520); sparks(player.x, player.y, col, 18, 380);
+    addDecal(scorchSprites[uid & 1], player.x, player.y + 8, 190, 6, .45, rand(0, TAU));
+    const A = AWK[a.id]; if (A && A.intro) A.intro(a.w);
+  }
+  if (a.t >= AW_END) run.aw = null;
+}
+
 /* ---------- 공간 격자 (충돌 검사용) ---------- */
 const GC = 64, GN = 72, MAXR = 80;
 const cellHead = new Int32Array(GN * GN);
@@ -2772,6 +2855,7 @@ function spawnEnemy(type, x, y, o = {}) {
   return e;
 }
 function director(dt) {
+  if (run.noSpawn) return; // 시험대에서 적을 직접 놓을 때
   const t = run.t;
   while (run.ev < EVENTS.length && EVENTS[run.ev].t <= t) fireEvent(EVENTS[run.ev++]);
   if (run.arena) return;
@@ -3312,6 +3396,7 @@ function updateShots(dt) {
         break;
       }
       case 'shard': case 'hole': case 'meteor': case 'orb': case 'mine': case 'pellet': updateNewShot(b, dt); break;
+      default: { const u = AW_SHOT[b.k]; if (u) u(b, dt); else b.life = 0; }
       case 'missile': {
         b.life -= dt;
         if (!b.tg || b.tg.dead) b.tg = nearestEnemy(b.x, b.y, 500);
@@ -3428,8 +3513,8 @@ function chestRewards(n, big) {
     const pool = buildPool(), evo = pool.find(c => c.type === 'evo');
     if (evo) { // 진화할 수 있는 무기가 있으면 그게 먼저예요 (전설 카드). 굴린 등급 중 가장 낮은 것을 대신 써서 좋은 카드는 남겨요
       gs.pop(); used.add(evo.id);
-      const w = hasW(evo.id), def = WEAPONS[evo.id]; w.evo = true; w.st = {}; w.t = .2;
-      out.push({ g: 3, kind: 'evo', icon: iconURL(evo.id, true), name: def.evoName, lvTxt: '진화!', pips: '', desc: def.evoInfo, evo: true });
+      const w = hasW(evo.id), def = WEAPONS[evo.id]; awakenWeapon(w);
+      out.push({ g: 3, kind: 'evo', icon: iconURL(evo.id, true), name: def.evoName, lvTxt: '각성!', pips: '', desc: def.evoInfo, evo: true });
       continue;
     }
     const gi = gs.shift(), G = GRADES[gi], all0 = pool.filter(c => c.type === 'w' || c.type === 'p');
@@ -3448,9 +3533,9 @@ function chestRewards(n, big) {
       const def = WEAPONS[c.id], from = (hasW(c.id) || {}).lv || 0; if (!from) addWeapon(c.id);
       const w = hasW(c.id), to = Math.min(MAX_LV, from + G.up); w.lv = to;
       let evoNow = false;
-      if (gi === 3 && to >= MAX_LV && run.pass[def.pair] && !w.evo) { w.evo = true; w.st = {}; w.t = .2; evoNow = true; }
+      if (gi === 3 && to >= MAX_LV && run.pass[def.pair] && !w.evo) { awakenWeapon(w); evoNow = true; }
       out.push({ g: gi, kind: 'w', id: c.id, main: !!w.main, icon: iconURL(c.id, evoNow), name: evoNow ? def.evoName : def.name, isNew: !from, from, to, evo: evoNow,
-        lvTxt: evoNow ? (from ? `Lv ${from} → 진화!` : 'NEW · 진화!') : from ? `Lv ${from} → ${to}` : `NEW · Lv ${to}`, pips: pipRow(from, to, MAX_LV),
+        lvTxt: evoNow ? (from ? `Lv ${from} → 각성!` : 'NEW · 각성!') : from ? `Lv ${from} → ${to}` : `NEW · Lv ${to}`, pips: pipRow(from, to, MAX_LV),
         desc: evoNow ? def.evoInfo : from ? def.lv.slice(from, to).join(' ') : def.lv[0] }); // 건너뛴 레벨의 효과도 모두 적어요
     } else {
       const def = PASSIVES[c.id], from = run.pass[c.id] || 0, to = Math.min(pmax(c.id), from + G.up);
@@ -3465,7 +3550,7 @@ function chestRewards(n, big) {
 function applyChoice(c) {
   if (c.type === 'w') { const w = hasW(c.id); if (w) w.lv++; else addWeapon(c.id); }
   else if (c.type === 'p') { if (!run.pass[c.id]) { run.pass[c.id] = 1; run.passOrder.push(c.id); } else run.pass[c.id]++; recalc(); }
-  else if (c.type === 'evo') { const w = hasW(c.id); w.evo = true; w.st = {}; w.t = .2; Sfx.evo(); banner(WEAPONS[c.id].evoName, `${josa(WEAPONS[c.id].name, '이', '가')} 진화했어요!`, 'gold', 'EVOLUTION'); }
+  else if (c.type === 'evo') awakenWeapon(hasW(c.id)); // 연출은 전투로 돌아가면 시작해요
   else if (c.type === 'heal') heal(player.maxHp * .4);
   else if (c.type === 'coin') run.coins += Math.round(30 * run.st.gold * run.stats.gold);
   run.buildVer++;
@@ -3473,14 +3558,14 @@ function applyChoice(c) {
 function cardInfo(c) {
   if (c.type === 'w') {
     const def = WEAPONS[c.id], w = hasW(c.id), lv = w ? w.lv : 0, pid = def.pair;
-    return { icon: iconURL(c.id), name: def.name, main: !!(w && w.main), tag: lv ? `Lv ${lv + 1}` : '새 스킬', tagCls: '', desc: def.lv[lv], lv, hint: `진화 짝: <b>${PASSIVES[pid].name}</b>${run.pass[pid] ? ' · 갖고 있어요' : ''}` };
+    return { icon: iconURL(c.id), name: def.name, main: !!(w && w.main), tag: lv ? `Lv ${lv + 1}` : '새 스킬', tagCls: '', desc: def.lv[lv], lv, hint: `각성 짝: <b>${PASSIVES[pid].name}</b>${run.pass[pid] ? ' · 갖고 있어요' : ''}` };
   }
   if (c.type === 'p') {
     // 이번 판에 나올 수 있는 무기(장착한 주무기 + 스킬)만 짝으로 알려 줘요
     const def = PASSIVES[c.id], lv = run.pass[c.id] || 0, ws = W_IDS.filter(k => WEAPONS[k].pair === c.id && (k === run.main || SKILLS.includes(k)));
     return { icon: iconURL(c.id), name: def.name, tag: lv ? `Lv ${lv + 1}` : '새 장비', tagCls: 'p', desc: def.info, sub: lv ? `${def.val(lv)} → ${def.val(lv + 1)}` : def.val(1), lv, max: pmax(c.id), hint: ws.length ? `진화 짝: <b>${ws.map(k => WEAPONS[k].name).join(' · ')}</b>${ws.some(k => hasW(k)) ? ' · 갖고 있어요' : ''}` : '' };
   }
-  if (c.type === 'evo') { const def = WEAPONS[c.id]; return { icon: iconURL(c.id, true), name: def.evoName, tag: '진화', tagCls: 'e', desc: def.evoInfo, evo: true, hint: `${def.name} + ${PASSIVES[def.pair].name}` }; }
+  if (c.type === 'evo') { const def = WEAPONS[c.id]; return { icon: iconURL(c.id, true), name: def.evoName, tag: '각성', tagCls: 'e', desc: def.evoInfo, evo: true, hint: `${def.name} + ${PASSIVES[def.pair].name}` }; }
   if (c.type === 'heal') return { icon: iconURL('medkit'), name: '구급상자', tag: '회복', tagCls: 'x', desc: '체력을 40% 회복해요.' };
   return { icon: iconURL('coin'), name: '코인 주머니', tag: '코인', tagCls: 'x', desc: `코인 ${Math.round(30 * run.st.gold * run.stats.gold)}개를 받아요.` };
 }
@@ -3728,7 +3813,7 @@ function update(dt) {
   updateEnemies(dt);
   separate();
   if (run.weapons[0]) player.evo = run.weapons[0].evo; // 주무기가 진화하면 손에 든 무기 모양도 바뀌어요
-  if (!run.over) for (const w of run.weapons) TICK[w.id](w, boost(w.id, WEAPONS[w.id].stat(w.lv, w.evo), run.stats), dt, run.stats);
+  if (!run.over) for (const w of run.weapons) { const A = w.evo && AWK[w.id]; (A && A.tick || TICK[w.id])(w, boost(w.id, WEAPONS[w.id].stat(w.lv, w.evo), run.stats), dt, run.stats); }
   updateShots(dt); updateBeams(dt); updateZones(dt); updateEshots(dt); updatePickups(dt); updateFx(dt);
   let live = 0; compact(enemies, e => { if (e.dead) return false; if (!e.prop) live++; return true; }); run.live = live;
   if (run.boss && run.boss.dead) { run.boss = null; hideBossBar(); }
@@ -3915,6 +4000,7 @@ function drawWeaponsSolid() {
       ctx.save(); ctx.translate(b.x, b.y); ctx.rotate(b.a); ctx.drawImage(missileSpr, -11, -6, 22, 12); ctx.restore();
     }
   }
+  awPass('solid');
 }
 function drawParticles(additive) {
   for (const q of parts) {
@@ -3976,6 +4062,7 @@ function collectLights() {
   let ng = 0; for (const q of pickups) { if (q.kind === 'chest') { addLight(q.x, q.y, 110, .6); addTint(q.x, q.y, 80, .25, '#ffc94d'); } else if (q.kind === 'xp' && ng++ < 160) addLight(q.x, q.y, 26, .3); }
   for (const e of enemies) { if (e.boss) { addLight(e.x, e.y, 210, .5); addTint(e.x, e.y, 160, .2, EPAL[e.type][run.si][2]); } else if (e.elite) addLight(e.x, e.y, 90, .4); }
   if (run.arena) for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; addLight(run.arena.x + Math.cos(a) * run.arena.r, run.arena.y + Math.sin(a) * run.arena.r, 110, .45); }
+  awPass('lights'); awakenLights();
 }
 function applyDarkness(si, cx, cy, amb) {
   const [rgb, a0] = AMB[si], a = amb ?? a0, k = ZOOM * LS;
@@ -4008,7 +4095,7 @@ function drawGlowPass(spr) {
   ctx.globalAlpha = 1;
   const p = player;
   if (!p.dead) {
-    heroGlows(p);
+    heroGlows(p); awakenMark();
     if (p.muzzleT > 0) { const [mx, my] = heroMuzzle(p), k = p.muzzleT / .06, s = (p.evo ? 30 : 24) * (.7 + .3 * k); ctx.globalAlpha = k; ctx.drawImage(glowSprite(p.evo ? '#ffd27a' : '#6fe8ff'), mx - s, my - s, s * 2, s * 2); ctx.save(); ctx.translate(mx, my); ctx.rotate(p.aimA); ctx.fillStyle = p.evo ? '#fff6d0' : '#e8fdff'; ctx.beginPath(); ctx.moveTo(0, -s * .22); ctx.lineTo(s * .9, 0); ctx.lineTo(0, s * .22); ctx.lineTo(s * .25, 0); ctx.closePath(); ctx.fill(); ctx.restore(); }
     if (p.hurtT > 0) { ctx.globalAlpha = p.hurtT * 2.4; ctx.drawImage(glowSprite('#ff4d6a'), p.x - 30, p.y - 38, 60, 60); }
   }
@@ -4061,7 +4148,7 @@ function drawGlowPass(spr) {
     ctx.globalAlpha = al; ctx.drawImage(glowSprite(`#ff9fd0`), b.len - wd * 2, -wd * 2, wd * 4, wd * 4); ctx.drawImage(glowSprite('#ffffff'), 0, -wd * 1.5, wd * 3, wd * 3); ctx.globalAlpha = 1;
     ctx.restore();
   }
-  drawNewGlows();
+  drawNewGlows(); awPass('glow'); awakenGlow(); ctx.globalAlpha = 1; ctx.lineCap = 'round';
   for (const b of eshots) { const s = b.r * 4.6, sp = Math.hypot(b.vx, b.vy) || 1; ctx.strokeStyle = rgba(b.col, .35); ctx.lineWidth = b.r * 1.4; ctx.beginPath(); ctx.moveTo(b.x - b.vx / sp * b.r * 3, b.y - b.vy / sp * b.r * 3); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.drawImage(glowSprite(b.col), b.x - s / 2, b.y - s / 2, s, s); }
   ctx.lineJoin = 'round';
   for (const f of fx) {
@@ -4178,6 +4265,7 @@ function drawNewGlows() {
 }
 // 유성 바위 몸통은 빛 위에 또렷하게
 function drawLitSolids() {
+  awPass('lit'); awakenLit();
   for (const b of shots) if (b.k === 'hole' && b.t >= b.T) {
     const g = Math.min(1, b.age / .35) * (b.life < .25 ? b.life / .25 : 1), R = b.core * .4 * g; if (R < 1) continue;
     ctx.fillStyle = rad(ctx, b.x, b.y, R * .6, b.x, b.y, R * 1.35, [[0, '#000000'], [.7, 'rgba(0,0,0,.95)'], [1, 'rgba(0,0,0,0)']]); ctx.beginPath(); ctx.arc(b.x, b.y, R * 1.35, 0, TAU); ctx.fill();
@@ -4192,6 +4280,63 @@ function drawLitSolids() {
     ctx.fillStyle = rad(ctx, b.x - r * .35, b.y + r * .35, 1, b.x, b.y, r, [[0, '#fff6d8'], [.35, '#ffb347'], [.75, '#8a3a1a'], [1, '#2a1410']]); ctx.beginPath(); ctx.arc(b.x, b.y, r, 0, TAU); ctx.fill();
     ctx.fillStyle = 'rgba(40,20,14,.7)'; ctx.beginPath(); ctx.arc(b.x + r * .3, b.y - r * .3, r * .28, 0, TAU); ctx.arc(b.x + r * .05, b.y - r * .55, r * .16, 0, TAU); ctx.fill();
   }
+}
+/* ---------- 각성: 그리기 단계마다 각성 무기 · 각성 발사체를 그려요 ---------- */
+function awPass(pass) {
+  for (const w of run.weapons) { const A = w.evo && AWK[w.id]; if (A && A[pass]) { A[pass](w); ctx.globalAlpha = 1; } }
+  for (const b of shots) { const D = AW_DRAW[b.k]; if (D && D[pass]) { D[pass](b); ctx.globalAlpha = 1; } }
+}
+const awImgs = {};
+function awImg(id) { let im = awImgs[id]; if (!im) { im = awImgs[id] = new Image(); im.src = iconURL(id, true); } return im; }
+const awPhase = a => ({ u: Math.min(1, a.t / AW_REL), out: a.rel ? Math.min(1, (a.t - AW_REL) / (AW_END - AW_REL)) : 0 });
+function awakenLights() {
+  const a = run.aw; if (!a) return; const { u, out } = awPhase(a);
+  addLight(player.x, player.y, 160 + 60 * u + 520 * (a.rel ? Math.max(0, 1 - out * 2.2) : 0), 1);
+  addTint(player.x, player.y, 150 + 80 * u, .32 * (a.rel ? 1 - out : u), '#ffcf6a');
+}
+// 발밑 마법진 · 위로 솟는 빛 · 무기 빛무리
+function awakenGlow() {
+  const a = run.aw; if (!a) return;
+  const { u, out } = awPhase(a), col = WEAPONS[a.id].color, x = player.x, y = player.y + 13;
+  const R = 26 + 64 * (1 - (1 - u) ** 3) + 190 * (1 - (1 - out) ** 2), al = a.rel ? 1 - out : u;
+  ctx.save(); ctx.translate(x, y); ctx.scale(1, .42); ctx.lineCap = 'round';
+  ctx.globalAlpha = al * .95; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 3.2; ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.stroke();
+  ctx.lineWidth = 1.4; ctx.beginPath(); ctx.arc(0, 0, R * 1.08, 0, TAU); ctx.stroke();
+  ctx.rotate(a.t * 1.3 + a.h); ctx.lineWidth = 2;
+  for (let i = 0; i < 24; i++) { const an = i * TAU / 24, r0 = R * (i % 3 ? .9 : .82); ctx.beginPath(); ctx.moveTo(Math.cos(an) * r0, Math.sin(an) * r0); ctx.lineTo(Math.cos(an) * R * .97, Math.sin(an) * R * .97); ctx.stroke(); }
+  ctx.globalAlpha = al * .8; ctx.strokeStyle = col; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.arc(0, 0, R * .72, 0, TAU); ctx.stroke();
+  for (const sg of [1, -1]) { ctx.rotate(sg * a.t * .9); ctx.beginPath(); for (let i = 0; i <= 3; i++) { const an = i * TAU / 3 - Math.PI / 2; i ? ctx.lineTo(Math.cos(an) * R * .7, Math.sin(an) * R * .7) : ctx.moveTo(Math.cos(an) * R * .7, Math.sin(an) * R * .7); } ctx.stroke(); }
+  ctx.restore();
+  // 차오르는 빛기둥과 무기 빛무리
+  if (!a.rel) {
+    ctx.globalAlpha = .55 * u; ctx.fillStyle = lin(ctx, 0, y - 260, 0, y, [[0, 'rgba(255,214,120,0)'], [.6, 'rgba(255,214,120,.35)'], [1, 'rgba(255,240,200,.75)']]); ctx.fillRect(x - 18 - 16 * u, y - 260, 36 + 32 * u, 260);
+  }
+  if (!a.rel || a.t < AW_REL + .35) { const q = a.rel ? (a.t - AW_REL) / .35 : 0, s = (90 + 50 * u) * (1 + q * 2); ctx.globalAlpha = (a.rel ? 1 - q : u) * .8; ctx.drawImage(glowSprite(col), x - s / 2, awIconY(a) - s / 2, s, s); ctx.globalAlpha *= .8; ctx.drawImage(glowSprite('#fff2c8'), x - s / 4, awIconY(a) - s / 4, s / 2, s / 2); }
+  ctx.globalAlpha = 1;
+}
+const awIconY = a => player.y - 58 - 26 * Math.min(1, a.t / AW_REL);
+// 무기 아이콘이 머리 위로 떠올랐다가 터지는 순간 커지며 사라져요 (빛 위에 또렷하게)
+function awakenLit() {
+  const a = run.aw; if (!a || (a.rel && a.t > AW_REL + .35)) return;
+  const im = awImg(a.id); if (!im.complete || !im.naturalWidth) return;
+  const u = Math.min(1, a.t / AW_REL), q = a.rel ? (a.t - AW_REL) / .35 : 0, s = (30 + 18 * u) * (1 + q * 1.4);
+  ctx.globalAlpha = (a.rel ? 1 - q : Math.min(1, a.t * 5)); ctx.drawImage(im, player.x - s / 2, awIconY(a) - s / 2 + Math.sin(a.t * 6) * 2, s, s); ctx.globalAlpha = 1;
+}
+// 각성할수록 발밑의 금빛 고리에 별이 하나씩 늘어요
+function awakenMark() {
+  let n = 0; for (const w of run.weapons) if (w.evo) n++; if (!n) return;
+  const x = player.x, y = player.y + 14, spin = reduceMotion ? 0 : T * .8;
+  ctx.globalAlpha = .32; ctx.strokeStyle = '#ffd27a'; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(x, y, 21, 7, 0, 0, TAU); ctx.stroke();
+  for (let i = 0; i < n; i++) { const an = spin + i * TAU / n, px = x + Math.cos(an) * 21, py = y + Math.sin(an) * 7; ctx.globalAlpha = Math.sin(an) < 0 ? .45 : .95; ctx.drawImage(glowSprite('#ffd27a'), px - 5, py - 5, 10, 10); }
+  ctx.globalAlpha = 1;
+}
+// 화면: 모일 때는 둘레가 어두워지고, 터질 때 하얗게 번쩍여요
+function awakenScreen() {
+  const a = run && run.aw; if (!a) return;
+  const sx = (player.x - cam.x) * ZOOM + W / 2, sy = (player.y - 10 - cam.y) * ZOOM + H / 2;
+  const d = (a.rel ? Math.max(0, 1 - (a.t - AW_REL) / .55) : Math.min(1, a.t / .3)) * .6;
+  if (d > .01) { const g = ctx.createRadialGradient(sx, sy, 70 * ZOOM, sx, sy, Math.max(W, H) * .75); g.addColorStop(0, 'rgba(10,5,0,0)'); g.addColorStop(.3, `rgba(10,5,0,${d * .55})`); g.addColorStop(1, `rgba(10,5,0,${d})`); ctx.fillStyle = g; ctx.fillRect(0, 0, W, H); }
+  if (a.rel && a.t < AW_REL + .3 && !reduceMotion) { ctx.globalAlpha = (1 - (a.t - AW_REL) / .3) * .5; ctx.fillStyle = '#fff4d8'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1; }
 }
 function drawEshotCores() { for (const b of eshots) { ctx.beginPath(); ctx.arc(b.x, b.y, b.r * .62, 0, TAU); ctx.fillStyle = '#ffffff'; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = b.col; ctx.stroke(); } }
 function newDrop(kind, cx, cy, hw, hh, init) {
@@ -4464,7 +4609,7 @@ function render(dt) {
   for (const p of props) if (p.def.flat) drawPropSprite(p); else DL.push(p);
   propLights(props, state === 'play' || !run ? dt : 0, cx, cy, hw, hh);
   if (run) {
-    drawArenaFloor(); drawPickups(); drawTelegraphs();
+    drawArenaFloor(); drawPickups(); drawTelegraphs(); awPass('ground');
     for (const e of enemies) { if (e.dead) continue; const s = e.r * (e.prop ? 0 : 2.3); if (s) { ctx.globalAlpha = e.age < .35 && !e.boss ? .5 + e.age : 1; ctx.drawImage(shadowSprite, e.x - s / 2, e.y + e.r * .6, s, s * .32); } if (!e.boss && e.age < .35) { ctx.globalAlpha = 1 - e.age / .35; ctx.drawImage(splatSprite('#0a0612', e.id & 3), e.x - e.r * 1.4, e.y + e.r * .1, e.r * 2.8, e.r * 1.4); } e.dk = 1; e.sy = e.y + e.r * .6; DL.push(e); }
     ctx.globalAlpha = 1;
     if (!player.dead) { ctx.drawImage(shadowSprite, player.x - 19, player.y + 12, 38, 13); player.dk = 2; player.sy = player.y + 12; DL.push(player); }
@@ -4510,7 +4655,7 @@ function render(dt) {
   if (!lowQ) drawFog(si, cx, cy, hw, hh);
   if (run) { drawBars(); drawTexts(); }
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-  drawScreen();
+  drawScreen(); if (run) awakenScreen();
   if (!run) { menuEdgeLight(si); drawWipe(dt); }
 }
 function drawScreen() {
@@ -4546,12 +4691,20 @@ const el = {};
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
   'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose',
   'loadout', 'armBtn', 'goalSlot', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
-  'curtain', 'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
+  'curtain', 'awaken', 'awIcon', 'awName', 'awInfo', 'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
 
 let toastTimer = 0;
 function toast(msg, kind = '') { el.toast.textContent = msg; el.toast.className = 'hx show ' + kind; clearTimeout(toastTimer); toastTimer = setTimeout(() => { el.toast.className = 'hx ' + kind; }, 2600); }
+// 각성 제목: 아이콘 · '각성' · 새 이름 · 무엇이 바뀌었는지
+let awTimer = 0;
+function awakenTitle(w) {
+  const d = WEAPONS[w.id]; el.awIcon.src = iconURL(w.id, true); el.awName.textContent = d.evoName; el.awInfo.textContent = d.evoInfo;
+  el.awaken.hidden = false; el.awaken.classList.remove('show'); void el.awaken.offsetWidth; el.awaken.classList.add('show');
+  clearTimeout(awTimer); awTimer = setTimeout(hideAwaken, 2800);
+}
+function hideAwaken() { clearTimeout(awTimer); el.awaken.hidden = true; el.awaken.classList.remove('show'); }
 function banner(title, sub, kind = '', label = kind === 'gold' ? 'MISSION UPDATE' : 'WARNING') { el.bannerL.textContent = label; el.bannerT.textContent = title; el.bannerS.textContent = sub || ''; el.banner.className = ''; void el.banner.offsetWidth; el.banner.className = 'show ' + kind; }
 function showBossBar(e) { el.bossbar.hidden = false; el.bossname.textContent = e.name; el.bossfill.style.transform = 'scaleX(1)'; hud.boss = -1; }
 function hideBossBar() { el.bossbar.hidden = true; }
@@ -4683,7 +4836,7 @@ function renderArmory() {
     : `${starStr(n)}<span class="sub">${own ? (n < STAR_MAX ? `같은 무기가 또 나오면 ★${n + 1}` : '최고 등급') : '아직 없어요'}</span>`;
   el.armShow.innerHTML = `<div class="arm-big${own ? '' : ' locked'}"><img src="${iconURL(id)}" alt=""></div>
     <div class="arm-meta"><span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3><div class="star-row">${starInfo}</div>
-      <p>${d.lv[0]}</p><p class="evo-line">진화: Lv ${MAX_LV} + <b>${PASSIVES[d.pair].name}</b> → <b>${d.evoName}</b></p></div>
+      <p>${d.lv[0]}</p><p class="evo-line">각성: Lv ${MAX_LV} + <b>${PASSIVES[d.pair].name}</b> → <b>${d.evoName}</b></p></div>
     <div class="arm-act">${act}${own && n > 1 ? `<span class="bonus">★${n} · ${bonusTxt(n)}</span>` : ''}</div>`;
   el.armGrid.innerHTML = ARMS.map(k => {
     const m = armStars(k), o = m > 0;
@@ -4751,7 +4904,7 @@ function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(
 function showMenu() {
   cancelLobbyFx(); state = 'menu'; run = null; joyReset(); Sfx.musicStop(); Sfx.setIntensity(0);
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
-  el.hud.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.drawModal.hidden = true; el.menu.hidden = false; el.banner.className = '';
+  el.hud.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.drawModal.hidden = true; el.menu.hidden = false; el.banner.className = ''; hideAwaken();
   launching = false; el.menu.classList.remove('launching'); menuHero.launch = 0;
   renderMenu(); menuEnter(true);
   if (lobbyFx) { if (!reduceMotion) playLobbyFx(lobbyFx); lobbyFx = null; }
@@ -4823,7 +4976,7 @@ function launchRun() {
 }
 function startRun() {
   cancelLobbyFx(); Sfx.init(); if (save.set.music) Sfx.musicStart();
-  newRun(save.stage); hudReset(); hideBossBar(); el.banner.className = '';
+  newRun(save.stage); hudReset(); hideBossBar(); el.banner.className = ''; hideAwaken();
   if (!el.portrait.src) el.portrait.src = heroPortrait();
   for (const m of [el.lvModal, el.chestModal, el.pauseModal, el.resultModal]) m.hidden = true;
   el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = true; el.hud.hidden = false;
@@ -4856,7 +5009,7 @@ function renderCards() {
   el.lvSub.textContent = run.pendingLv > 1 ? `하나를 골라요 · 이어서 ${run.pendingLv - 1}번 더 골라요` : '하나를 골라요';
   el.cards.innerHTML = choices.map((c, i) => {
     const f = cardInfo(c);
-    const typ = f.evo ? 'EVOLUTION' : c.type === 'w' ? (f.main ? 'WEAPON' : 'SKILL') : c.type === 'p' ? 'GEAR' : 'BONUS';
+    const typ = f.evo ? 'AWAKEN' : c.type === 'w' ? (f.main ? 'WEAPON' : 'SKILL') : c.type === 'p' ? 'GEAR' : 'BONUS';
     return `<button class="card hx ${f.evo ? 'evo' : c.type}${f.main ? ' main' : ''}" data-i="${i}"><div class="c-top"><span class="c-type">${typ}</span><span class="key">[${i + 1}]</span></div><div class="medal"><img src="${f.icon}" alt=""></div><div class="c-body">
       <div class="c-head"><span class="c-name">${f.name}</span><span class="tag ${f.tagCls}">${f.tag}</span></div>
       ${f.lv !== undefined ? `<div class="pips">${pips(f.lv, f.max || MAX_LV, true)}</div>` : ''}
@@ -4950,7 +5103,7 @@ function pauseGame() {
   el.pP.innerHTML = run.passOrder.map(id => `<div class="build-item hx"><img src="${iconURL(id)}" alt=""><div><b>${PASSIVES[id].name}</b><span>Lv ${run.pass[id]} · ${PASSIVES[id].val(run.pass[id])}</span></div></div>`).join('') || '<p class="empty">아직 없어요</p>';
   el.pEvo.innerHTML = run.weapons.map(w => {
     const d = WEAPONS[w.id], p = PASSIVES[d.pair];
-    if (w.evo) return `<div>${d.name} → <b>${d.evoName}</b> · 진화 완료</div>`;
+    if (w.evo) return `<div>${d.name} → <b>${d.evoName}</b> · 각성 완료</div>`;
     const ready = w.lv >= MAX_LV && run.pass[d.pair];
     return `<div>${d.name} Lv ${MAX_LV} + ${p.name} → <b>${d.evoName}</b> ${ready ? '<span class="ready">· 다음 레벨 업에 나와요</span>' : `· 지금 Lv ${w.lv}${run.pass[d.pair] ? `, ${p.name} 있음` : `, ${p.name} 필요`}`}</div>`;
   }).join('');
@@ -5058,7 +5211,7 @@ function openHelp(kind) {
     const entry = (id, extra = '') => { const d = WEAPONS[id]; return `<div class="codex-item"><div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${d.name}${extra}</b><span style="white-space:normal">${d.lv[0]}</span></div></div>
         <div class="evo-row"><img src="${iconURL(d.pair)}" alt=""><span class="op">${josa(PASSIVES[d.pair].name, '과', '와')} 함께 →</span><img src="${iconURL(id, true)}" alt=""><b>${d.evoName}</b><p>${d.evoInfo}</p></div></div>`; };
     el.helpBody.innerHTML = `<p><b>주무기</b>는 한 판에 하나만 들고 나가요. 무기고의 보급 캡슐에서 얻고, 장착한 무기만 레벨 업 때 나와요. <b>스킬</b>은 레벨 업과 보물 상자에서 골라 ${MAX_SLOTS - 1}칸까지 가질 수 있어요. 보조 장비는 ${MAX_SLOTS}칸이에요.</p>
-      <p>무기나 스킬을 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>진화</b>해요.</p>
+      <p>무기나 스킬을 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>각성</b>해요.</p>
       <h3>주무기</h3><div class="evo-table">${ARMS.map(id => entry(id, ` <em class="rar sm" style="--rc:${rarOf(id).col}">${rarOf(id).name}</em>${armStars(id) ? '' : ' <em class="muted">· 아직 없어요</em>'}`)).join('')}</div>
       <h3>스킬</h3><div class="evo-table">${SKILLS.map(id => entry(id)).join('')}</div>
       <h3>보조 장비</h3><div class="help-items">${P_IDS.map(id => `<div><img src="${iconURL(id)}" alt=""><span><b style="color:var(--text)">${PASSIVES[id].name}</b><br>${PASSIVES[id].info}</span></div>`).join('')}</div>`;
@@ -5134,9 +5287,10 @@ function frame(now) {
   let dt = (now - lastT) / 1000; lastT = now;
   if (!(dt > 0)) dt = 0; if (dt > .1) dt = .1;
   const t0 = performance.now();
+  if (state === 'play' && run && (run.aw || (run.awQ && run.awQ.length))) stepAwaken(dt);
   if (state === 'play' && run && run.hitStop > 0) run.hitStop -= dt;
   else if (state === 'play' && run) {
-    let sim = dt * timeScale, guard = 0;
+    let sim = dt * timeScale * awSlow(), guard = 0;
     while (sim > 1e-6 && state === 'play' && guard++ < 60) { const s = Math.min(sim, 1 / 60); update(s); sim -= s; }
   }
   const t1 = performance.now();
@@ -5157,7 +5311,9 @@ window.__shadowRaid = {
   get run() { return run; }, get state() { return state; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get eshots() { return eshots; }, player,
   setTimeScale(v) { timeScale = v; }, setMove(x, y) { botMove = x === null ? null : { x, y }; }, pick: i => { cardLock = 0; pickChoice(i); },
   fastForward(sec, tick) { const n = Math.round(sec * 60); for (let i = 0; i < n && state !== 'result'; i++) { if (tick) tick(); if (state === 'play') { update(1 / 60); if (run) hudUpdate(); } } },
-  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), perf, menu: () => ({ critters, hero: menuHero, edge: menuEdge, spotOk, toScr, shots: menuShots }), kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
+  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), perf,
+  give(id, evo = true) { let w = hasW(id); if (!w) { addWeapon(id); w = hasW(id); } w.lv = MAX_LV; const pid = WEAPONS[id].pair; if (!run.pass[pid]) { run.pass[pid] = 1; run.passOrder.push(pid); recalc(); } if (evo && !w.evo) awakenWeapon(w); run.buildVer++; return w; },
+  get aw() { return run && run.aw; }, AWK, get shots() { return shots; }, get fx() { return fx; }, get parts() { return parts; }, menu: () => ({ critters, hero: menuHero, edge: menuEdge, spotOk, toScr, shots: menuShots }), kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
 };
 })();
 </script>
