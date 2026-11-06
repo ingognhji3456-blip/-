@@ -139,7 +139,7 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 .logo .a{text-shadow:5px 5px 0 #6b4dff,10px 10px 0 #3b2a96,15px 15px 0 #1c1450}
 .logo .b{color:var(--hot); text-shadow:5px 5px 0 #8e1530,10px 10px 0 #4c0a1a,15px 15px 0 #22050c; margin-top:6px}
 .hero-spot{height:clamp(56px,13vh,140px); flex:none}
-@media (max-height:880px){ .logo{font-size:clamp(54px,9.5vh,86px)} .hero-spot{height:clamp(44px,9vh,96px)} .menu-main{gap:11px} }
+
 .stage{--c:16px; display:grid; grid-template-columns:34px 78px minmax(0,1fr) 34px; align-items:center; gap:10px; padding:12px 8px}
 .stage .arrow{--c:6px; width:34px; height:52px; font-size:22px; line-height:1; color:var(--cyan)}
 .stage .arrow:disabled{opacity:.25}
@@ -214,7 +214,87 @@ h1,h2,h3{text-wrap:balance; font-weight:400}
 .stars i{font-style:normal; color:rgba(255,255,255,.16); text-shadow:none}
 .lo-go{display:inline-flex; align-items:center; gap:5px; height:38px; padding:0 12px; font-weight:900; font-size:var(--t-sm); color:#2a1a00; white-space:nowrap; background:linear-gradient(180deg,#ffe08a,#e89a1e); clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
 .lo-go i{font-style:normal; font-size:20px; line-height:1}
-.lo-go .badge-dot{background:#2a1a00; color:var(--gold); min-width:18px; height:18px; line-height:18px; font-size:10px; padding:0 5px}
+
+
+/* ---------- 로비: 위는 로고와 주인공, 아래는 스테이지·주무기·출격·메뉴 줄 ----------
+   폰에서 단추가 화면 밖으로 밀리지 않게, 키가 낮은 화면일수록 로고·카드를 줄이고
+   가로 화면에서는 두 칸(왼쪽 로고 · 오른쪽 단추들)으로 나눠요. */
+.menu-hero,.menu-panel{display:flex; flex-direction:column; gap:inherit; min-width:0}
+.dock{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px}
+.dock-btn{--c:9px; position:relative; height:56px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px; font-size:12px; font-weight:900; color:#dfe8ff; white-space:nowrap}
+.dock-btn svg{width:20px; height:20px; flex:none}
+.dock-btn:hover{filter:brightness(1.2)}
+.dock-btn:active{transform:translateY(2px)}
+.dock-btn .badge-dot{position:absolute; top:4px; right:4px; min-width:16px; height:16px; padding:0 4px; border-radius:8px; font-size:9px; line-height:16px}
+@media (max-width:430px){ .dock-btn .badge-dot{top:6px; right:6px; min-width:0; width:10px; height:10px; padding:0; font-size:0; box-shadow:0 0 8px var(--gold)} }
+@media (max-height:900px){
+  .menu-main{gap:11px}
+  .logo{font-size:clamp(50px,9vh,84px)}
+  .hero-spot{height:clamp(44px,8.5vh,92px)}
+}
+@media (max-height:780px){
+  #menu{gap:10px}
+  .menu-main{gap:9px}
+  .eyebrow{display:none}
+  .logo{font-size:clamp(44px,8vh,62px)}
+  .hero-spot{height:clamp(46px,8.5vh,66px)}
+  .stage{grid-template-columns:30px 62px minmax(0,1fr) 30px; gap:8px; padding:8px 6px}
+  .stage .arrow{width:30px; height:44px}
+  .thumb{width:62px; height:62px}
+  .stage-info h2{font-size:21px}
+  #stDesc{display:none}
+  .loadout{grid-template-columns:44px minmax(0,1fr) auto; gap:10px; padding:6px 8px 6px 6px}
+  .lo-icon{width:44px; height:44px}
+  .lo-icon img{width:40px; height:40px}
+  .lo-info b{font-size:19px}
+  .lo-go{height:32px}
+  .start{height:60px}
+  .start b{font-size:28px}
+  .start small{margin-top:3px}
+  .dock-btn{height:50px}
+  .foot-note{display:none}
+}
+@media (max-height:640px){
+  .logo{font-size:clamp(34px,7vh,44px); white-space:nowrap}
+  .logo span{display:inline}
+  .logo .b{margin:0 0 0 .22em}
+  .logo .a,.logo .b{text-shadow:3px 3px 0 #3b2a96,6px 6px 0 #1c1450}
+  .logo .b{text-shadow:3px 3px 0 #8e1530,6px 6px 0 #22050c}
+  .hero-spot{height:52px}
+  .start{height:54px}
+  .start b{font-size:25px}
+  .dock-btn{height:46px; font-size:11px}
+  .dock-btn svg{width:17px; height:17px}
+}
+@media (orientation:landscape) and (max-height:340px){ #stBest{display:none} .start{height:46px} .start small{display:none} }
+@media (orientation:landscape) and (max-height:540px){
+  #menu{gap:6px; padding-block:calc(env(safe-area-inset-top,0px) + 8px) calc(env(safe-area-inset-bottom,0px) + 10px)}
+  #menu .topbar{width:min(100%,920px)}
+  .menu-main{width:min(100%,920px); display:grid; grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); align-items:center; column-gap:20px; row-gap:0}
+  .menu-hero{justify-content:center; gap:6px}
+  .menu-panel{gap:8px}
+  .eyebrow{display:block}
+  .logo{font-size:clamp(40px,12vh,64px); white-space:normal}
+  .logo span{display:block}
+  .logo .b{margin:4px 0 0}
+  .hero-spot{height:clamp(56px,20vh,110px)}
+  #stDesc{display:none}
+  .stage{grid-template-columns:28px 56px minmax(0,1fr) 28px; gap:8px; padding:6px}
+  .stage .arrow{width:28px; height:40px}
+  .thumb{width:56px; height:56px}
+  .stage-info h2{font-size:19px}
+  .stage-info p{margin-top:1px}
+  .loadout{grid-template-columns:40px minmax(0,1fr) auto; padding:5px 8px 5px 6px}
+  .lo-icon{width:40px; height:40px}
+  .lo-icon img{width:36px; height:36px}
+  .lo-info .label{display:none}
+  .lo-info b{font-size:17px}
+  .start{height:52px}
+  .start b{font-size:24px}
+  .dock-btn{height:44px; font-size:11px}
+  .dock-btn svg{width:16px; height:16px}
+  .foot-note{display:none}
+}
 
 /* ---------- 무기고 ---------- */
 .hx.epic{--edge-c:linear-gradient(135deg,#f3d9ff,rgba(194,123,255,.55) 36%,rgba(194,123,255,.15) 64%,#9a4dff)}
@@ -319,6 +399,83 @@ em.rar,em.muted{font-style:normal}
 .draw-acts.wait{visibility:hidden}
 .draw-res{min-height:150px}
 
+/* ---------- 보물 상자 카드: 상자에서 튀어나와 한 장씩 뒤집혀요 ---------- */
+.chest-panel{width:min(100%,460px); padding:18px 18px 20px}
+.chest-panel.multi{width:min(100%,640px)}
+.chest-panel:focus{outline:none}
+.chest-panel .chest-stage{height:126px; margin-top:-4px; cursor:pointer}
+.chest-panel .chest-img{width:120px; height:110px}
+.chest-stage.tease .chest-img{animation:shake .07s linear infinite; filter:drop-shadow(0 0 20px var(--gc)) drop-shadow(0 10px 16px rgba(0,0,0,.55))}
+.chest-stage.tease .chest-rays{opacity:.55; transform:scale(.6)}
+.chest-hint{min-height:22px; margin-top:2px; text-align:center; font-size:var(--t-sm); font-weight:700; color:var(--muted)}
+.actions.chest-acts{grid-template-columns:1fr; margin-top:8px; min-height:52px}
+.ccards{position:relative; z-index:2; display:flex; justify-content:center; align-items:stretch; gap:12px; margin-top:12px; min-height:150px}
+.ccard{--gc:#c3cde6; --gca:rgba(195,205,230,.42); position:relative; display:flex; flex-direction:column; flex:0 0 auto; width:176px; text-align:center; opacity:0; transform:translate(var(--fx,0px),var(--fy,0px)) scale(.16) rotate(var(--rot,0deg)); transition:transform .62s cubic-bezier(.2,1.3,.35,1), opacity .2s; filter:drop-shadow(0 10px 14px rgba(0,0,0,.5))}
+.ccards.n3 .ccard{width:clamp(88px,calc((100% - 24px) / 3),186px)}
+.ccards.prep .ccard{transition:none; pointer-events:none}
+.ccards.out .ccard{opacity:1; transform:none}
+.cc-front,.cc-back{--c:14px; isolation:isolate; clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c)); background:linear-gradient(160deg,#ffffff,var(--gc) 26%,rgba(255,255,255,.08) 60%,var(--gc))}
+.cc-front::before,.cc-back::before{content:""; position:absolute; inset:2px; z-index:-1; clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c))}
+.cc-front{position:relative; flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; padding:10px 9px 12px; opacity:0}
+.cc-front::before{background:var(--scan),radial-gradient(120% 60% at 50% 0%,var(--gca),transparent 62%),linear-gradient(180deg,#151b40,#070914)}
+.cc-back{position:absolute; inset:0; display:grid; place-items:center; cursor:pointer}
+.cc-back::before{background:repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 6px,transparent 6px 12px),radial-gradient(circle at 50% 50%,var(--gca),transparent 66%),linear-gradient(180deg,#1b2150,#080a1c)}
+.cc-emb{width:38%; aspect-ratio:1; transform:rotate(45deg); border:3px solid var(--gc); box-shadow:0 0 16px var(--gc),inset 0 0 12px var(--gca); display:grid; place-items:center; animation:embPulse 1.2s ease-in-out infinite}
+.cc-emb::after{content:"?"; transform:rotate(-45deg); font-family:var(--f-display); font-size:clamp(18px,6vw,30px); color:var(--gc); text-shadow:0 0 10px var(--gc)}
+@keyframes embPulse{50%{box-shadow:0 0 26px var(--gc),inset 0 0 18px var(--gca)}}
+.ccard:not(.flip):hover .cc-back{filter:brightness(1.25)}
+.cc-grade{font-family:var(--f-tech); font-size:9.5px; font-weight:900; letter-spacing:.1em; color:#0a0a14; background:var(--gc); padding:2px 8px; white-space:nowrap; clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%)}
+.cc-grade em{font-style:normal}
+.cc-medal{position:relative; width:66px; height:66px; display:grid; place-items:center; margin-top:2px}
+.cc-medal::before{content:""; position:absolute; inset:-5px; border-radius:50%; background:conic-gradient(from 0deg,transparent,var(--gc),transparent 35%,transparent 50%,var(--gc),transparent 85%); -webkit-mask:radial-gradient(closest-side,transparent 80%,#000 82%,#000 93%,transparent 95%); mask:radial-gradient(closest-side,transparent 80%,#000 82%,#000 93%,transparent 95%); animation:spin 3.5s linear infinite}
+.cc-medal img{position:relative; width:58px; height:58px; filter:drop-shadow(0 5px 8px rgba(0,0,0,.5))}
+.cc-name{font-family:var(--f-display); font-weight:400; font-size:19px; line-height:1.15; word-break:keep-all}
+.cc-lv{display:inline-flex; align-items:center; gap:5px; font-family:var(--f-tech); font-size:11px; font-weight:800; color:#dfe8ff; white-space:nowrap}
+.cc-lv em{font-style:normal; padding:0 5px; background:var(--gc); color:#0a0a14; clip-path:polygon(3px 0,100% 0,calc(100% - 3px) 100%,0 100%)}
+.cc-pips{display:flex; gap:3px}
+.cc-pips i{width:12px; height:5px; transform:skewX(-20deg); background:rgba(255,255,255,.14)}
+.cc-pips i.on{background:#7f8bb0}
+.cc-pips i.nx{background:var(--gc); box-shadow:0 0 6px var(--gc)}
+.cc-desc{font-size:12px; color:#cfd8f2; line-height:1.4; word-break:keep-all; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:6; overflow:hidden}
+.ccards.n3 .cc-desc{display:none}
+.ccard.flip{animation:ccFlip .5s ease-in-out}
+.ccard.flip .cc-back{opacity:0; pointer-events:none; animation:ccHide .5s}
+.ccard.flip .cc-front{opacity:1; animation:ccShow .5s}
+@keyframes ccFlip{0%{transform:none} 45%{transform:scaleX(0) scaleY(1.05)} 75%{transform:scale(1.07)} 100%{transform:none}}
+@keyframes ccHide{0%,45%{opacity:1} 46%,100%{opacity:0}}
+@keyframes ccShow{0%,45%{opacity:0} 46%,100%{opacity:1}}
+.ccard.shine .cc-front::after{content:""; position:absolute; inset:0; pointer-events:none; clip-path:polygon(var(--c) 0,100% 0,100% calc(100% - var(--c)),calc(100% - var(--c)) 100%,0 100%,0 var(--c)); background:linear-gradient(110deg,transparent 32%,rgba(255,255,255,.32) 46%,transparent 60%); background-size:260% 100%; animation:shine 2s linear infinite}
+.ccard.g2.flip{filter:drop-shadow(0 0 10px var(--gc)) drop-shadow(0 10px 14px rgba(0,0,0,.5))}
+.ccard.g3.flip{filter:drop-shadow(0 0 16px var(--gc)) drop-shadow(0 10px 14px rgba(0,0,0,.5))}
+.ccard.g3.flip::after{content:""; position:absolute; left:50%; top:50%; width:250%; aspect-ratio:1; z-index:-1; translate:-50% -50%; border-radius:50%; background:repeating-conic-gradient(var(--gca) 0 8deg,transparent 8deg 22deg); -webkit-mask:radial-gradient(closest-side,#000 20%,transparent); mask:radial-gradient(closest-side,#000 20%,transparent); animation:spin 9s linear infinite; pointer-events:none}
+@media (min-width:620px){ .ccards.n3 .cc-desc{display:block} }
+@media (max-width:520px){
+  .chest-panel{padding:16px 12px 18px}
+  .ccards.n3{gap:8px}
+  .ccards.n3 .cc-front{padding:8px 4px 10px; gap:4px}
+  .ccards.n3 .cc-grade{font-size:9px; letter-spacing:.04em; padding:2px 6px}
+  .ccards.n3 .cc-grade em{display:none}
+  .ccards.n3 .cc-medal{width:48px; height:48px}
+  .ccards.n3 .cc-medal img{width:42px; height:42px}
+  .ccards.n3 .cc-name{font-size:14px}
+  .ccards.n3 .cc-lv{font-size:9.5px; gap:3px}
+  .ccards.n3 .cc-lv em{padding:0 3px}
+  .ccards.n3 .cc-pips i{width:8px; height:4px}
+}
+@media (max-height:520px){ .chest-panel .chest-stage{height:96px} .chest-panel .chest-img{width:96px; height:88px} .ccards{margin-top:6px} .ccards .cc-desc,.ccards.n3 .cc-desc{display:none} }
+/* 가로로 눕힌 폰: 상자는 왼쪽, 카드는 오른쪽에 두어 받기 단추까지 한 화면에 들어오게 해요 */
+@media (orientation:landscape) and (max-height:500px){
+  .chest-panel,.chest-panel.multi{width:min(100%,780px); display:grid; grid-template-columns:140px minmax(0,1fr); grid-template-areas:"head head" "stage cards" "hint acts"; column-gap:14px; row-gap:6px; align-items:center; padding:12px 16px 14px}
+  .chest-panel .p-head{grid-area:head; margin:0}
+  .chest-panel h2.title{font-size:26px}
+  .chest-panel .chest-stage{grid-area:stage; height:118px; margin:0}
+  .chest-panel .ccards{grid-area:cards; margin:0; min-height:0}
+  .chest-panel .chest-hint{grid-area:hint; margin:0; min-height:0; font-size:12px}
+  .chest-panel .chest-acts{grid-area:acts; margin:0; min-height:44px}
+  .chest-panel .chest-acts .btn{height:44px}
+  .ccards.n3 .ccard{width:clamp(88px,calc((100% - 24px) / 3),170px)}
+}
+
 /* 주무기 칸 · 카드 */
 .slot.main{background:linear-gradient(135deg,#ffd0a0,#ff5a6a)}
 .slot.main.evo{background:linear-gradient(135deg,#ffe9a0,#ff8a3d)}
@@ -388,7 +545,7 @@ em.rar,em.muted{font-style:normal}
 
 /* 보물 상자 */
 .chest-stage{position:relative; height:150px; display:grid; place-items:center}
-.chest-rays{position:absolute; width:300px; height:300px; border-radius:50%; background:repeating-conic-gradient(rgba(255,214,107,.3) 0 8deg,transparent 8deg 22deg); -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent); opacity:0; transform:scale(.4); transition:opacity .4s, transform .6s}
+.chest-rays{position:absolute; width:300px; height:300px; border-radius:50%; background:repeating-conic-gradient(var(--gca,rgba(255,214,107,.3)) 0 8deg,transparent 8deg 22deg); -webkit-mask:radial-gradient(closest-side,#000 25%,transparent); mask:radial-gradient(closest-side,#000 25%,transparent); opacity:0; transform:scale(.4); transition:opacity .4s, transform .6s}
 .chest-img{position:relative; z-index:1; width:132px; height:121px; filter:drop-shadow(0 10px 16px rgba(0,0,0,.55))}
 .chest-stage.shake .chest-img{animation:shake .12s linear infinite}
 @keyframes shake{25%{transform:translate(-3px,1px) rotate(-3deg)} 75%{transform:translate(3px,-1px) rotate(3deg)}}
@@ -484,6 +641,7 @@ em.rar,em.muted{font-style:normal}
   .card,.reward{animation:none}
   .arm-big::after,.draw-btn::after,.pod-stage.open .pod-rays,.g-art img,.pod-stage.shake .pod-img,.pod-stage.shake2 .pod-img,.draw-res > *{animation:none}
   .pod-stage.open .pod-item{animation:none; opacity:1}
+  .ccard,.ccard.flip,.ccard.flip .cc-back,.ccard.flip .cc-front,.cc-medal::before,.cc-emb,.ccard.shine .cc-front::after,.ccard.g3.flip::after,.chest-stage.tease .chest-img{animation:none; transition:none}
 }
 </style>
 </head>
@@ -519,14 +677,16 @@ em.rar,em.muted{font-style:normal}
   <div class="topbar">
     <span class="wallet hx"><span class="coin-dot"></span><span id="mCoins">0</span></span>
     <div class="top-actions">
-      <button class="ghost hx" id="helpBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#4fe3ff" stroke-width="1.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4" fill="none" stroke="#e6f8ff" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="#e6f8ff"/></svg>하는 법</button>
       <button class="ghost hx" id="setBtn" aria-label="설정"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#e6f8ff" d="M9.2 1l.4 1.9 1.3.6 1.7-1 1.2 1.2-1 1.7.6 1.3 1.9.4v1.7l-1.9.4-.6 1.3 1 1.7-1.2 1.2-1.7-1-1.3.6-.4 1.9H7.5l-.4-1.9-1.3-.6-1.7 1-1.2-1.2 1-1.7-.6-1.3L1.4 9V7.3l1.9-.4.6-1.3-1-1.7 1.2-1.2 1.7 1 1.3-.6.4-1.9zM8.3 5.6a2.6 2.6 0 1 0 0 5.2 2.6 2.6 0 0 0 0-5.2z"/></svg></button>
     </div>
   </div>
   <div class="menu-main">
-    <div class="eyebrow"><span class="label">SHADOW RAID</span><p>새벽까지 10분, 버텨라</p></div>
-    <h1 class="logo"><span class="a">그림자</span><span class="b">습격</span></h1>
-    <div class="hero-spot" id="heroSpot" aria-hidden="true"></div>
+    <div class="menu-hero">
+      <div class="eyebrow"><span class="label">SHADOW RAID</span><p>새벽까지 10분, 버텨라</p></div>
+      <h1 class="logo"><span class="a">그림자</span><span class="b">습격</span></h1>
+      <div class="hero-spot" id="heroSpot" aria-hidden="true"></div>
+    </div>
+    <div class="menu-panel">
     <div class="stage hx" id="stageCard">
       <button class="arrow hx" id="stPrev" aria-label="이전 스테이지">‹</button>
       <div class="thumb hx"><canvas id="stThumb" width="156" height="156" aria-hidden="true"></canvas></div>
@@ -542,14 +702,17 @@ em.rar,em.muted{font-style:normal}
     <button class="loadout hx" id="loadout">
       <span class="lo-icon" id="loRing"><img id="loIcon" alt=""></span>
       <span class="lo-info"><span class="label">MAIN WEAPON · 주무기</span><b id="loName">연발총</b><span class="lo-sub" id="loSub"></span></span>
-      <span class="lo-go">무기고<i aria-hidden="true">›</i><span class="badge-dot" id="armBadge" hidden>!</span></span>
+      <span class="lo-go">바꾸기<i aria-hidden="true">›</i></span>
     </button>
     <div class="start-wrap"><button class="start" id="startBtn"><b>출격!</b><small>DEPLOY</small></button></div>
-    <div class="row2">
-      <button class="btn hx" id="shopBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#4fe3ff" d="M8 1.5l5.5 5.2H10V14H6V6.7H2.5z"/></svg>강화 <span class="badge-dot" id="shopBadge" hidden>!</span></button>
-      <button class="btn hx" id="codexBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" d="M2 3.2c2-.9 4-.9 6 .4v10c-2-1.3-4-1.3-6-.4zM14 3.2c-2-.9-4-.9-6 .4v10c2-1.3 4-1.3 6-.4z"/></svg>도감</button>
-    </div>
+    <nav class="dock" aria-label="메뉴">
+      <button class="dock-btn hx" id="armBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" stroke-linejoin="round" d="M2.5 6.5L8 3l5.5 3.5V13h-11z"/><path fill="#ffcf4d" d="M5.5 8.5h5v1.6h-5zM6.5 10.8h3V12h-3z"/></svg><span>무기고</span><b class="badge-dot" id="armBadge" hidden>!</b></button>
+      <button class="dock-btn hx" id="shopBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="#4fe3ff" d="M8 1.5l5.5 5.2H10V14H6V6.7H2.5z"/></svg><span>강화</span><b class="badge-dot" id="shopBadge" hidden>!</b></button>
+      <button class="dock-btn hx" id="codexBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><path fill="none" stroke="#4fe3ff" stroke-width="1.5" d="M2 3.2c2-.9 4-.9 6 .4v10c-2-1.3-4-1.3-6-.4zM14 3.2c-2-.9-4-.9-6 .4v10c2-1.3 4-1.3 6-.4z"/></svg><span>도감</span></button>
+      <button class="dock-btn hx" id="helpBtn"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#4fe3ff" stroke-width="1.5"/><path d="M6.2 6.2a1.9 1.9 0 1 1 2.6 1.8c-.5.2-.8.6-.8 1.1v.4" fill="none" stroke="#e6f8ff" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="11.6" r=".9" fill="#e6f8ff"/></svg><span>하는 법</span></button>
+    </nav>
     <p class="foot-note" id="footNote">WASD·방향키로 움직이고 Esc로 멈춰요</p>
+    </div>
   </div>
 </section>
 
@@ -598,11 +761,12 @@ em.rar,em.muted{font-style:normal}
 
 <!-- 보물 상자 -->
 <div class="modal" id="chestModal" hidden>
-  <div class="panel narrow hx gold" role="dialog" aria-modal="true" aria-labelledby="chestTitle">
-    <div class="p-head"><span class="label gold">SUPPLY DROP</span><h2 class="title" id="chestTitle" style="color:var(--gold)">보물 상자!</h2></div>
+  <div class="panel hx gold chest-panel" id="chestPanel" role="dialog" aria-modal="true" aria-labelledby="chestTitle" tabindex="-1">
+    <div class="p-head"><span class="label gold" id="chestLabel">SUPPLY DROP</span><h2 class="title" id="chestTitle" style="color:var(--gold)">보물 상자!</h2></div>
+    <div class="ccards" id="rewards"></div>
     <div class="chest-stage" id="chestStage"><div class="chest-rays"></div><img class="chest-img" id="chestImg" alt=""></div>
-    <div class="rewards" id="rewards"></div>
-    <div class="actions" style="grid-template-columns:1fr"><button class="btn gold hx" id="chestOk" hidden>받기</button></div>
+    <p class="chest-hint" id="chestHint" aria-live="polite"></p>
+    <div class="actions chest-acts"><button class="btn gold hx" id="chestOk" hidden>받기</button></div>
   </div>
 </div>
 
@@ -829,6 +993,9 @@ const Sfx = (() => {
     evo() { if (!ac || !save.set.sfx) return; [392, 523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, 0.3, 'sawtooth', 0.08, 0, i * 0.07)); noise(0.6, 0.15, 'highpass', 5000, 0.4); },
     chest() { if (!ac || !save.set.sfx) return; [784, 988, 1175, 1568].forEach((f, i) => tone(f, 0.25, 'triangle', 0.16, 0, 0.5 + i * 0.08)); },
     rattle() { if (ac && save.set.sfx) for (let i = 0; i < 6; i++) noise(0.05, 0.12, 'bandpass', 1200 + i * 100, i * 0.08); },
+    chestOpen() { if (!ac || !save.set.sfx) return; noise(0.3, 0.14, 'highpass', 2600, 0); [523, 784, 1047].forEach((f, i) => tone(f, 0.24, 'triangle', 0.14, 0, i * 0.05)); },
+    cardOut() { if (ac && save.set.sfx) noise(0.12, 0.06, 'bandpass', 3000, 0); },
+    flip(k) { if (!ac || !save.set.sfx) return; const f = [620, 740, 880, 1047][k] || 620; tone(f, 0.12, 'triangle', 0.12); tone(f * 1.5, 0.2, 'triangle', 0.1, 0, 0.06); if (k >= 2) tone(f * 2, 0.32, 'sine', 0.08, 0, 0.13); if (k >= 3) noise(0.5, 0.1, 'highpass', 6000, 0.1); },
     warn() { if (!ac || !save.set.sfx) return; for (let i = 0; i < 3; i++) { tone(660, 0.28, 'sawtooth', 0.12, 0, i * 0.6); tone(440, 0.28, 'sawtooth', 0.12, 0, i * 0.6 + 0.3); } },
     dash() { if (can('dash', 0.2)) noise(0.25, 0.18, 'bandpass', 500, 0, sfxG, 1.5); },
     eshot() { if (can('eshot', 0.12)) tone(300, 0.12, 'triangle', 0.08, 0.6); },
@@ -846,9 +1013,9 @@ const WEAPONS = {
   blaster: {
     name: '연발총', evoName: '섬멸 개틀링', pair: 'scope', color: '#ffd35a',
     lv: ['가장 가까운 적에게 총알을 쏴요.', '한 번에 1발 더 쏴요.', '총알 피해가 40% 늘어요.', '1발 더 쏘고, 총알이 적 1명을 더 꿰뚫어요.', '1발 더 쏘고 피해 +35%, 조금 더 빨리 쏴요.'],
-    evoInfo: '총알을 쉬지 않고 쏟아붓고, 한 발이 적 4명까지 꿰뚫어요.',
+    evoInfo: '총알을 쉬지 않고 쏟아붓고, 한 발이 적 3명까지 꿰뚫어요.',
     stat(lv, evo) {
-      return evo ? { cd: .11, n: 1, dmg: 24, pierce: 3, spd: 780, r: 6, spread: .09 }
+      return evo ? { cd: .12, n: 1, dmg: 19, pierce: 2, spd: 780, r: 6, spread: .09 }
         : { cd: lv >= 5 ? .72 : .9, n: [1, 2, 2, 3, 4][lv - 1], dmg: [12, 12, 17, 17, 23][lv - 1], pierce: lv >= 4 ? 1 : 0, spd: 560, r: 5, spread: 0 };
     },
   },
@@ -920,8 +1087,8 @@ const WEAPONS = {
     lv: ['앞쪽 부채꼴로 불을 뿜어 적을 태워요.', '불길이 더 멀리 닿아요.', '불길 피해 +40%.', '더 오래, 더 넓게 뿜어요.', '피해 +30%, 화상이 더 뜨거워요.'],
     evoInfo: '쉬지 않고 넓게 불을 뿜고, 불길이 닿은 자리에 불바다를 남겨요.',
     stat(lv, evo) {
-      return evo ? { perm: true, dmg: 18, range: 260, ang: .64, tick: .15, burn: 6, pool: true, cd: 0, dur: 0 }
-        : { perm: false, dmg: [9, 9, 12.5, 12.5, 16][lv - 1], range: lv >= 2 ? 190 : 165, ang: lv >= 4 ? .48 : .4, tick: .15, burn: lv >= 5 ? 4 : 3, pool: false, cd: 1.4, dur: lv >= 4 ? 1.7 : 1.25 };
+      return evo ? { perm: true, dmg: 24, range: 260, ang: .64, tick: .15, burn: 6, pool: true, cd: 0, dur: 0 }
+        : { perm: false, dmg: [10, 10, 14, 14, 17.5][lv - 1], range: lv >= 2 ? 190 : 165, ang: lv >= 4 ? .48 : .4, tick: .15, burn: lv >= 5 ? 4 : 3, pool: false, cd: 1.4, dur: lv >= 4 ? 1.7 : 1.25 };
     },
   },
   frost: {
@@ -938,7 +1105,7 @@ const WEAPONS = {
     lv: ['작은 블랙홀을 던져 적을 빨아들이며 갈아 버려요.', '빨아들이는 범위가 넓어져요.', '피해 +40%.', '블랙홀이 더 오래 버텨요.', '블랙홀을 2개 던져요.'],
     evoInfo: '거대한 블랙홀이 모든 걸 빨아들이고, 사라질 때 크게 폭발해요.',
     stat(lv, evo) {
-      return evo ? { cd: 3.0, n: 1, pull: 220, core: 92, dmg: 20, dur: 3.2, boom: 170, boomR: 170, size: 1.5 }
+      return evo ? { cd: 3.0, n: 1, pull: 220, core: 92, dmg: 23, dur: 3.2, boom: 220, boomR: 170, size: 1.5 }
         : { cd: 3.0, n: lv >= 5 ? 2 : 1, pull: lv >= 2 ? 170 : 145, core: 70, dmg: [12, 12, 17, 17, 17][lv - 1], dur: lv >= 4 ? 3.2 : 2.6, boom: 0, boomR: 0, size: 1 };
     },
   },
@@ -974,7 +1141,7 @@ const WEAPONS = {
     lv: ['가까운 적 쪽을 초승달 모양으로 길게 베어요.', '피해 +40%.', '반대쪽도 함께 베어요.', '베는 범위가 넓어져요.', '피해 +35%, 더 빨리 베어요.'],
     evoInfo: '앞뒤로 커다란 쌍월 참격을 날리고, 벤 적의 기운으로 체력을 회복해요.',
     stat(lv, evo) {
-      return evo ? { cd: .8, dmg: 72, len: 265, wid: 78, both: true, heal: .5 }
+      return evo ? { cd: .8, dmg: 95, len: 265, wid: 78, both: true, heal: .5 }
         : { cd: lv >= 5 ? .9 : 1.1, dmg: [26, 36, 36, 36, 48][lv - 1], len: lv >= 4 ? 210 : 180, wid: lv >= 4 ? 60 : 48, both: lv >= 3, heal: 0 };
     },
   },
@@ -983,7 +1150,7 @@ const WEAPONS = {
     lv: ['가까운 적에게 산탄을 흩뿌리고 세게 밀쳐 내요.', '산탄이 2발 늘어요.', '산탄 피해 +40%.', '산탄이 적 1명을 더 꿰뚫어요.', '산탄 2발 추가, 더 자주 쏴요.'],
     evoInfo: '산탄 12발이 맞은 뒤 튕겨 다른 적까지 맞혀요. 밀쳐 내는 힘이 아주 세요.',
     stat(lv, evo) {
-      return evo ? { cd: .9, n: 12, dmg: 20, spread: .62, spd: 740, range: 320, pierce: 1, bounce: 1, kb: 260 }
+      return evo ? { cd: .9, n: 12, dmg: 25, spread: .62, spd: 740, range: 320, pierce: 1, bounce: 1, kb: 260 }
         : { cd: lv >= 5 ? 1.0 : 1.25, n: [5, 7, 7, 7, 9][lv - 1], dmg: [13, 13, 18, 18, 18][lv - 1], spread: .5, spd: 680, range: 275, pierce: lv >= 4 ? 1 : 0, bounce: 0, kb: 190 };
     },
   },
@@ -999,7 +1166,7 @@ const SKILLS = ['blades', 'lightning', 'grenade', 'boomerang', 'aura', 'drone', 
 const RARITY = {
   base: { name: '기본', en: 'STANDARD', col: '#9fb4d8' },
   rare: { name: '희귀', en: 'RARE', col: '#4fb8ff' },
-  epic: { name: '영웅', en: 'EPIC', col: '#c27bff' },
+  epic: { name: '에픽', en: 'EPIC', col: '#c27bff' },
   legend: { name: '전설', en: 'LEGENDARY', col: '#ffb43d' },
 };
 // w: 뽑힐 비율. 같은 무기가 또 나오면 별(★)이 올라 그 무기의 피해가 10%씩 늘어요.
@@ -1035,6 +1202,17 @@ const PASSIVES = {
 };
 const P_IDS = Object.keys(PASSIVES);
 const MAX_LV = 5, MAX_SLOTS = 6;
+
+/* ---------- 보물 상자 카드 등급 ----------
+   정예 상자는 카드 1장, 중간 보스 상자는 3장. 카드마다 등급이 있고 등급에 따라 오르는 레벨이 달라요.
+   전설은 최대 레벨까지 올리고, 짝 장비가 있으면 그 자리에서 진화해요. */
+const GRADES = [
+  { id: 'common', name: '일반', en: 'COMMON', col: '#c3cde6', up: 1 },
+  { id: 'rare', name: '희귀', en: 'RARE', col: '#4fb8ff', up: 2 },
+  { id: 'epic', name: '에픽', en: 'EPIC', col: '#c27bff', up: 3 },
+  { id: 'legend', name: '전설', en: 'LEGENDARY', col: '#ffb43d', up: MAX_LV },
+];
+const GRADE_ODDS = { small: [58, 28, 11, 3], big: [38, 38, 18, 6] }; // 일반·희귀·에픽·전설 (%)
 const pmax = id => PASSIVES[id].max || MAX_LV;
 
 /* ---------- 영구 강화 ---------- */
@@ -3080,20 +3258,64 @@ function drawChoices(n = 3) {
   if (!out.length) out.push({ type: 'heal' }, { type: 'coin' });
   return out;
 }
-function chestPick() {
-  const pool = buildPool(), evo = pool.find(c => c.type === 'evo');
-  if (evo) return evo;
-  const owned = pool.filter(c => !c.isNew);
-  if (owned.length) return weightedTake(owned);
-  if (pool.length) return weightedTake(pool);
-  return null;
+/* ---------- 보물 상자: 등급 카드 ---------- */
+function rollGrade(big) {
+  const w = GRADE_ODDS[big ? 'big' : 'small']; let r = Math.random() * w.reduce((a, b) => a + b, 0);
+  for (let i = 0; i < w.length; i++) { r -= w[i]; if (r < 0) return i; }
+  return w.length - 1;
+}
+const roomOf = c => c.type === 'w' ? MAX_LV - ((hasW(c.id) || {}).lv || 0) : pmax(c.id) - (run.pass[c.id] || 0);
+const pipRow = (from, to, max) => Array.from({ length: max }, (_, i) => `<i class="${i < from ? 'on' : i < to ? 'nx' : ''}"></i>`).join('');
+// 카드 n장을 뽑아 바로 적용하고, 화면에 보여 줄 정보를 돌려줘요
+function chestRewards(n, big) {
+  const gs = Array.from({ length: n }, () => rollGrade(big));
+  if (big && Math.max(...gs) < 2) gs[randi(0, n - 1)] = 2; // 중간 보스 상자는 에픽 이상 한 장 보장
+  gs.sort((a, b) => b - a); // 좋은 등급부터 가장 알맞은 대상을 골라요
+  const out = [], used = new Set();
+  while (gs.length) {
+    const pool = buildPool(), evo = pool.find(c => c.type === 'evo');
+    if (evo) { // 진화할 수 있는 무기가 있으면 그게 먼저예요 (전설 카드). 굴린 등급 중 가장 낮은 것을 대신 써서 좋은 카드는 남겨요
+      gs.pop(); used.add(evo.id);
+      const w = hasW(evo.id), def = WEAPONS[evo.id]; w.evo = true; w.st = {}; w.t = .2;
+      out.push({ g: 3, kind: 'evo', icon: iconURL(evo.id, true), name: def.evoName, lvTxt: '진화!', pips: '', desc: def.evoInfo, evo: true });
+      continue;
+    }
+    const gi = gs.shift(), G = GRADES[gi], all0 = pool.filter(c => c.type === 'w' || c.type === 'p');
+    const fresh = all0.filter(c => !used.has(c.id)), all = fresh.length ? fresh : all0; // 한 상자에서 같은 것이 두 번 나오지 않게
+    const owned = all.filter(c => !c.isNew), base = owned.length ? owned : all;
+    // 높은 등급은 레벨을 그만큼 올릴 수 있는 대상을 우선해요 (전설은 바로 진화할 수 있는 무기를 더 좋아해요)
+    const need = Math.min(G.up, Math.max(0, ...base.map(roomOf))), fit = base.filter(c => roomOf(c) >= need);
+    const cand = (fit.length ? fit : base).map(c => ({ ...c, wt: c.wt * (gi === 3 && c.type === 'w' && run.pass[WEAPONS[c.id].pair] ? 2 : 1) }));
+    if (!cand.length) { // 더 키울 게 없으면 등급만큼 코인
+      const v = Math.round(30 * (gi + 1) * run.st.gold * run.stats.gold); run.coins += v;
+      out.push({ g: gi, kind: 'coin', icon: iconURL('coin'), name: '코인 주머니', lvTxt: `+${v}`, pips: '', desc: `코인 ${v}개를 받아요.` });
+      continue;
+    }
+    const c = weightedTake(cand); used.add(c.id);
+    if (c.type === 'w') {
+      const def = WEAPONS[c.id], from = (hasW(c.id) || {}).lv || 0; if (!from) addWeapon(c.id);
+      const w = hasW(c.id), to = Math.min(MAX_LV, from + G.up); w.lv = to;
+      let evoNow = false;
+      if (gi === 3 && to >= MAX_LV && run.pass[def.pair] && !w.evo) { w.evo = true; w.st = {}; w.t = .2; evoNow = true; }
+      out.push({ g: gi, kind: 'w', id: c.id, main: !!w.main, icon: iconURL(c.id, evoNow), name: evoNow ? def.evoName : def.name, isNew: !from, from, to, evo: evoNow,
+        lvTxt: evoNow ? (from ? `Lv ${from} → 진화!` : 'NEW · 진화!') : from ? `Lv ${from} → ${to}` : `NEW · Lv ${to}`, pips: pipRow(from, to, MAX_LV),
+        desc: evoNow ? def.evoInfo : from ? def.lv.slice(from, to).join(' ') : def.lv[0] }); // 건너뛴 레벨의 효과도 모두 적어요
+    } else {
+      const def = PASSIVES[c.id], from = run.pass[c.id] || 0, to = Math.min(pmax(c.id), from + G.up);
+      if (!from) run.passOrder.push(c.id); run.pass[c.id] = to; recalc();
+      out.push({ g: gi, kind: 'p', id: c.id, icon: iconURL(c.id), name: def.name, isNew: !from, from, to,
+        lvTxt: from ? `Lv ${from} → ${to}` : `NEW · Lv ${to}`, pips: pipRow(from, to, pmax(c.id)), desc: from ? `${def.val(from)} → ${def.val(to)}` : def.val(to) });
+    }
+  }
+  run.buildVer++;
+  return out;
 }
 function applyChoice(c) {
   if (c.type === 'w') { const w = hasW(c.id); if (w) w.lv++; else addWeapon(c.id); }
   else if (c.type === 'p') { if (!run.pass[c.id]) { run.pass[c.id] = 1; run.passOrder.push(c.id); } else run.pass[c.id]++; recalc(); }
   else if (c.type === 'evo') { const w = hasW(c.id); w.evo = true; w.st = {}; w.t = .2; Sfx.evo(); banner(WEAPONS[c.id].evoName, `${josa(WEAPONS[c.id].name, '이', '가')} 진화했어요!`, 'gold', 'EVOLUTION'); }
   else if (c.type === 'heal') heal(player.maxHp * .4);
-  else if (c.type === 'coin') run.coins += Math.round(30 * run.st.gold);
+  else if (c.type === 'coin') run.coins += Math.round(30 * run.st.gold * run.stats.gold);
   run.buildVer++;
 }
 function cardInfo(c) {
@@ -3108,7 +3330,7 @@ function cardInfo(c) {
   }
   if (c.type === 'evo') { const def = WEAPONS[c.id]; return { icon: iconURL(c.id, true), name: def.evoName, tag: '진화', tagCls: 'e', desc: def.evoInfo, evo: true, hint: `${def.name} + ${PASSIVES[def.pair].name}` }; }
   if (c.type === 'heal') return { icon: iconURL('medkit'), name: '구급상자', tag: '회복', tagCls: 'x', desc: '체력을 40% 회복해요.' };
-  return { icon: iconURL('coin'), name: '코인 주머니', tag: '코인', tagCls: 'x', desc: `코인 ${Math.round(30 * run.st.gold)}개를 받아요.` };
+  return { icon: iconURL('coin'), name: '코인 주머니', tag: '코인', tagCls: 'x', desc: `코인 ${Math.round(30 * run.st.gold * run.stats.gold)}개를 받아요.` };
 }
 
 
@@ -3874,10 +4096,13 @@ function drawBars() {
   ctx.fillStyle = lin(ctx, 0, y, 0, y + 5, [[0, c[0]], [1, c[1]]]); rr(ctx, x, y, bw * hp, 5, 2.5); ctx.fill();
 }
 const critters = [];
-const menuScale = () => ZOOM < .9 ? 1.55 : 1.2;
+const menuScale = () => menuHero.k || 1.2;
 function menuScene(dt, hw, hh) {
   const r = el.heroSpot && !el.menu.hidden ? el.heroSpot.getBoundingClientRect() : null;
-  if (r && r.height > 0) { menuHero.x = cam.x + (r.left + r.width / 2 - W / 2) / ZOOM; menuHero.y = cam.y + (r.top + r.height * .62 - H / 2) / ZOOM; }
+  if (r && r.height > 0) {
+    menuHero.k = clamp(r.height * 1.15 / ZOOM / 46, .8, 1.55); // 주인공 크기를 비워 둔 자리 높이에 맞춰요
+    menuHero.x = cam.x + (r.left + r.width / 2 - W / 2) / ZOOM; menuHero.y = cam.y + (r.top + r.height * .62 - H / 2) / ZOOM;
+  }
   else { menuHero.x = cam.x; menuHero.y = cam.y + 40; }
   menuHero.t += dt; menuHero.walk += dt * 6.5; menuHero.blinkT -= dt; if (menuHero.blink > 0) menuHero.blink -= dt; if (menuHero.blinkT <= 0) { menuHero.blink = .12; menuHero.blinkT = rand(2, 4.5); }
   menuHero.aimA = .38 + Math.sin(T * .7) * .15; menuHero.sy = menuHero.y + 12;
@@ -3972,8 +4197,8 @@ const el = {};
   'mCoins', 'sCoins', 'stageCard', 'stNo', 'stName', 'stDesc', 'stBest', 'stPrev', 'stNext', 'startBtn', 'shopBtn', 'shopBadge', 'codexBtn', 'helpBtn', 'setBtn', 'shopBack', 'ups',
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
   'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose',
-  'loadout', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
-  'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
+  'loadout', 'armBtn', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
+  'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
 
@@ -4197,23 +4422,71 @@ function pickChoice(i) {
 el.cards.addEventListener('click', e => { const b = e.target.closest('.card'); if (b) pickChoice(+b.dataset.i); });
 el.rerollBtn.addEventListener('click', () => { if (state !== 'levelup' || run.rerolls <= 0) return; run.rerolls--; choices = drawChoices(3); renderCards(); Sfx.select(); });
 
-/* 보물 상자 */
-let chestTimer = 0;
+/* 보물 상자: 상자가 열리면 카드가 튀어나와 한 장씩 뒤집혀요. 카드 등급마다 오르는 레벨이 달라요 */
+let chestTimers = [], chestCards = [], chestSeq = 0, chestOpened = false;
+const gradeVars = gi => `--gc:${GRADES[gi].col};--gca:${rgba(GRADES[gi].col, .42)}`;
+function chestCardHTML(f, i) {
+  const G = GRADES[f.g];
+  return `<button class="ccard g${f.g}${f.evo ? ' evo' : ''}" data-i="${i}" style="${gradeVars(f.g)}" aria-label="${i + 1}번째 카드 뒤집기">
+    <span class="cc-back" aria-hidden="true"><i class="cc-emb"></i></span>
+    <span class="cc-front"><span class="cc-grade">${G.name}<em> · ${G.en}</em></span>
+      <span class="cc-medal"><img src="${f.icon}" alt=""></span>
+      <b class="cc-name">${f.name}</b><span class="cc-lv">${f.lvTxt}${f.kind === 'w' || f.kind === 'p' ? `<em>+${f.to - f.from}</em>` : ''}</span>
+      ${f.pips ? `<span class="cc-pips">${f.pips}</span>` : ''}<span class="cc-desc">${f.desc}</span></span></button>`;
+}
 function openChest(n) {
   state = 'chest'; joyReset();
-  const got = [];
-  for (let i = 0; i < n; i++) { const c = chestPick(); if (!c) break; got.push(cardInfo(c)); applyChoice(c); }
-  if (!got.length) { const c = { type: 'coin' }; got.push(cardInfo(c)); applyChoice(c); }
-  el.rewards.innerHTML = ''; el.chestOk.hidden = true; el.chestStage.className = 'chest-stage shake'; el.chestImg.src = chestArt.closed;
-  el.chestModal.hidden = false; Sfx.rattle();
-  clearTimeout(chestTimer);
-  chestTimer = setTimeout(() => {
-    el.chestStage.className = 'chest-stage open'; el.chestImg.src = chestArt.open; Sfx.chest();
-    el.rewards.innerHTML = got.map(f => `<div class="reward hx${f.evo ? ' evo' : ''}"><img src="${f.icon}" alt=""><div><b>${f.name}</b> <span class="tag">${f.tag}</span><p>${f.desc}</p></div></div>`).join('');
-    el.chestOk.hidden = false;
-  }, 950);
+  const seq = ++chestSeq; chestTimers.forEach(clearTimeout); chestTimers = []; chestOpened = false;
+  const big = n >= 3;
+  chestCards = chestRewards(n, big).sort((a, b) => a.g - b.g); // 좋은 카드가 마지막(오른쪽)에 뒤집혀요 (같은 대상은 두 번 나오지 않아요)
+  const best = Math.max(...chestCards.map(f => f.g));
+  el.chestPanel.className = 'panel hx gold chest-panel' + (chestCards.length > 1 ? ' multi' : '');
+  el.chestLabel.textContent = big ? 'BOSS SUPPLY DROP' : 'SUPPLY DROP'; el.chestTitle.textContent = big ? '보스 보물 상자!' : '보물 상자!';
+  el.chestStage.className = 'chest-stage shake'; el.chestStage.style.cssText = gradeVars(best); el.chestImg.src = chestArt.closed;
+  el.rewards.className = 'ccards prep n' + chestCards.length; el.rewards.innerHTML = chestCards.map(chestCardHTML).join('');
+  el.chestHint.textContent = ''; el.chestOk.hidden = true;
+  el.chestModal.hidden = false; el.chestModal.scrollTop = 0; el.chestPanel.focus({ preventScroll: true }); Sfx.rattle();
+  const T = (ms, fn) => chestTimers.push(setTimeout(() => { if (seq === chestSeq && state === 'chest') fn(); }, ms));
+  T(560, () => { el.chestStage.classList.add('tease'); Sfx.rattle(); }); // 상자 틈으로 가장 좋은 카드 등급의 빛이 새어 나와요
+  T(1050, openChestLid);
+  chestCards.forEach((f, i) => T(1850 + i * 450, () => flipCard(i)));
+  T(1850 + chestCards.length * 450 + 200, chestDone);
 }
-el.chestOk.addEventListener('click', () => { if (state !== 'chest') return; el.chestModal.hidden = true; resumePlay(true); });
+function openChestLid() {
+  if (chestOpened) return; chestOpened = true;
+  el.chestStage.className = 'chest-stage open'; el.chestImg.src = chestArt.open; Sfx.chestOpen();
+  // 카드가 상자 안에서 튀어나와 제자리로 날아가요
+  const cr = el.chestImg.getBoundingClientRect(), cx = cr.left + cr.width / 2, cy = cr.top + cr.height * .4;
+  [...el.rewards.children].forEach((c, i) => {
+    const r = c.getBoundingClientRect();
+    c.style.setProperty('--fx', `${Math.round(cx - (r.left + r.width / 2))}px`); c.style.setProperty('--fy', `${Math.round(cy - (r.top + r.height / 2))}px`);
+    c.style.setProperty('--rot', `${(i - (chestCards.length - 1) / 2) * 14}deg`); c.style.transitionDelay = `${i * .12}s`;
+  });
+  void el.rewards.offsetWidth; el.rewards.classList.remove('prep'); el.rewards.classList.add('out'); Sfx.cardOut();
+  el.chestHint.textContent = '카드를 누르면 바로 뒤집혀요';
+}
+function flipCard(i, quiet) {
+  const c = el.rewards.children[i], f = chestCards[i]; if (!c || c.classList.contains('flip')) return;
+  c.classList.add('flip');
+  if (!quiet) { Sfx.flip(f.g); if (f.evo) Sfx.evo(); }
+  if (f.g >= 2) c.classList.add('shine');
+}
+function chestDone() {
+  openChestLid(); chestTimers.forEach(clearTimeout); chestTimers = [];
+  chestCards.forEach((_, i) => flipCard(i, true));
+  const best = Math.max(...chestCards.map(f => f.g));
+  el.chestHint.textContent = best >= 3 ? '전설 카드가 나왔어요!' : best >= 2 ? '에픽 카드가 나왔어요!' : '';
+  el.chestOk.hidden = false; el.chestOk.focus({ preventScroll: true }); el.chestOk.scrollIntoView({ block: 'nearest' });
+}
+function closeChest() { if (state !== 'chest') return; chestTimers.forEach(clearTimeout); chestTimers = []; chestSeq++; el.chestModal.hidden = true; resumePlay(true); }
+el.chestOk.addEventListener('click', closeChest);
+el.rewards.addEventListener('click', e => {
+  const b = e.target.closest('.ccard'); if (!b || state !== 'chest') return;
+  if (!chestOpened) { chestDone(); return; }
+  flipCard(+b.dataset.i);
+  if ([...el.rewards.children].every(c => c.classList.contains('flip')) && el.chestOk.hidden) chestDone();
+});
+el.chestStage.addEventListener('click', () => { if (state !== 'chest') return; if (el.chestOk.hidden) chestDone(); else closeChest(); });
 
 /* 일시정지 */
 let quitArm = false;
@@ -4274,6 +4547,7 @@ el.stNext.addEventListener('click', () => { save.stage = Math.min(STAGES.length 
 el.shopBtn.addEventListener('click', () => { el.menu.hidden = true; el.shop.hidden = false; renderShop(); });
 el.shopBack.addEventListener('click', () => { el.shop.hidden = true; el.menu.hidden = false; renderMenu(); });
 el.loadout.addEventListener('click', () => { Sfx.init(); showArmory(); });
+el.armBtn.addEventListener('click', () => { Sfx.init(); showArmory(); });
 el.armBack.addEventListener('click', () => { el.armory.hidden = true; el.menu.hidden = false; renderMenu(); });
 el.armGrid.addEventListener('click', e => { const b = e.target.closest('.arm'); if (!b) return; armSel = b.dataset.id; Sfx.init(); Sfx.select(); renderArmory(); });
 el.armShow.addEventListener('click', e => { const b = e.target.closest('[data-equip]'); if (b) equipArm(b.dataset.equip); });
@@ -4320,9 +4594,9 @@ function openHelp(kind) {
         <div><img src="${iconURL('medkit')}" alt=""><span>구급상자. 체력 30% 회복</span></div>
         <div><img src="${iconURL('magnet')}" alt=""><span>자석. 흩어진 보석을 모두 끌어와요</span></div>
         <div><img src="${iconURL('bomb')}" alt=""><span>폭탄. 화면 안의 적을 날려 버려요</span></div>
-        <div><img src="${iconURL('chest')}" alt=""><span>보물 상자. 무기·스킬·장비를 키우거나 진화시켜요</span></div>
+        <div><img src="${iconURL('chest')}" alt=""><span>보물 상자. 정예는 카드 1장, 중간 보스는 3장이 나와요</span></div>
         <div><img src="${iconURL('coin')}" alt=""><span>코인. 강화와 무기 뽑기에 써요</span></div></div>
-        <ul><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li><li>멀리서 침을 뱉는 <b>침쟁이</b>는 스테이지마다 정해진 수만 나와요(3 · 5 · 7마리).</li></ul></div>`;
+        <ul><li>보물 상자를 열면 카드가 튀어나와 뒤집혀요. 등급마다 레벨이 다르게 올라요: <b style="color:#c3cde6">일반</b> +1 · <b style="color:#4fb8ff">희귀</b> +2 · <b style="color:#c27bff">에픽</b> +3 · <b style="color:#ffb43d">전설</b> 최대 레벨(짝 장비가 있으면 바로 진화).</li><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li><li>멀리서 침을 뱉는 <b>침쟁이</b>는 스테이지마다 정해진 수만 나와요(3 · 5 · 7마리).</li></ul></div>`;
   }
   el.helpModal.hidden = false; el.helpModal.scrollTop = 0;
 }
@@ -4366,7 +4640,7 @@ addEventListener('keydown', e => {
     if (n !== undefined) pickChoice(n);
     if (e.code === 'KeyR' && !el.rerollBtn.hidden && !el.rerollBtn.disabled) el.rerollBtn.click();
   }
-  if (state === 'chest' && (e.code === 'Enter' || e.code === 'Space') && !el.chestOk.hidden) { e.preventDefault(); el.chestOk.click(); }
+  if (state === 'chest' && (e.code === 'Enter' || e.code === 'Space')) { e.preventDefault(); if (!el.chestOk.hidden) closeChest(); else chestDone(); }
   if (state === 'menu' && e.code === 'Enter' && !el.menu.hidden && el.setModal.hidden && el.helpModal.hidden && document.activeElement === document.body) el.startBtn.click();
 });
 addEventListener('keyup', e => keys.delete(e.code));
