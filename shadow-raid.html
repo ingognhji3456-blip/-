@@ -508,6 +508,29 @@ em.rar,em.muted{font-style:normal}
 .draw-acts{margin-top:14px}
 .draw-acts .wide{grid-column:1/3}
 .draw-panel:focus{outline:none}
+/* 캡슐 두드리기: 세 번 두드리는 동안 색이 오르면 다시 세 번 */
+.pod-stage.tapping{cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation}
+.pod-stage.tapping .pod-img{animation:podIdle 1.4s ease-in-out infinite; filter:drop-shadow(0 0 calc(6px + var(--lv, 0) * 7px) var(--rc)) drop-shadow(0 12px 18px rgba(0,0,0,.6))}
+.pod-stage.tapping .pod-rays{opacity:calc(var(--lv, 0) * .22); transform:scale(calc(.4 + var(--lv, 0) * .12)); transition:opacity .4s, transform .4s}
+.pod-stage.tapping.tap .pod-img{animation:podTap .24s cubic-bezier(.3,1.6,.5,1)}
+.pod-stage.tapping.lvup .pod-flash{animation:podFlash .6s ease-out}
+.pod-stage.tapping.lvup .pod-img{animation:podUp .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes podIdle{0%,100%{transform:none} 50%{transform:translateY(-5px)}}
+@keyframes podTap{0%{transform:scale(1.12,.86) translateY(8px)} 60%{transform:scale(.95,1.06) translateY(-6px)} 100%{transform:none}}
+@keyframes podUp{0%{transform:scale(.8)} 55%{transform:scale(1.18) translateY(-10px)} 100%{transform:none}}
+.pod-plus{position:absolute; left:50%; top:30%; z-index:4; transform:translateX(-50%); font-family:var(--f-display); font-size:30px; color:#fff; text-shadow:0 0 12px var(--rc),0 2px 0 rgba(0,0,0,.6); opacity:0; pointer-events:none}
+.pod-stage.lvup .pod-plus{animation:plusUp .9s ease-out}
+@keyframes plusUp{0%{opacity:0; transform:translate(-50%,10px) scale(.6)} 25%{opacity:1; transform:translate(-50%,-6px) scale(1.15)} 100%{opacity:0; transform:translate(-50%,-40px) scale(1)}}
+.pod-taps{display:flex; align-items:center; justify-content:center; gap:10px; margin-top:-8px}
+.pod-taps i{width:15px; height:15px; border-radius:50%; border:2px solid var(--rc); opacity:.3; transform:rotate(45deg); border-radius:3px; transition:opacity .2s, transform .2s, background .2s}
+.pod-taps i.on{background:var(--rc); opacity:1; box-shadow:0 0 10px var(--rc)}
+.pod-taps i.fill{animation:pipFill .4s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes pipFill{from{transform:rotate(45deg) scale(.2)} to{transform:rotate(45deg) scale(1)}}
+.pod-taps .t-hint{font-size:var(--t-xs); color:var(--muted); margin-left:6px}
+.draw-res .tap-hint{font-size:var(--t-sm); color:var(--text)}
+.draw-res .tap-hint b{color:var(--rc)}
+.draw-res .tap-fast{margin-top:6px; padding:6px 14px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.06); color:var(--muted); font-size:var(--t-xs); cursor:pointer}
+.draw-res .tap-fast:hover{color:var(--text); border-color:var(--rc)}
 @media (max-height:520px){ .pod-stage{height:150px} .pod-img{width:96px; height:117px; margin-top:24px} .pod-item{width:78px; height:78px; margin:-82px 0 0 -39px} .draw-res{min-height:0} .draw-acts{margin-top:10px} }
 .draw-acts .coin-dot{margin-left:4px; box-shadow:0 0 0 1.5px #6a4200}
 .draw-acts.wait{visibility:hidden}
@@ -757,6 +780,7 @@ em.rar,em.muted{font-style:normal}
   .card,.reward{animation:none}
   .arm-big::after,.draw-btn::after,.pod-stage.open .pod-rays,.g-art img,.pod-stage.shake .pod-img,.pod-stage.shake2 .pod-img,.draw-res > *{animation:none}
   .pod-stage.open .pod-item{animation:none; opacity:1}
+  .pod-stage.tapping .pod-img,.pod-stage.tapping.tap .pod-img,.pod-stage.tapping.lvup .pod-img,.pod-stage.lvup .pod-plus,.pod-taps i.fill{animation:none}
   #menu.enter *,#menu.launching *,#hud.enter *,#curtain.out,.stage .nb,#stageCard.fresh::after,.badge-dot.pop,.wallet.pulse,#stageCard.in-r *,#stageCard.in-l *{animation:none}
   .dtrack i,#stageCard .stage-info,#stageCard .thumb{transition:none}
   .ccard,.ccard.flip,.ccard.flip .cc-back,.ccard.flip .cc-front,.cc-medal::before,.cc-emb,.ccard.shine .cc-front::after,.ccard.g3.flip::after,.chest-stage.tease .chest-img{animation:none; transition:none}
@@ -894,7 +918,8 @@ em.rar,em.muted{font-style:normal}
 <div class="modal" id="drawModal" hidden>
   <div class="panel narrow hx draw-panel" id="drawPanel" role="dialog" aria-modal="true" aria-labelledby="drawTitle" tabindex="-1">
     <div class="p-head"><span class="label" id="drawLabel">SUPPLY POD</span><h2 class="title" id="drawTitle">보급 캡슐</h2></div>
-    <div class="pod-stage" id="podStage"><div class="pod-rays"></div><img class="pod-img" id="podBig" alt=""><img class="pod-item" id="podItem" alt=""><div class="pod-flash"></div></div>
+    <div class="pod-stage" id="podStage" role="button" aria-label="캡슐 두드리기"><div class="pod-rays"></div><img class="pod-img" id="podBig" alt=""><img class="pod-item" id="podItem" alt=""><div class="pod-flash"></div><span class="pod-plus" id="podPlus">+3</span></div>
+    <div class="pod-taps" id="podTaps" hidden></div>
     <div class="draw-res" id="drawRes" aria-live="polite"></div>
     <div class="actions draw-acts wait" id="drawActs">
       <button class="btn primary hx" id="drawEquip">장착하기</button>
@@ -10708,7 +10733,7 @@ const el = {};
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
   'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose',
   'loadout', 'armBtn', 'goalSlot', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
-  'curtain', 'awaken', 'awIcon', 'awName', 'awInfo', 'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
+  'curtain', 'awaken', 'awIcon', 'awName', 'awInfo', 'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'podTaps', 'podPlus', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
 
@@ -10885,22 +10910,55 @@ function rollArm() {
   persist();
   return { id, isNew: !was, stars: was + 1 };
 }
-let drawTimers = [], lastDraw = null;
+let drawTimers = [], lastDraw = null, pod = null;
+/* 캡슐 두드리기: 결과는 확률표대로 먼저 정하고, 두드릴 때마다 그 등급까지 색이 한 단계씩 올라요.
+   세 번 두드리는 동안 색이 오르면 다시 세 번, 세 번 내내 그대로면 그 색으로 열려요. */
+const POD_SEQ = ['rare', 'epic', 'legend'], POD_TAPS = 3;
 function openDraw() {
   if (!el.drawModal.hidden && el.drawActs.classList.contains('wait')) return; // 캡슐이 열리는 중이면 다시 뽑지 않아요
   const res = rollArm(); if (!res) return;
   lastDraw = res; Sfx.init();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   drawTimers.forEach(clearTimeout); drawTimers = [];
-  const r = rarOf(res.id), d = WEAPONS[res.id], rk = ARM_INFO[res.id].r;
-  el.drawPanel.className = 'panel narrow hx draw-panel'; el.drawPanel.style.setProperty('--rc', '#4fe3ff'); el.drawPanel.style.setProperty('--rca', rgba('#4fe3ff', .3));
+  el.drawPanel.className = 'panel narrow hx draw-panel'; podColor('#4fe3ff', 0);
   el.drawLabel.textContent = 'SUPPLY POD'; el.drawLabel.className = 'label'; el.drawTitle.textContent = '보급 캡슐';
   el.podBig.src = podArt('#4fe3ff', false); el.podItem.src = iconURL(res.id);
-  el.podStage.className = 'pod-stage shake'; el.drawRes.innerHTML = ''; el.drawActs.classList.add('wait');
+  el.podStage.className = 'pod-stage tapping'; el.drawActs.classList.add('wait');
+  pod = { res, lvl: -1, need: POD_SEQ.indexOf(ARM_INFO[res.id].r), left: POD_TAPS, n: 0, upAt: randi(1, POD_TAPS), done: false, auto: 0 };
+  el.drawRes.innerHTML = `<p class="tap-hint">캡슐을 <b>두드려요!</b> 색이 바뀌면 세 번 더</p><button class="tap-fast" id="tapFast" type="button">빨리 열기</button>`;
+  renderPodTaps(false);
   el.drawModal.hidden = false; el.drawPanel.focus({ preventScroll: true }); Sfx.rattle();
   el.aCoins.textContent = fmtNum(save.coins); // 뒤의 무기고는 캡슐이 열린 뒤에 바꿔요(결과가 미리 보이지 않게)
-  // 흔들리다가 캡슐 빛이 등급 색으로 바뀌고, 열리며 무기가 솟아올라요
-  drawTimers.push(setTimeout(() => { setRc(el.drawPanel, res.id); el.podBig.src = podArt(r.col, false); el.podStage.className = 'pod-stage shake2'; Sfx.rattle(); }, 800));
+}
+function podColor(col, lv) { el.drawPanel.style.setProperty('--rc', col); el.drawPanel.style.setProperty('--rca', rgba(col, .3)); el.podStage.style.setProperty('--lv', lv); }
+function renderPodTaps(fill) {
+  const P = el.podTaps; if (!pod || pod.done) { P.hidden = true; return; }
+  P.hidden = false; P.innerHTML = Array.from({ length: POD_TAPS }, (_, i) => `<i class="${i < pod.left ? 'on' : ''}${fill && i < pod.left ? ' fill' : ''}" style="animation-delay:${i * .06}s"></i>`).join('') + `<span class="t-hint">${pod.left}번 남았어요</span>`;
+}
+function restartAnim(node, cls) { node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); }
+function tapPod() {
+  if (!pod || pod.done || el.drawModal.hidden) return;
+  pod.n++; pod.left--;
+  restartAnim(el.podStage, 'tap'); Sfx.rattle();
+  let up = false;
+  if (pod.lvl < pod.need && pod.n >= pod.upAt) { // 색이 한 단계 올라요 → 다시 세 번
+    up = true; pod.lvl++; pod.left = POD_TAPS; pod.n = 0; pod.upAt = randi(1, POD_TAPS);
+    const rk = POD_SEQ[pod.lvl], col = RARITY[rk].col;
+    el.podBig.src = podArt(col, false); podColor(col, pod.lvl + 1);
+    el.drawLabel.textContent = RARITY[rk].en; el.drawLabel.className = 'label' + (rk === 'legend' ? ' gold' : '');
+    el.podStage.classList.remove('tap'); restartAnim(el.podStage, 'lvup');
+    if (rk === 'legend') Sfx.evo(); else Sfx.levelup();
+  }
+  if (!up && pod.left <= 0) { pod.done = true; renderPodTaps(false); revealPod(); return; }
+  renderPodTaps(up);
+}
+// 빨리 열기: 저절로 빠르게 두드려요
+function autoTapPod() { if (!pod || pod.done || pod.auto) return; pod.auto = 1; const step = () => { if (!pod || pod.done || el.drawModal.hidden) return; tapPod(); if (!pod.done) drawTimers.push(setTimeout(step, 170)); }; step(); }
+function revealPod() {
+  const res = pod.res, r = rarOf(res.id), d = WEAPONS[res.id], rk = ARM_INFO[res.id].r;
+  el.drawRes.innerHTML = '';
+  el.podStage.className = 'pod-stage shake2'; setRc(el.drawPanel, res.id); Sfx.rattle();
+  // 흔들리다 열리며 무기가 솟아올라요
   drawTimers.push(setTimeout(() => {
     el.podBig.src = podArt(r.col, true); el.podStage.className = 'pod-stage open';
     if (rk === 'legend') Sfx.evo(); else Sfx.chest();
@@ -10911,14 +10969,14 @@ function openDraw() {
       <p class="gain">${res.isNew ? 'NEW · 무기고에 들어왔어요' : `★${res.stars} · ${bonusTxt(res.stars)}`}</p><p class="d">${d.lv[0]}</p>`;
     renderDrawActs(); el.drawActs.classList.remove('wait'); renderArmory();
     el.drawOk.focus({ preventScroll: true }); el.drawActs.scrollIntoView({ block: 'nearest' });
-  }, 1500));
+  }, 650));
 }
 function renderDrawActs() {
   const eq = save.equip === lastDraw.id, can = drawPool().length && save.coins >= DRAW_COST;
   el.drawEquip.disabled = eq; el.drawEquip.textContent = eq ? '장착 중' : '장착하기';
   el.drawAgain.disabled = !can; el.drawAgain.innerHTML = drawPool().length ? `한 번 더 열기 <span class="coin-dot"></span>${fmtNum(DRAW_COST)}` : '모두 모았어요';
 }
-function closeDraw() { drawTimers.forEach(clearTimeout); drawTimers = []; el.drawModal.hidden = true; renderArmory(); }
+function closeDraw() { drawTimers.forEach(clearTimeout); drawTimers = []; pod = null; el.drawModal.hidden = true; renderArmory(); }
 function showArmory() { cancelLobbyFx(); armSel = save.equip; el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
 function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(t => t.setAttribute('aria-checked', String(!!save.set[t.dataset.set]))); }
 
@@ -11207,6 +11265,8 @@ el.drawBtn.addEventListener('click', () => { if (el.drawModal.hidden) openDraw()
 el.drawEquip.addEventListener('click', () => { if (lastDraw) { equipArm(lastDraw.id); renderDrawActs(); } });
 el.drawOk.addEventListener('click', closeDraw);
 el.drawAgain.addEventListener('click', openDraw);
+el.podStage.addEventListener('pointerdown', e => { if (pod && !pod.done) { e.preventDefault(); tapPod(); } });
+el.drawRes.addEventListener('click', e => { if (e.target.closest('#tapFast')) autoTapPod(); });
 el.ups.addEventListener('click', e => {
   const b = e.target.closest('.buy'); if (!b || b.disabled) return;
   const m = META.find(x => x.id === b.dataset.id), l = save.up[m.id] || 0, cost = metaCost(m, l);
@@ -11282,6 +11342,7 @@ addEventListener('keydown', e => {
   if (state === 'play' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
+  if (!el.drawModal.hidden && pod && !pod.done && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')) { e.preventDefault(); tapPod(); return; } // 캡슐 두드리기
   if (e.code === 'Escape' || e.code === 'KeyP') {
     if (state === 'play') pauseGame(); else if (state === 'pause') resumeFromPause();
     else if (!el.helpModal.hidden) el.helpModal.hidden = true; else if (!el.setModal.hidden) { el.setModal.hidden = true; renderMenu(); }
