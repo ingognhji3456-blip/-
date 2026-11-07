@@ -508,6 +508,8 @@ em.rar,em.muted{font-style:normal}
 .draw-acts{margin-top:14px}
 .draw-acts .wide{grid-column:1/3}
 .draw-panel:focus{outline:none}
+.mini.bump{animation:coinBump .22s ease-out} /* 처치 코인이 들어올 때 계기판 코인이 톡 튀어요 */
+@keyframes coinBump{40%{transform:scale(1.18); color:#ffe08a}}
 /* 캡슐 두드리기: 세 번 두드리는 동안 색이 오르면 다시 세 번 */
 .pod-stage.tapping{cursor:pointer; -webkit-tap-highlight-color:transparent; touch-action:manipulation}
 .pod-stage.tapping .pod-img{animation:podIdle 1.4s ease-in-out infinite; filter:drop-shadow(0 0 calc(6px + var(--lv, 0) * 7px) var(--rc)) drop-shadow(0 12px 18px rgba(0,0,0,.6))}
@@ -4184,7 +4186,7 @@ function recalc() {
 function newRun(si) {
   const st = STAGES[si];
   run = {
-    si, st, t: 0, kills: 0, coins: 0, lv: 1, xp: 0, need: xpNeed(1), pendingLv: 0, pendingChest: [],
+    si, st, t: 0, kills: 0, coins: 0, killCoins: 0, coinAcc: 0, lv: 1, xp: 0, need: xpNeed(1), pendingLv: 0, pendingChest: [],
     weapons: [], pass: {}, passOrder: [], stats: {}, rerolls: save.up.reroll || 0, revive: save.up.revive ? 1 : 0,
     spawnAcc: 0, ev: 0, sp: 0, crateT: 16, boss: null, arena: null, over: 0, overT: 0, won: false, dmgBy: {},
     shake: 0, hurtFlash: 0, flashT: 0, buildVer: 1, live: 0, gems: 0, hurtBy: {},
@@ -4600,6 +4602,11 @@ function killEnemy(e) {
   const pal = EPAL[e.type][run.si];
   if (e.prop) { debris(e.x, e.y - 6, pal[0], 12); puff(e.x, e.y, 4, 14, '#5a4a3a', .7); dropCrate(e.x, e.y); Sfx.hit(); return; }
   run.kills++;
+  // 잡을 때마다 코인: 보통 1개 · 정예 10개 · 중간 보스 60개 (행운 강화만큼 더). 소수는 모아 뒀다가 1개가 되면 들어와요
+  { const cv = (e.boss === 'A' ? 60 : e.elite ? 10 : e.boss ? 0 : 1) * run.stats.gold; run.coinAcc += cv; const add = Math.floor(run.coinAcc);
+    if (add > 0) { run.coinAcc -= add; run.coins += add; run.killCoins += add; run.coinBump = 1;
+      if (e.boss || e.elite) { addText(e.x, e.y - e.r - 16, '+' + add, '#ffc94d', true); Sfx.coin(); }
+      else if (!lowQ && parts.length < 650) addPart('dot', e.x + rand(-4, 4), e.y - e.r * .6, rand(-8, 8), -70, .45, 2.6, '#ffd76a', 0, 2); } }
   if (run.stats.vamp && !player.dead && player.hp < player.maxHp) player.hp = Math.min(player.maxHp, player.hp + run.stats.vamp);
   startDeath(e, pal);
   if (e.boss) hazards = hazards.filter(h => h.src !== e); // 보스가 쓰러지면 경고 표시도 사라져요
@@ -10767,7 +10774,7 @@ function hudUpdate() {
   const dawn = Math.min(1, Math.floor(run.t) / STAGE_TIME); if (dawn !== hud.dawn) { hud.dawn = dawn; el.dawnfill.style.transform = `scaleX(${dawn})`; }
   const ts = Math.floor(run.t); if (ts !== hud.t) { hud.t = ts; el.timer.textContent = fmtTime(ts); el.timer.classList.toggle('late', ts >= STAGE_TIME - 60); }
   if (run.kills !== hud.kills) { hud.kills = run.kills; el.kills.textContent = fmtNum(run.kills); }
-  const c = Math.floor(run.coins); if (c !== hud.coins) { hud.coins = c; el.coins.textContent = fmtNum(c); }
+  const c = Math.floor(run.coins); if (c !== hud.coins) { hud.coins = c; el.coins.textContent = fmtNum(c); if (run.coinBump && !reduceMotion && run.t - (hud.bt ?? -9) > .18) { run.coinBump = 0; hud.bt = run.t; const m = el.coins.parentNode; m.classList.remove('bump'); void m.offsetWidth; m.classList.add('bump'); } }
   if (run.buildVer !== hud.build) { hud.build = run.buildVer; renderSlots(); }
   if (run.boss) { const p = Math.round(clamp(run.boss.hp / run.boss.maxHp, 0, 1) * 200) / 200; if (p !== hud.boss) { hud.boss = p; el.bossfill.style.transform = `scaleX(${p})`; } }
 }
@@ -11221,7 +11228,7 @@ function showResult(win) {
   el.resTitle.className = 'title result-title ' + (win ? 'win' : 'lose');
   el.resSub.textContent = `${st.name}${newBest ? ' · 최고 기록!' : ''}${unlockMsg}`;
   el.rTime.textContent = fmtTime(run.t); el.rKills.textContent = fmtNum(run.kills); el.rLv.textContent = run.lv; el.rCoins.textContent = '+' + fmtNum(earned);
-  el.rEarn.innerHTML = `<span>주운 코인 <b>${fmtNum(picked)}</b></span><span>버틴 시간 <b>+${fmtNum(timeBonus)}</b></span>${win ? `<span>클리어 <b>+${fmtNum(clearBonus)}</b></span>` : ''}<span>가진 코인 <b>${fmtNum(save.coins)}</b></span>`;
+  el.rEarn.innerHTML = `<span>처치 코인 <b>${fmtNum(run.killCoins)}</b></span><span>주운 코인 <b>${fmtNum(Math.max(0, picked - run.killCoins))}</b></span><span>버틴 시간 <b>+${fmtNum(timeBonus)}</b></span>${win ? `<span>클리어 <b>+${fmtNum(clearBonus)}</b></span>` : ''}<span>가진 코인 <b>${fmtNum(save.coins)}</b></span>`;
   const rows = run.weapons.map(w => ({ w, v: run.dmgBy[w.id] || 0 })).sort((a, b) => b.v - a.v), top = Math.max(1, ...rows.map(r => r.v));
   el.rDmg.innerHTML = rows.map(({ w, v }) => `<div class="dmg-row"><img src="${iconURL(w.id, w.evo)}" alt=""><span class="nm">${w.evo ? WEAPONS[w.id].evoName : WEAPONS[w.id].name}</span><span class="bar"><i style="width:${(v / top * 100).toFixed(1)}%"></i></span><span class="v">${fmtNum(v)}</span></div>`).join('');
   el.resultModal.hidden = false;
