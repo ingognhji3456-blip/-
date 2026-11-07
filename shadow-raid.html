@@ -2729,7 +2729,7 @@ function propsFor(si) {
     tilt: e => e.slT > 0 ? 1.25 * Math.min(1, (.6 - e.slT) / .12, e.slT / .12) : 0,
     death: {
       t: .6, glow: 'eye',
-      pose: (f, p) => ({ rot: -f.side * Math.min(1, p / .35) * 1.5, oy: -Math.sin(Math.min(1, p / .5) * Math.PI) * f.r * .5, a: p < .6 ? 1 : (1 - p) / .4, flash: Math.max(0, .3 - p) * 2 }),
+      pose: (f, p) => ({ rot: lerp(f.rot0 || 0, -f.side * 1.5, Math.min(1, p / .35)), oy: -Math.sin(Math.min(1, p / .5) * Math.PI) * f.r * .5, a: p < .6 ? 1 : (1 - p) / .4, flash: Math.max(0, .3 - p) * 2 }),
       start(e, f, pal, r, gy) { puff(e.x, gy, 3, r * .6, '#e8f4ff', .6); Sfx.kill(); },
       end(f, r, pal, gy) { ink(f.x, f.y, dk(pal[1], .2), 4, r); addDecal(splatSprite(dk(pal[1], .3), f.fr & 3), f.x, gy, r * 1.8, 5, .35, rand(-.4, .4)); },
     },
@@ -3835,6 +3835,7 @@ function chunk(shape, x, y, z, n, spd, s, cols, vzMin = 120, vzMax = 280, life =
 }
 function startDeath(e, pal) {
   const t = e.type, M = MON[t], dur = (M && M.death && M.death.t) || DEATH[t] || .4, f = { k: 'death', type: t, x: e.x, y: e.y, r: e.r, flip: e.face < 0 ? 1 : 0, fr: (e.anim * (ANIM_SPD[t] || 5)) | 0, life: dur, max: dur, boss: !!e.boss, side: (e.hx || e.face) >= 0 ? 1 : -1, pal, elite: e.elite, eye: eyeCol(t, pal) };
+  f.rot0 = M ? monPose(e)[1] : 0; // 미끄러지던 자세에서 이어서 쓰러져요
   fx.push(f);
   const r = e.r, gy = e.y + r * .6, big = e.elite || e.boss;
   if (big) hitStop(e.boss ? .22 : .07);
@@ -8846,9 +8847,11 @@ function drawTelegraphs() {
     ctx.restore();
   }
 }
+// 몬스터의 들림(뛰어오름)과 기울기(미끄러짐). 얼었거나 묶인 동안은 땅에 붙어 똑바로 서요.
+function monPose(e) { const M = MON[e.type]; if (!M || e.frozenT > 0 || e.stunT > 0) return [0, 0]; return [M.lift ? M.lift(e) : 0, M.tilt ? M.tilt(e) * (e.face < 0 ? -1 : 1) : 0]; }
 function drawEnemy(e, spr) {
   const S = spr[e.type], D = ENEMIES[e.type]; if (!S) return;
-  const M = MON[e.type], lift = M && M.lift ? M.lift(e) : 0, tilt = M && M.tilt ? M.tilt(e) : 0; // 뛰어오르는 적은 그림만 위로 (그림자는 땅에), 미끄러지는 적은 눕혀요
+  const [lift, tilt] = monPose(e); // 뛰어오르는 적은 그림만 위로 (그림자는 땅에), 미끄러지는 적은 눕혀요
   let sp = ANIM_SPD[e.type]; if (D.charger && e.ai === 2) sp *= 2.5;
   const fr = S.nF > 1 ? ((e.anim * sp) | 0) % S.nF : 0, img = (e.flash > 0 && S.w ? S.w : S.n)[e.face < 0 ? 1 : 0][fr];
   let size = S.size * e.r / D.r * (1 + Math.max(0, e.flash) * 1.3);
@@ -8857,9 +8860,9 @@ function drawEnemy(e, spr) {
   if (k < 1) ctx.globalAlpha = .35 + .65 * k;
   if (e.hitT > 0 && !e.boss) {
     const q = e.hitT / .13, fy = e.y + size / 2 - lift;
-    ctx.save(); ctx.translate(e.x + (e.hx || 0) * 4 * q, fy); ctx.rotate((e.hx || 0) * .28 * q); ctx.scale(1 + .2 * q, 1 - .17 * q);
+    ctx.save(); ctx.translate(e.x + (e.hx || 0) * 4 * q, fy); if (tilt) { ctx.translate(0, -h * .38); ctx.rotate(tilt); ctx.translate(0, h * .38); } ctx.rotate((e.hx || 0) * .28 * q); ctx.scale(1 + .2 * q, 1 - .17 * q);
     ctx.drawImage(img, -size / 2 + shakeX, -h, size, h); ctx.restore();
-  } else if (tilt) { ctx.save(); ctx.translate(e.x, top + h * .62); ctx.rotate(tilt * (e.face < 0 ? -1 : 1)); ctx.drawImage(img, -size / 2, -h * .62, size, h); ctx.restore(); }
+  } else if (tilt) { ctx.save(); ctx.translate(e.x, top + h * .62); ctx.rotate(tilt); ctx.drawImage(img, -size / 2, -h * .62, size, h); ctx.restore(); }
   else ctx.drawImage(img, e.x - size / 2 + shakeX, top, size, h);
   ctx.globalAlpha = 1;
   if (e.frozenT > 0) { const s = e.r * 3.1; ctx.globalAlpha = Math.min(1, e.frozenT * 3) * .9; ctx.drawImage(iceCrust, e.x - s / 2, e.y - s / 2, s, s); ctx.globalAlpha = 1; }
@@ -9008,7 +9011,9 @@ function drawGlowPass(spr) {
   for (const e of enemies) {
     if (e.dead || e.prop || (!e.boss && e.age < .2)) continue;
     const E = EYES[e.type], s = e.r * E[2] * (e.boss ? 1.4 : 1); ctx.globalAlpha = e.boss ? .85 : e.elite ? .75 : .5;
-    ctx.drawImage(glowSprite(spr[e.type].eye), e.x + e.face * E[0] * e.r - s / 2, e.y + E[1] * e.r - s / 2, s, s);
+    let gx = e.face * E[0] * e.r, gy = E[1] * e.r; const [lf, tl] = monPose(e);
+    if (tl) { const pv = spr[e.type].size * e.r / ENEMIES[e.type].r * .12, c = Math.cos(tl), sn = Math.sin(tl), x0 = gx, y0 = gy - pv; gx = x0 * c - y0 * sn; gy = x0 * sn + y0 * c + pv; }
+    ctx.drawImage(glowSprite(spr[e.type].eye), e.x + gx - s / 2, e.y + gy - lf - s / 2, s, s);
     if (e.elite) { ctx.globalAlpha = .55 + Math.sin(T * 5) * .2; ctx.strokeStyle = '#ffd35a'; ctx.lineWidth = 2.5; ctx.setLineDash([8, 6]); ctx.lineDashOffset = -T * 30; ctx.beginPath(); ctx.ellipse(e.x, e.y + e.r * .75, e.r * 1.15, e.r * .38, 0, 0, TAU); ctx.stroke(); ctx.setLineDash([]); }
   }
   ctx.globalAlpha = 1;
@@ -9435,7 +9440,7 @@ function menuScene(dt, hw, hh) {
   for (const s of menuShots) {
     s.t += dt;
     if (s.kind === 'flame' && s.t < .45 && !lowQ) for (let q = 0; q < 2; q++) { const a = s.a + rand(-.18, .18), v = s.dist / .35 * rand(.8, 1.05); addPart('flame', s.x0, s.y0, Math.cos(a) * v, Math.sin(a) * v, rand(.25, .4), rand(5, 8) * Math.min(1.6, k * .8), '#ffb347', 1.2, 2); }
-    if (!s.hit && s.t >= s.hitAt) { s.hit = true; const c = s.tgt; if (c && !c.dying) { c.dying = .3; if (!lowQ) { burst(c.x, c.y, spritesFor(viewSi())[c.type].eye, 10, 160); ink(c.x, c.y, '#0a0612', 4, ENEMIES[c.type].r); } } }
+    if (!s.hit && s.t >= s.hitAt) { s.hit = true; const c = s.tgt; if (c && !c.dying && critters.includes(c)) { c.dying = .3; const cs = spritesFor(viewSi())[c.type]; if (!lowQ && cs) { burst(c.x, c.y, cs.eye, 10, 160); ink(c.x, c.y, '#0a0612', 4, ENEMIES[c.type].r); } } }
   }
   compact(menuShots, s => s.t < s.life);
 }
@@ -10090,7 +10095,7 @@ el.startBtn.addEventListener('click', launchRun);
 let switching = false, wipe = null;
 function switchStage(dir) {
   const ns = clamp(save.stage + dir, 0, STAGES.length - 1); if (ns === save.stage || switching || launching) return;
-  const apply = () => { save.stage = ns; persist(); critters.length = 0; menuRefade = true; renderMenu(); };
+  const apply = () => { save.stage = ns; persist(); critters.length = 0; menuShots.length = 0; menuRefade = true; renderMenu(); };
   if (reduceMotion) { apply(); return; }
   switching = true; el.stageCard.classList.add(dir > 0 ? 'out-l' : 'out-r'); wipe = { t: 0, dir, col: STAGES[ns].color };
   setTimeout(() => { apply(); el.stageCard.classList.remove('out-l', 'out-r'); el.stageCard.classList.add(dir > 0 ? 'in-r' : 'in-l'); setTimeout(() => { el.stageCard.classList.remove('in-r', 'in-l'); switching = false; }, 240); }, 150);
