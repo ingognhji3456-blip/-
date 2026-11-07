@@ -1309,7 +1309,9 @@ function sanitizeArms() {
   for (const id of GACHA) { const n = Math.min(STAR_MAX, Math.floor(+a[id] || 0)); if (n > 0) clean[id] = n; }
   save.arms = clean; if (!isArm(save.equip) || !(clean[save.equip] > 0)) save.equip = 'blaster';
   save.draws = Math.max(0, +save.draws || 0); save.pity = Math.max(0, +save.pity || 0);
-  save.unlocked = clamp(Math.floor(+save.unlocked || 1), 1, STAGES.length); save.stage = clamp(Math.floor(+save.stage || 0), 0, STAGES.length - 1);
+  let u = Math.floor(+save.unlocked || 1); // 예전 판(3스테이지)에서 마지막 스테이지를 깬 기록이면 다음 스테이지를 열어요
+  for (let i = 0; i < STAGES.length - 1; i++) if (save.best && save.best[i] && save.best[i].clear) u = Math.max(u, i + 2);
+  save.unlocked = clamp(u, 1, STAGES.length); save.stage = clamp(Math.floor(+save.stage || 0), 0, STAGES.length - 1);
 }
 
 /* ---------- 보조 장비 ---------- */
@@ -2024,7 +2026,7 @@ const GROUND = {
   // 모래 신전: 크게 깎은 사암 블록 위로 모래가 흘러들어 물결을 이뤄요. 몇몇 블록에는 옛 그림 글자가 새겨져 있어요.
   temple(g, S) {
     const grain = tileNoise(S, 16, 16, 3, 71), wear = tileNoise(S, 5, 5, 4, 73), sand = tileNoise(S, 3, 3, 4, 79), rip = tileNoise(S, 6, 2, 3, 83), R = mulberry(6);
-    const BW = 128, BH = 96, tone = Array.from({ length: 64 }, () => (R() - .5) * 16);
+    const BW = 128, BH = S / 6, tone = Array.from({ length: 64 }, () => (R() - .5) * 16);
     const img = g.createImageData(S, S), d = img.data;
     for (let y = 0; y < S; y++) {
       const row = (y / BH) | 0, off = (row % 2) * 64, ly = y - row * BH;
@@ -2034,7 +2036,7 @@ const GROUND = {
         if (lx < 3 || ly < 3) { r = 26; gg = 20; b = 15; } else if (lx < 5 || ly < 5) { r += 12; gg += 10; b += 7; } else if (lx > BW - 3 || ly > BH - 3) { r -= 18; gg -= 15; b -= 11; }
         if (wear[i] > .74) { const k = (wear[i] - .74) * 3; r -= 20 * k; gg -= 18 * k; b -= 14 * k; }
         const sv = sand[i] * .75 + grain[i] * .25;
-        if (sv > .44) { const k = Math.min(1, (sv - .44) * 3.4), w = Math.sin(x * .09 + y * .035 + rip[i] * 9) * .5 + .5; const sr = 84 + w * 18, sgc = 68 + w * 15, sb = 46 + w * 10; r = lerp(r, sr, k); gg = lerp(gg, sgc, k); b = lerp(b, sb, k); }
+        if (sv > .44) { const k = Math.min(1, (sv - .44) * 3.4), w = Math.sin(x * (TAU * 7 / S) + y * (TAU * 3 / S) + rip[i] * 9) * .5 + .5; const sr = 84 + w * 18, sgc = 68 + w * 15, sb = 46 + w * 10; r = lerp(r, sr, k); gg = lerp(gg, sgc, k); b = lerp(b, sb, k); }
         d[i * 4] = r; d[i * 4 + 1] = gg; d[i * 4 + 2] = b; d[i * 4 + 3] = 255;
       }
     }
@@ -2079,8 +2081,7 @@ const GROUND = {
     }
     g.putImageData(img, 0, 0);
     // 타일 모서리마다 작은 금빛 마름모 박이
-    for (let ty = 0; ty < S; ty += T2) for (let tx = 0; tx < S; tx += T2) { g.fillStyle = 'rgba(200,175,110,.35)'; g.beginPath(); g.moveTo(tx, ty - 4); g.lineTo(tx + 4, ty); g.lineTo(tx, ty + 4); g.lineTo(tx - 4, ty); g.closePath(); g.fill(); }
-    for (const [x, y] of [[S, 0], [0, S], [S, S]]) { g.fillStyle = 'rgba(200,175,110,.35)'; g.beginPath(); g.moveTo(x, y - 4); g.lineTo(x + 4, y); g.lineTo(x, y + 4); g.lineTo(x - 4, y); g.closePath(); g.fill(); }
+    for (let ty = 0; ty <= S; ty += T2) for (let tx = 0; tx <= S; tx += T2) { g.fillStyle = 'rgba(200,175,110,.35)'; g.beginPath(); g.moveTo(tx, ty - 4); g.lineTo(tx + 4, ty); g.lineTo(tx, ty + 4); g.lineTo(tx - 4, ty); g.closePath(); g.fill(); }
     // 금과 잔풀
     const R2 = mulberry(14);
     for (let k = 0; k < 5; k++) {
@@ -2803,7 +2804,7 @@ function propsFor(si) {
       }
     })] },
     // 모래 언덕과 뼈
-    { wt: 2, spr: [propSprite(86, 44, 43, 36, g => {
+    { wt: 2, spr: [propSprite(86, 48, 43, 36, g => {
       g.fillStyle = rad(g, 40, 30, 4, 43, 36, 44, [[0, '#b8946a'], [1, 'rgba(120,90,56,0)']]); g.beginPath(); g.ellipse(43, 34, 42, 12, 0, 0, TAU); g.fill();
       g.fillStyle = lin(g, 0, 18, 0, 38, [[0, '#c8a474'], [1, '#7a5c3a']]); g.beginPath(); g.moveTo(8, 36); g.quadraticCurveTo(36, 12, 78, 34); g.closePath(); g.fill();
       g.fillStyle = '#e8dcc0'; g.beginPath(); g.ellipse(52, 24, 8, 7, 0, 0, TAU); g.fill(); g.fillStyle = '#2a1e12'; g.beginPath(); g.arc(49, 23, 2, 0, TAU); g.arc(55, 23, 2, 0, TAU); g.fill(); g.fillRect(50, 28, 5, 2);
@@ -2853,8 +2854,8 @@ function propsFor(si) {
       g.fillStyle = '#9aa2b8'; g.beginPath(); g.ellipse(42, 48, 6, 3, 0, 0, TAU); g.fill();
     })] },
     // 무너진 아치
-    { wt: 1, spr: [propSprite(130, 130, 65, 122, g => {
-      softShadow(g, 66, 120, 58, 8, .55);
+    { wt: 1, spr: [propSprite(130, 138, 65, 130, g => {
+      g.translate(0, 8); softShadow(g, 66, 120, 58, 8, .55);
       for (const x of [16, 98]) { g.fillStyle = lin(g, x, 0, x + 16, 0, [[0, '#4a5266'], [.4, '#d8deec'], [1, '#3a4256']]); g.fillRect(x, x < 50 ? 30 : 60, 16, x < 50 ? 92 : 62); }
       g.strokeStyle = '#c8d0e4'; g.lineWidth = 12; g.lineCap = 'butt'; g.beginPath(); g.arc(65, 40, 41, Math.PI, Math.PI * 1.62); g.stroke();
       g.strokeStyle = 'rgba(40,46,64,.4)'; g.lineWidth = 1; for (let k = 0; k < 5; k++) { const a = Math.PI + k * .12 * Math.PI; g.beginPath(); g.moveTo(65 + Math.cos(a) * 35, 40 + Math.sin(a) * 35); g.lineTo(65 + Math.cos(a) * 47, 40 + Math.sin(a) * 47); g.stroke(); }
@@ -10044,7 +10045,7 @@ function newDrop(kind, cx, cy, hw, hh, init) {
   // 모래바람: 왼쪽에서 오른쪽으로 비스듬히 쓸려 가는 모래 줄기
   if (kind === 'sand') return { x: init ? x : cx - hw - rand(60, 260), y: cy + rand(-hh - 40, hh + 40), vx: rand(300, 470), vy: rand(-26, 34), t: 0, life: 99, s: rand(.8, 2), ph: rand(0, TAU) };
   // 별빛: 천천히 떠도는 빛 알갱이
-  if (kind === 'star') return { x: init ? x : cx - hw - rand(20, 80), y: cy + rand(-hh, hh), vx: rand(10, 26), vy: rand(-8, 8), t: 0, life: init ? rand(1, 7) : rand(4, 9), s: rand(.8, 2.2), ph: rand(0, TAU), col: Math.random() < .6 ? '#d8f4ff' : '#9ff4e0' };
+  if (kind === 'star') return { x, y: cy + rand(-hh, hh), vx: rand(10, 26), vy: rand(-8, 8), t: 0, life: init ? rand(1, 7) : rand(4, 9), s: rand(.8, 2.2), ph: rand(0, TAU), col: Math.random() < .6 ? '#d8f4ff' : '#9ff4e0' };
   return { x, y: init ? cy + rand(-hh, hh) : cy + hh + 20, vx: rand(-10, 10), vy: rand(-70, -30), t: 0, life: rand(2, 5), s: rand(1.2, 2.6), ph: rand(0, TAU) };
 }
 function drawWeather(si, dt, cx, cy, hw, hh) {
@@ -10056,7 +10057,7 @@ function drawWeather(si, dt, cx, cy, hw, hh) {
   for (let i = 0; i < P.length; i++) {
     const p = P[i]; p.t += dt; p.x += p.vx * dt; p.y += p.vy * dt;
     if (kind === 'snow') p.x += Math.sin(p.t * 1.3 + p.ph) * 16 * dt; else if (kind === 'ember') p.x += Math.sin(p.t * 2 + p.ph) * 22 * dt; else if (kind === 'sand') p.y += Math.sin(p.t * 3 + p.ph) * 30 * dt;
-    if (p.t > p.life || p.y > cy + hh + 60 || p.y < cy - hh - 140 || p.x < cx - hw - (kind === 'sand' || kind === 'star' ? 320 : 90) || p.x > cx + hw + 90) { if (kind === 'rain' && p.t > p.life && SP.length < 60) SP.push({ x: p.x, y: p.y, t: 0 }); P[i] = newDrop(kind, cx, cy, hw, hh, false); }
+    if (p.t > p.life || p.y > cy + hh + 60 || p.y < cy - hh - 140 || p.x < cx - hw - (kind === 'sand' ? 320 : 90) || p.x > cx + hw + 90) { if (kind === 'rain' && p.t > p.life && SP.length < 60) SP.push({ x: p.x, y: p.y, t: 0 }); P[i] = newDrop(kind, cx, cy, hw, hh, false); }
   }
   if (kind === 'rain') {
     ctx.strokeStyle = 'rgba(170,190,255,.22)'; ctx.lineWidth = 1; ctx.beginPath(); for (const p of P) { ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx * .025, p.y - p.vy * .025); } ctx.stroke();
@@ -10948,7 +10949,7 @@ function openHelp(kind) {
         <div><img src="${iconURL('bomb')}" alt=""><span>폭탄. 화면 안의 적을 날려 버려요</span></div>
         <div><img src="${iconURL('chest')}" alt=""><span>보물 상자. 정예는 카드 1장, 중간 보스는 3장이 나와요</span></div>
         <div><img src="${iconURL('coin')}" alt=""><span>코인. 강화와 무기 뽑기에 써요</span></div></div>
-        <ul><li>보물 상자를 열면 카드가 튀어나와 뒤집혀요. 등급마다 레벨이 다르게 올라요: <b style="color:#c3cde6">일반</b> +1 · <b style="color:#4fb8ff">희귀</b> +2 · <b style="color:#c27bff">에픽</b> +3 · <b style="color:#ffb43d">전설</b> 최대 레벨(짝 장비가 있으면 바로 각성).</li><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li><li>멀리서 침을 뱉는 <b>침쟁이</b>는 스테이지마다 정해진 수만 나와요(3 · 5 · 7마리).</li></ul></div>`;
+        <ul><li>보물 상자를 열면 카드가 튀어나와 뒤집혀요. 등급마다 레벨이 다르게 올라요: <b style="color:#c3cde6">일반</b> +1 · <b style="color:#4fb8ff">희귀</b> +2 · <b style="color:#c27bff">에픽</b> +3 · <b style="color:#ffb43d">전설</b> 최대 레벨(짝 장비가 있으면 바로 각성).</li><li>가끔 나타나는 <b>나무 상자</b>를 부수면 구급상자·자석·폭탄이 나와요.</li><li>멀리서 쏘는 적(<b>${STAGES.map((_, i) => E_NAMES[RT('spitter', i)]).join(' · ')}</b>)은 스테이지마다 정해진 수만 나와요(${SPITTERS.map(s => s.length).join(' · ')}마리).</li></ul></div>`;
   }
   el.helpModal.hidden = false; el.helpModal.scrollTop = 0;
 }
