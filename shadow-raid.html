@@ -466,6 +466,39 @@ em.rar,em.muted{font-style:normal}
 .draw-btn:active:not(:disabled){transform:translateY(2px)}
 .draw-btn:disabled{filter:grayscale(.9) brightness(.5)}
 .draw-btn:disabled::after{display:none}
+/* 초월 등급 */
+.ladder{--rc:#ffcf4d; width:min(100%,760px); display:flex; flex-direction:column; gap:10px; margin-top:14px; padding-top:16px; border-top:1px solid rgba(160,180,255,.16)}
+.lad-head{--c:14px; padding:12px 16px 14px}
+.lad-head h3{font-family:var(--f-display); font-weight:400; font-size:28px; line-height:1.15; margin-top:2px; background:linear-gradient(90deg,#fff3c4,#ff8ad8 40%,#7ad8ff 75%,#b9ff8a); -webkit-background-clip:text; background-clip:text; color:transparent}
+.lad-head h3 small{font-family:var(--f-tech); font-size:12px; letter-spacing:.2em; color:var(--muted); -webkit-text-fill-color:var(--muted); margin-left:6px}
+.lad-head p{font-size:var(--t-sm); color:var(--muted); line-height:1.5; margin-top:2px}
+.lad-head p b{color:var(--text)}
+.lad-gacha{--edge-c:linear-gradient(135deg,#fff,var(--rc) 30%,rgba(122,216,255,.14) 64%,#ff8ad8)}
+.g-info .lock{color:#ffcf4d}
+.lad-btn{color:#120a2a; background:linear-gradient(180deg,#e9fbff,#7ad8ff 45%,#a77bff)}
+.lad-nav{--c:12px; display:grid; grid-template-columns:auto auto minmax(0,1fr) auto auto; align-items:center; gap:6px; padding:8px}
+.lad-nav .ghost{height:46px; min-width:46px; padding:0 10px; font-size:22px; font-family:var(--f-tech)}
+.lad-nav .ghost:disabled{opacity:.35}
+.lad-cur{display:flex; flex-direction:column; align-items:center; text-align:center; min-width:0; gap:2px}
+.lad-cur b{display:inline-flex; align-items:center; gap:8px; font-family:var(--f-display); font-weight:400; font-size:24px; line-height:1.1; text-shadow:0 0 14px rgba(0,0,0,.5)}
+.lad-cur b i{width:10px; height:10px; transform:rotate(45deg); box-shadow:0 0 10px currentColor}
+.lad-cur small{font-size:var(--t-xs); color:var(--muted); line-height:1.35; max-width:100%}
+.lad-jump{display:flex; flex-wrap:wrap; align-items:center; gap:8px}
+.lad-jump label{font-size:var(--t-sm); font-weight:700; color:var(--muted)}
+.lad-jump input{width:130px; height:44px; padding:0 12px; border:1px solid rgba(160,180,255,.32); border-radius:0; background:rgba(8,10,28,.92); color:var(--text); font:900 var(--t-md) var(--f-tech); clip-path:polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)}
+.lad-jump input::placeholder{color:var(--muted); opacity:.7}
+.lad-jump input:focus-visible{outline:2px solid var(--rc); outline-offset:2px}
+.lad-jump .btn{height:44px; font-size:var(--t-sm); white-space:nowrap}
+.lad-line{font-size:var(--t-xs) !important; color:var(--muted) !important}
+.lad-line b{color:var(--rc)}
+@media (max-width:600px){
+  .lad-nav .ghost{min-width:40px; padding:0 6px}
+  .lad-cur b{font-size:19px}
+  .lad-jump{display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:6px}
+  .lad-jump label{grid-column:1/-1}
+  .lad-jump input{width:100%}
+  .lad-jump .btn{padding:0 12px}
+}
 @media (max-width:600px){
   .arm-grid{grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px}
   .arm{padding:8px 3px 7px} .a-ic,.a-ic img{width:46px; height:46px} .arm b{font-size:11px} .arm .stars,.arm .sub{font-size:10px} .arm .rline{margin-bottom:3px}
@@ -885,7 +918,7 @@ em.rar,em.muted{font-style:normal}
   <div class="shop-head hx">
     <span class="label">ARMORY</span>
     <h2>무기고</h2>
-    <p>주무기는 한 판에 <b>하나만</b> 들고 나가요. 보급 캡슐을 열어 새 무기를 얻고, 같은 무기가 또 나오면 별(★)이 올라 더 세져요.</p>
+    <p>주무기는 한 판에 <b>하나만</b> 들고 나가요. 보급 캡슐을 열어 새 무기를 얻고, 같은 무기가 또 나오면 별(★)이 올라 더 세져요. 전설 위에는 <b>초월 등급</b> 8,000단계가 있어요.</p>
   </div>
   <div class="arm-show hx" id="armShow"></div>
   <div class="gacha hx gold">
@@ -894,6 +927,28 @@ em.rar,em.muted{font-style:normal}
     <button class="draw-btn" id="drawBtn"></button>
   </div>
   <div class="arm-grid" id="armGrid"></div>
+  <!-- 초월 등급: 8,000단계 × 10종 -->
+  <div class="ladder" id="ladder">
+    <div class="lad-head hx"><span class="label">TRANSCEND</span><h3>초월 등급 <small>1 ~ 8,000</small></h3>
+      <p>전설 위에 등급이 <b>8,000단계</b> 있어요. 등급마다 무기가 <b>10종</b>, 모두 <b>80,000종</b>이에요. 높은 등급일수록 피해가 크고, 각성도 그대로 해요.</p></div>
+    <div class="gacha hx lad-gacha">
+      <div class="g-art"><img id="ladPodImg" alt=""></div>
+      <div class="g-info"><span class="label" id="ladLabel">TIER POD</span><h3>등급 캡슐</h3><p id="ladRates"></p></div>
+      <button class="draw-btn lad-btn" id="ladBtn"></button>
+    </div>
+    <div class="lad-nav hx" id="ladNav">
+      <button class="ghost hx" type="button" data-lj="-10" aria-label="10등급 아래로">«</button>
+      <button class="ghost hx" type="button" data-lj="-1" aria-label="한 등급 아래로">‹</button>
+      <div class="lad-cur" id="ladCur" aria-live="polite"></div>
+      <button class="ghost hx" type="button" data-lj="1" aria-label="한 등급 위로">›</button>
+      <button class="ghost hx" type="button" data-lj="10" aria-label="10등급 위로">»</button>
+    </div>
+    <form class="lad-jump" id="ladJump" novalidate>
+      <label for="ladIn">등급 찾기</label><input id="ladIn" type="number" min="1" max="8000" step="1" inputmode="numeric" placeholder="1~8000">
+      <button class="btn hx" type="submit">이동</button><button class="btn hx" type="button" id="ladMine">내 최고 등급</button>
+    </form>
+    <div class="arm-grid" id="ladGrid"></div>
+  </div>
 </section>
 
 <!-- 레벨 업 -->
@@ -1328,13 +1383,14 @@ const TIER_RATE = { rare: 56, epic: 30, legend: 14 };
 const STAR_MAX = 5, DRAW_COST = 250, PITY = 3;
 const armStars = id => save.arms[id] || 0;
 const armBonus = id => 1 + .1 * Math.max(0, armStars(id) - 1);
-const isArm = id => ARMS.includes(id);
+const isArm = id => ARMS.includes(id) || isProc(id); // isProc: 초월 등급 무기 (ladder.js)
 // 저장된 무기 목록 정리: 모르는 무기는 빼고, 별은 1~5로, 장착 무기가 없으면 연발총
 // (무기 모듈이 모두 등록된 뒤 e.js 시작할 때 한 번 불러요)
 function sanitizeArms() {
   const a = save.arms && typeof save.arms === 'object' ? save.arms : {}, clean = { blaster: 1 };
   for (const id of GACHA) { const n = Math.min(STAR_MAX, Math.floor(+a[id] || 0)); if (n > 0) clean[id] = n; }
-  save.arms = clean; if (!isArm(save.equip) || !(clean[save.equip] > 0)) save.equip = 'blaster';
+  for (const id in a) if (isProc(id)) { const n = Math.min(STAR_MAX, Math.floor(+a[id] || 0)); if (n > 0) { clean[id] = n; ladEnsure(id); } } // 가진 초월 무기만 미리 만들어 둬요
+  save.arms = clean; save.ldraws = Math.max(0, Math.floor(+save.ldraws || 0)); if (!isArm(save.equip) || !(clean[save.equip] > 0)) save.equip = 'blaster';
   save.draws = Math.max(0, +save.draws || 0); save.pity = Math.max(0, +save.pity || 0);
   let u = Math.floor(+save.unlocked || 1); // 예전 판(3스테이지)에서 마지막 스테이지를 깬 기록이면 다음 스테이지를 열어요
   for (let i = 0; i < STAGES.length - 1; i++) if (save.best && save.best[i] && save.best[i].clear) u = Math.max(u, i + 2);
@@ -1784,14 +1840,17 @@ function iconURL(id, evo = false) {
   // 입체감: 왼쪽 위 빛, 오른쪽 아래 그늘
   o.globalCompositeOperation = 'source-atop';
   o.fillStyle = lin(o, 10, 10, 86, 86, [[0, 'rgba(255,255,255,.32)'], [.45, 'rgba(255,255,255,0)'], [.6, 'rgba(0,0,0,0)'], [1, 'rgba(0,0,0,.38)']]); o.fillRect(0, 0, 96, 96);
-  const c = newCanvas(96, 96), g = c.getContext('2d'), T = TILE[evo ? 'e' : ICON_KIND(id)];
+  const c = newCanvas(96, 96), g = c.getContext('2d'), T = evo ? TILE.e : isProc(id) ? procTile(id) : TILE[ICON_KIND(id)]; // 초월 무기는 등급 색 바탕
   rr(g, 2, 2, 92, 92, 18); g.fillStyle = rad(g, 34, 26, 4, 48, 52, 70, [[0, lt(T[0], .18)], [.55, T[0]], [1, T[1]]]); g.fill();
   if (evo) { g.save(); g.clip(); g.translate(48, 48); for (let i = 0; i < 12; i++) { g.rotate(TAU / 12); g.fillStyle = 'rgba(255,220,140,.16)'; g.beginPath(); g.moveTo(0, 0); g.lineTo(-7, -70); g.lineTo(7, -70); g.closePath(); g.fill(); } g.restore(); }
   g.lineWidth = 3; g.strokeStyle = T[2]; g.globalAlpha = .55; rr(g, 3.5, 3.5, 89, 89, 17); g.stroke(); g.globalAlpha = 1;
   g.fillStyle = 'rgba(255,255,255,.07)'; rr(g, 8, 6, 80, 30, 14); g.fill();
   g.save(); g.shadowColor = 'rgba(0,0,0,.55)'; g.shadowBlur = 6; g.shadowOffsetY = 4; g.drawImage(obj, 7, 6, 82, 82); g.restore();
   if (evo) { star(g, 80, 16, 10, '#fff3c4'); star(g, 16, 80, 6, '#ffd27a'); }
-  const url = c.toDataURL(); iconCache.set(key, url); return url;
+  const url = c.toDataURL(); iconCache.set(key, url);
+  // 초월 무기는 8만 종이라 본 것만 기억해요: 너무 많아지면 오래된 것부터 지워요(다시 보면 또 그려요)
+  if (iconCache.size > 420) for (const k of iconCache.keys()) { if (k !== key && isProc(k.replace('+', ''))) { iconCache.delete(k); if (iconCache.size <= 340) break; } }
+  return url;
 }
 function iconCanvas(id, size) { const c = newCanvas(size, size), g = c.getContext('2d'); g.scale(size / 96, size / 96); (ICON[id] || ICON.gem)(g); return c; }
 
@@ -4161,6 +4220,8 @@ const viewHalf = () => ({ hw: W / 2 / ZOOM, hh: H / 2 / ZOOM });
 const xpNeed = lv => Math.round(2 + lv * 3 + lv * lv * 0.35);
 function compact(arr, keep) { let j = 0; for (let i = 0; i < arr.length; i++) { const o = arr[i]; if (keep(o)) arr[j++] = o; } arr.length = j; }
 const hasW = id => run.weapons.find(w => w.id === id);
+// 들고 나간 주무기 (등급 무기는 id가 달라도 같은 모양을 쓰니, 손에 든 모습은 id 대신 이걸 봐요)
+const mainW = () => run && run.weapons.find(w => w.main);
 function shake(n) { if (save.set.shake && run) run.shake = Math.max(run.shake, n); }
 
 function recalc() {
@@ -4196,7 +4257,7 @@ function newRun(si) {
   recalc(); player.hp = player.maxHp;
   cam.x = 0; cam.y = 0;
   // 무기고에서 장착한 주무기 하나만 들고 시작해요
-  run.main = isArm(save.equip) && armStars(save.equip) > 0 ? save.equip : 'blaster'; run.mainK = armBonus(run.main);
+  run.main = isArm(save.equip) && armStars(save.equip) > 0 ? save.equip : 'blaster'; run.mainK = armPow(run.main); // 별 보너스 × 초월 등급 위력
   addWeapon(run.main); run.weapons[0].main = true; player.wpn = run.main; // 주인공이 장착한 주무기를 들고 나가요
 }
 function addWeapon(id) { run.weapons.push({ id, lv: 1, evo: false, t: .3, key: 'w' + id, st: {} }); run.buildVer++; }
@@ -5063,7 +5124,7 @@ function cardInfo(c) {
   }
   if (c.type === 'p') {
     // 이번 판에 나올 수 있는 무기(장착한 주무기 + 스킬)만 짝으로 알려 줘요
-    const def = PASSIVES[c.id], lv = run.pass[c.id] || 0, ws = W_IDS.filter(k => WEAPONS[k].pair === c.id && (k === run.main || SKILLS.includes(k)));
+    const def = PASSIVES[c.id], lv = run.pass[c.id] || 0, ws = (isProc(run.main) ? [run.main, ...W_IDS] : W_IDS).filter(k => WEAPONS[k].pair === c.id && (k === run.main || SKILLS.includes(k)));
     return { icon: iconURL(c.id), name: def.name, tag: lv ? `Lv ${lv + 1}` : '새 장비', tagCls: 'p', desc: def.info, sub: lv ? `${def.val(lv)} → ${def.val(lv + 1)}` : def.val(1), lv, max: pmax(c.id), hint: ws.length ? `각성 짝: <b>${ws.map(k => WEAPONS[k].name).join(' · ')}</b>${ws.some(k => hasW(k)) ? ' · 갖고 있어요' : ''}` : '' };
   }
   if (c.type === 'evo') { const def = WEAPONS[c.id]; return { icon: iconURL(c.id, true), name: def.evoName, tag: '각성', tagCls: 'e', desc: def.evoInfo, evo: true, hint: `${def.name} + ${PASSIVES[def.pair].name}` }; }
@@ -6751,7 +6812,7 @@ function swordMark(h, q) { ctx.globalAlpha = .85 * q; const y = h.y - 200 * (1 -
       g.fillStyle = '#9fe8ff'; g.beginPath(); [[74, 10], [62, 34], [72, 34], [60, 60], [84, 28], [74, 28], [82, 10]].forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); fs(g, '#e8f0ff', 2.4);
     },
     held(g, H, kx, t, stroke, evo) { // 짧은 자루 끝의 큰 망치 머리
-      const out = run && hasW('hammer') && hasW('hammer').st.th; if (out) return;
+      const out = run && mainW() && mainW().st.th; if (out) return;
       HA.rod(g, kx, 4, 20, -1.2, 2.4, '#9a7448', '#4a3018');
       g.fillStyle = lin(g, 0, -6, 0, 6, evo ? [[0, '#fff3c4'], [1, '#a8620f']] : [[0, '#e8ecf6'], [1, '#3a4258']]); rr(g, 18 + kx, -6, 8, 12, 2); g.fill(); stroke('#1a1e2c', .5);
       g.fillStyle = '#ffcf4d'; g.fillRect(21 + kx, -6, 1.6, 12);
@@ -7426,7 +7487,7 @@ function swordMark(h, q) { ctx.globalAlpha = .85 * q; const y = h.y - 200 * (1 -
     },
     held(g, H, kx, t, stroke, evo) { // 손가락에 감긴 고리, 줄 끝에 대롱대롱 요요
       g.fillStyle = evo ? '#ffcf4d' : '#e8ecf6'; g.beginPath(); g.arc(11 + kx, 0, 2.2, 0, TAU); g.fill(); stroke('#3a2a4a', .5);
-      const thrown = run && (() => { const w = hasW('yoyo'); return w && w.st.y && w.st.y.length; })(); if (thrown) return;
+      const thrown = run && (() => { const w = mainW(); return w && w.st.y && w.st.y.length; })(); if (thrown) return;
       const bob = Math.sin(t * 5) * 2, yx = 13 + kx, yy = 7 + bob; g.strokeStyle = '#ffe0f0'; g.lineWidth = .5; g.beginPath(); g.moveTo(11 + kx, 0); g.lineTo(yx, yy); g.stroke();
       g.save(); g.translate(yx, yy); g.rotate(t * 6); g.drawImage(YO, -4.5 * (evo ? 1.3 : 1), -4.5 * (evo ? 1.3 : 1), 9 * (evo ? 1.3 : 1), 9 * (evo ? 1.3 : 1)); g.restore();
     },
@@ -7639,7 +7700,7 @@ function swordMark(h, q) { ctx.globalAlpha = .85 * q; const y = h.y - 200 * (1 -
       g.restore();
     },
     held(g, H, kx, t, stroke, evo) { // 팔뚝을 덮는 커다란 로켓 장갑
-      const out = run && hasW('fist') && shots.some(b => b.k === 'k_proj' && b.spr === FIST);
+      const out = run && mainW() && shots.some(b => b.k === 'k_proj' && b.spr === FIST);
       HA.body(g, kx, 4, -4.4, 11, 8.8, evo ? '#fff3c4' : '#9aa3bd', evo ? '#a8620f' : '#3a4258', stroke, 2.6);
       g.fillStyle = evo ? '#ff8a2a' : '#ffcf4d'; g.fillRect(6 + kx, -4.4, 1.6, 8.8);
       if (!out) { g.save(); g.translate(18 + kx, 0); g.drawImage(FIST, -6.5, -5, 13, 10); g.restore(); }
@@ -9840,6 +9901,116 @@ function swordMark(h, q) { ctx.globalAlpha = .85 * q; const y = h.y - 200 * (1 -
   });
 }
 
+/* ---------- 초월 등급: 8,000단계 × 10종 = 무기 80,000종 ----------
+   전설 위에 '초월 1등급'부터 '초월 8000등급'까지 있어요. 등급마다 주무기가 10종씩이에요.
+   8만 종을 처음부터 다 만들어 두면 무거우니까, 무기 id(t등급_번호, 예: t12_3)만 보고 필요할 때 그 자리에서 만들어요.
+     바탕    직접 만든 주무기 26종 가운데 하나 (같은 등급의 10종은 바탕이 모두 달라요)
+     이름    수식어 + 바탕 이름 (각성형도 수식어 + 바탕 각성 이름)
+     색      등급마다 다른 색 (등급이 하나 오를 때마다 색이 확 바뀌어요). 아이콘도 그 색으로 물들여요
+     위력    등급이 오를수록 커져요 (초월 1등급 ×1.08 → 8000등급 ×161)
+     특성    무기마다 하나: 속사 · 광역 · 쾌속 · 다발 · 지속 (등급이 높을수록 조금 더 세져요)
+   난수 없이 등급과 번호로만 정하니까 같은 id는 언제 만들어도 같은 무기예요.
+   만드는 때: 갖고 있는 무기(시작할 때) · 무기고에서 보는 등급 · 캡슐에서 나온 무기. */
+const LAD_MAX = 8000, LAD_N = 10, LAD_COST = 500, LAD_Q = .45;
+function isProc(id) { const m = typeof id === 'string' && /^t([1-9]\d{0,3})_(\d)$/.exec(id); return !!m && +m[1] <= 8000; }
+const procId = (t, i) => `t${t}_${i}`;
+const procT = id => +id.slice(1, id.indexOf('_'));
+const procI = id => +id.slice(id.indexOf('_') + 1);
+// 바탕이 되는 주무기 26종 (예전 무기 4종은 엔진 곳곳에 이름으로 묶여 있어서 빼요). 이름순이라 파일 순서가 바뀌어도 그대로예요
+const LAD_ARCH = ARMS.filter(id => !['blaster', 'shotgun', 'whip', 'flame', 'gravity'].includes(id)).sort();
+const ladArch = (t, i) => LAD_ARCH[(t * 11 + i * 7) % LAD_ARCH.length]; // 7과 26은 서로소라 한 등급 10종의 바탕이 겹치지 않아요
+const LAD_GROUP = ['청동', '강철', '은빛', '황금', '백금', '수정', '비취', '홍옥', '청옥', '흑요', '성광', '월광', '태양', '혜성', '성운', '은하', '공허', '시원', '영원', '무한'];
+const ladGroup = t => LAD_GROUP[Math.min(LAD_GROUP.length - 1, Math.floor((t - 1) / (LAD_MAX / LAD_GROUP.length)))];
+const LAD_EPI = ['빛나는', '서리', '불꽃', '폭풍', '그림자', '별빛', '달빛', '새벽', '황혼', '천둥', '바람', '파도', '대지', '심연', '태초', '영겁', '수호', '파멸', '성스러운', '저주받은',
+  '고대', '신비한', '맹렬한', '고요한', '눈부신', '꿰뚫는', '부서진', '깨어난', '떠도는', '잠든', '울부짖는', '노래하는', '춤추는', '타오르는', '얼어붙은', '흐르는', '끝없는', '왕의', '용의', '하늘의'];
+function hslHex(h, s, l) {
+  s /= 100; l /= 100; const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l);
+  const f = n => Math.round(255 * (l - a * Math.max(-1, Math.min(k(n) - 3, 9 - k(n), 1)))).toString(16).padStart(2, '0');
+  return '#' + f(0) + f(8) + f(4);
+}
+function hexHue(hex) {
+  const [r, g, b] = hexRgb(hex).map(v => v / 255), mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+  if (!d) return 0; const h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (h * 60 + 360) % 360;
+}
+const ladHue = t => (t * 137.508 + 205) % 360; // 황금각만큼 돌려서 이웃한 등급끼리 색이 확 달라요
+const tierCol = t => hslHex(ladHue(t), 80 + (t % 3) * 6, 62 + (t % 2) * 6);
+const tierPow = t => 1.08 * Math.pow(1 + .045 * (t - 1), .85);
+const ARCH_K = { rare: 1.3, epic: 1.15, legend: 1 }; // 희귀 바탕은 원래 약하니까 조금 더 얹어서 같은 등급끼리 비슷하게
+const tierKey = t => 't' + t;
+function tierRar(t) { // RARITY에 등급을 그때그때 넣어 두면 RARITY[ARM_INFO[id].r]로 찾는 곳이 모두 그대로 돌아가요
+  const k = tierKey(t); return RARITY[k] || (RARITY[k] = { name: `초월 ${t}등급`, en: `TIER ${t}`, col: tierCol(t), t });
+}
+const ladFx = t => Math.min(.3, .1 + .02 * Math.log2(t)); // 특성 세기: 1등급 10% → 높은 등급 30%
+const pct = v => Math.round(v * 100);
+const LAD_AFX = [
+  { name: '속사', d: v => `공격 간격 -${pct(v)}%`, ok: s => typeof s.cd === 'number', ap(s, v) { if (typeof s.cd === 'number') s.cd *= 1 - v; } },
+  { name: '광역', d: v => `범위 +${pct(v)}%`, ok: s => typeof s.range === 'number' || typeof s.R === 'number', ap(s, v) { for (const k of ['range', 'R']) if (typeof s[k] === 'number') s[k] *= 1 + v; } },
+  { name: '쾌속', d: v => `탄속 +${pct(v * 1.5)}%`, ok: s => typeof s.spd === 'number', ap(s, v) { if (typeof s.spd === 'number') s.spd *= 1 + v * 1.5; } },
+  { name: '다발', d: (v, t) => `한 번에 ${t >= 1000 ? 2 : 1}개 더`, ok: (s, arch) => KIT_MULTI.has(arch), ap(s, v, t) { if (typeof s.n === 'number') s.n += t >= 1000 ? 2 : 1; } },
+  { name: '지속', d: v => `지속 시간 +${pct(v * 1.5)}%`, ok: s => typeof s.dur === 'number' || typeof s.life === 'number', ap(s, v) { for (const k of ['dur', 'life']) if (typeof s[k] === 'number') s[k] *= 1 + v * 1.5; } },
+];
+// 아이콘 물들이기: 바탕 아이콘을 그린 뒤 픽셀 색상을 돌려요(어느 브라우저에서나 똑같이 보이게 직접 계산해요)
+function hueRot(c, deg) {
+  const g = c.getContext('2d'), im = g.getImageData(0, 0, c.width, c.height), d = im.data, a = deg * Math.PI / 180, cs = Math.cos(a), sn = Math.sin(a);
+  const m = [.213 + cs * .787 - sn * .213, .715 - cs * .715 - sn * .715, .072 - cs * .072 + sn * .928,
+    .213 - cs * .213 + sn * .143, .715 + cs * .285 + sn * .14, .072 - cs * .072 - sn * .283,
+    .213 - cs * .213 - sn * .787, .715 - cs * .715 + sn * .715, .072 + cs * .928 + sn * .072];
+  for (let p = 0; p < d.length; p += 4) {
+    if (!d[p + 3]) continue; const r = d[p], gg = d[p + 1], b = d[p + 2];
+    d[p] = m[0] * r + m[1] * gg + m[2] * b; d[p + 1] = m[3] * r + m[4] * gg + m[5] * b; d[p + 2] = m[6] * r + m[7] * gg + m[8] * b;
+  }
+  g.putImageData(im, 0, 0);
+}
+function tintIcon(draw, deg, col, t) {
+  return g => {
+    const c = newCanvas(96, 96); draw(c.getContext('2d')); hueRot(c, deg); g.drawImage(c, 0, 0, 96, 96);
+    // 왼쪽 위 등급 보석 (높은 무리일수록 보석이 늘어요: 1 ~ 3개)
+    const n = t > 5000 ? 3 : t > 1000 ? 2 : 1;
+    for (let k = 0; k < n; k++) { const x = 13 + k * 12, y = 13; g.beginPath(); g.moveTo(x, y - 8); g.lineTo(x + 6, y); g.lineTo(x, y + 8); g.lineTo(x - 6, y); g.closePath(); fs(g, col, 2); }
+  };
+}
+const procTile = id => { const c = LAD[id] ? LAD[id].col : '#888888'; return [dk(c, .58), dk(c, .84), c]; };
+const LAD = {}; // id → { t, i, arch, col, afx, v, pow }
+function ladEnsure(id) {
+  if (LAD[id]) return LAD[id]; if (!isProc(id)) return null;
+  const t = procT(id), i = procI(id), arch = ladArch(t, i), B = WEAPONS[arch], A = AWK[arch], R = tierRar(t);
+  const col = R.col, wcol = hslHex((ladHue(t) + (i - 4.5) * 7 + 360) % 360, 88, 64), deg = (hexHue(wcol) - hexHue(B.color) + 360) % 360;
+  const epi = LAD_EPI[(t * 17 + i * 3) % LAD_EPI.length], s1 = B.stat(1, false), cands = LAD_AFX.filter(a => a.ok(s1, arch));
+  const afx = cands.length ? cands[(t * 5 + i * 3) % cands.length] : null, v = ladFx(t);
+  const info = LAD[id] = { t, i, arch, col, wcol, afx, v, pow: (ARCH_K[ARM_INFO[arch].r] || 1) * tierPow(t), shown: tierPow(t) };
+  WEAPONS[id] = { name: `${epi} ${B.name}`, evoName: `${epi} ${B.evoName}`, pair: B.pair, color: wcol, lv: B.lv, evoInfo: B.evoInfo,
+    stat: (lv, evo) => { const s = B.stat(lv, evo); if (afx) afx.ap(s, v, t); return s; } };
+  TICK[id] = TICK[arch]; WPN_LEN[id] = WPN_LEN[arch];
+  if (BASE_DRAW[arch]) BASE_DRAW[id] = BASE_DRAW[arch]; if (HELD[arch]) HELD[id] = HELD[arch]; if (KIT_MULTI.has(arch)) KIT_MULTI.add(id);
+  ICON[id] = tintIcon(ICON[arch], deg, col, t);
+  if (A) AWK[id] = Object.assign({}, A, { name: WEAPONS[id].evoName, icon: A.icon ? tintIcon(A.icon, deg, col, t) : undefined });
+  ARM_INFO[id] = { r: tierKey(t), w: 0 };
+  return info;
+}
+const armPow = id => armBonus(id) * (isProc(id) && LAD[id] ? LAD[id].pow : 1); // 판을 시작할 때 주무기 피해 배율
+const ladTier = t => { const out = []; for (let i = 0; i < LAD_N; i++) { const id = procId(t, i); ladEnsure(id); out.push(id); } return out; };
+function ladTop() { let m = 0; for (const k in save.arms) if (isProc(k)) { const t = procT(k); if (t > m) m = t; } return m; }
+const ladFloor = () => Math.max(1, ladTop());
+// 등급 캡슐은 전설 무기를 하나라도 모으면 열려요 (그 전엔 보급 캡슐부터)
+const ladOpen = () => ladTop() > 0 || ARMS.some(k => ARM_INFO[k].r === 'legend' && armStars(k) > 0);
+const ladFull = t => { for (let i = 0; i < LAD_N; i++) if (armStars(procId(t, i)) < STAR_MAX) return false; return true; };
+const ladDone = () => ladTop() >= LAD_MAX && ladFull(LAD_MAX);
+// 확률: 바닥(지금 가진 가장 높은 등급)에서 시작해 45%마다 한 등급씩 더 올라가요 → 같은 등급 55% · +1 25% · +2 11% · +3 이상 9%
+const ladP = k => (1 - LAD_Q) * Math.pow(LAD_Q, k);
+function rollLadder() {
+  if (!ladOpen() || ladDone() || save.coins < LAD_COST) return null;
+  const F = ladFloor(); let x = 0; while (x < 200 && Math.random() < LAD_Q) x++;
+  let t = Math.min(LAD_MAX, F + x);
+  while (t < LAD_MAX && ladFull(t)) t++; // 그 등급 10종이 모두 ★5면 한 등급 위로
+  const pool = []; for (let i = 0; i < LAD_N; i++) if (armStars(procId(t, i)) < STAR_MAX) pool.push(i);
+  if (!pool.length) return null;
+  const id = procId(t, pool[Math.floor(Math.random() * pool.length)]); ladEnsure(id);
+  save.coins -= LAD_COST;
+  const was = armStars(id); save.arms[id] = was + 1; save.ldraws = (save.ldraws || 0) + 1;
+  persist();
+  return { id, isNew: !was, stars: was + 1, from: F, up: t - F, lad: true };
+}
+
 /* ============================================================
    그리기
    바닥 → 얼룩 → 납작한 소품 → (앞뒤 정렬) 서 있는 소품·적·주인공 → 연기
@@ -10589,7 +10760,7 @@ function menuGlows(si, spr) {
   ctx.save(); ctx.translate(hx, padY); ctx.scale(1, .3); ctx.globalAlpha = .28; ctx.drawImage(glowSprite(STAGES[si].color), -75 * k, -75 * k, 150 * k, 150 * k); ctx.restore();
   // 발판 테두리 빛 · 빛기둥 · 별
   ctx.globalAlpha = .25; ctx.lineWidth = 4 * k; ctx.strokeStyle = col; ctx.beginPath(); ctx.ellipse(hx, padY, 24 * k, 7.4 * k, 0, 0, TAU); ctx.stroke();
-  ctx.globalAlpha = ARM_INFO[save.equip].r === 'legend' ? .2 : .14; ctx.drawImage(glowSprite(col), hx - 28 * k, padY - 120 * k, 56 * k, 124 * k);
+  ctx.globalAlpha = ARM_INFO[save.equip].r === 'legend' || isProc(save.equip) ? .2 : .14; ctx.drawImage(glowSprite(col), hx - 28 * k, padY - 120 * k, 56 * k, 124 * k);
   if (H.launch > 0) { const e = Math.min(1, H.launch / .5) ** 2; ctx.globalAlpha = 1 - e; ctx.lineWidth = 3; ctx.strokeStyle = '#6fe8ff'; ctx.beginPath(); ctx.ellipse(hx, padY, lerp(20 * k, 260, e), lerp(6 * k, 80, e), 0, 0, TAU); ctx.stroke(); }
   if (H.swapT > 0) { const p = 1 - H.swapT / .5; ctx.globalAlpha = Math.min(1, H.swapT * 2); ctx.lineWidth = 3; ctx.strokeStyle = col; ctx.beginPath(); ctx.ellipse(hx, padY, 24 * k * (1 + p * 1.5), 7.4 * k * (1 + p * 1.5), 0, 0, TAU); ctx.stroke(); ctx.globalAlpha = Math.min(1, H.swapT * 1.4); ctx.drawImage(glowSprite('#ffffff'), hx - 45 * k, hy - 60 * k, 90 * k, 90 * k); }
   const n = save.equip === 'blaster' ? 0 : armStars(save.equip);
@@ -10739,7 +10910,7 @@ const el = {};
   'mCoins', 'sCoins', 'stageCard', 'stNo', 'stName', 'stDesc', 'stBest', 'stPrev', 'stNext', 'startBtn', 'shopBtn', 'shopBadge', 'codexBtn', 'helpBtn', 'setBtn', 'shopBack', 'ups',
   'lvModal', 'lvSub', 'cards', 'rerollBtn', 'rerollN', 'chestModal', 'chestStage', 'rewards', 'chestOk', 'pauseModal', 'pauseSub', 'pW', 'pP', 'pEvo', 'resumeBtn', 'quitBtn', 'pauseBtn',
   'heroSpot', 'chestImg', 'hpfill', 'hpghost', 'hptext', 'hpbar', 'portrait', 'dawnfill', 'stThumb', 'stDanger', 'rGrade', 'resLabel', 'resultPanel', 'bannerL', 'helpLabel', 'resultModal', 'resTitle', 'resSub', 'rTime', 'rKills', 'rLv', 'rCoins', 'rEarn', 'rDmg', 'againBtn', 'homeBtn', 'setModal', 'setClose', 'resetBtn', 'helpModal', 'helpTitle', 'helpBody', 'helpClose',
-  'loadout', 'armBtn', 'goalSlot', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn',
+  'loadout', 'armBtn', 'goalSlot', 'loRing', 'loIcon', 'loName', 'loSub', 'armBadge', 'armory', 'armBack', 'aCoins', 'armShow', 'armGrid', 'podImg', 'gRates', 'drawBtn', 'ladder', 'ladPodImg', 'ladLabel', 'ladRates', 'ladBtn', 'ladNav', 'ladCur', 'ladJump', 'ladIn', 'ladMine', 'ladGrid',
   'curtain', 'awaken', 'awIcon', 'awName', 'awInfo', 'chestPanel', 'chestLabel', 'chestTitle', 'chestHint', 'drawModal', 'drawPanel', 'drawLabel', 'drawTitle', 'podStage', 'podBig', 'podItem', 'podTaps', 'podPlus', 'drawRes', 'drawActs', 'drawEquip', 'drawOk', 'drawAgain']
   .forEach(id => el[id] = document.getElementById(id));
 el.joyKnob = el.joy.querySelector('i');
@@ -10868,7 +11039,7 @@ function renderLoadout() {
   setRc(el.loadout, id);
   el.loIcon.src = iconURL(id); el.loName.textContent = WEAPONS[id].name;
   el.loSub.innerHTML = id === 'blaster' ? '기본 무기' : `${starStr(n)} ${r.name}${n > 1 ? ' · ' + bonusTxt(n) : ''}`;
-  const free = !save.draws, can = drawPool().length && (free || save.coins >= DRAW_COST);
+  const free = !save.draws, can = (drawPool().length && (free || save.coins >= DRAW_COST)) || (ladOpen() && !ladDone() && save.coins >= LAD_COST);
   el.armBadge.hidden = !can; el.armBadge.textContent = free ? '무료' : '!';
 }
 function drawRates() {
@@ -10876,27 +11047,38 @@ function drawRates() {
   const tot = from.reduce((a, k) => a + ARM_INFO[k].w, 0);
   return { pool, from, sure, p: k => from.includes(k) ? Math.round(ARM_INFO[k].w / tot * 100) : 0 };
 }
+const fmtPow = x => x < 10 ? x.toFixed(2) : x < 100 ? x.toFixed(1) : fmtNum(x);
+const fmtPct = p => { const v = p * 100; return v >= 1 ? `${Math.round(v)}%` : v >= .01 ? `${v.toFixed(2)}%` : '0.01% 미만'; };
+// 초월 무기를 아직 못 가졌을 때 얻는 길
+function ladNote(t) {
+  if (!ladOpen()) return '전설 무기를 하나 모으면 등급 캡슐이 열려요';
+  const F = ladFloor();
+  return t < F ? '지난 등급이라 캡슐에서 나오지 않아요' : `등급 캡슐에서 나와요 · 이 등급이 나올 확률 ${fmtPct(ladP(t - F))}`;
+}
+// 무기 칸 하나 (보급 무기 · 초월 무기 함께 써요)
+function armTile(k) {
+  const m = armStars(k), o = m > 0, P = isProc(k) ? LAD[k] : null;
+  const sub = k === 'blaster' ? '<span class="sub">기본</span>' : o ? starStr(m) : `<span class="sub">${P ? (P.afx ? P.afx.name : '') : rarOf(k).name}</span>`;
+  return `<button class="arm hx${k === armSel ? ' sel' : ''}${o ? '' : ' locked'}" data-id="${k}" style="--rc:${rarOf(k).col}" aria-pressed="${k === armSel}"><span class="rline"></span>
+      <span class="a-ic"><img src="${iconURL(k)}" alt="">${o ? '' : '<i class="lock" aria-label="잠김"></i>'}</span><b>${WEAPONS[k].name}</b>
+      ${sub}${save.equip === k ? '<span class="eq">장착</span>' : ''}</button>`;
+}
 function renderArmory() {
   el.aCoins.textContent = fmtNum(save.coins);
-  const id = armSel, d = WEAPONS[id], r = rarOf(id), n = armStars(id), own = n > 0, eq = save.equip === id, R = drawRates();
+  const id = armSel, P = isProc(id) ? ladEnsure(id) : null, d = WEAPONS[id], r = rarOf(id), n = armStars(id), own = n > 0, eq = save.equip === id, R = drawRates();
   setRc(el.armShow, id);
   const act = own ? (eq ? '<button class="btn hx" disabled>장착 중</button>' : `<button class="btn primary hx" data-equip="${id}">장착하기</button>`)
-    : `<span class="lock-note">보급 캡슐에서 나와요 · 지금 확률 ${R.p(id)}%</span>`;
+    : `<span class="lock-note">${P ? ladNote(P.t) : `보급 캡슐에서 나와요 · 지금 확률 ${R.p(id)}%`}</span>`;
   const starInfo = id === 'blaster' ? '<span class="sub">기본 무기 · 처음부터 갖고 있어요</span>'
-    : `${starStr(n)}<span class="sub">${own ? (n < STAR_MAX ? `같은 무기가 또 나오면 ★${n + 1}` : '최고 등급') : '아직 없어요'}</span>`;
+    : `${starStr(n)}<span class="sub">${own ? (n < STAR_MAX ? `같은 무기가 또 나오면 ★${n + 1}` : '별을 모두 모았어요') : '아직 없어요'}</span>`;
+  const ladLine = P ? `<p class="lad-line"><b>등급 위력 ×${fmtPow(P.shown)}</b>${P.afx ? ` · 특성 <b>${P.afx.name}</b> ${P.afx.d(P.v, P.t)}` : ''}<br><span>바탕 무기: ${WEAPONS[P.arch].name} (${RARITY[ARM_INFO[P.arch].r].name})</span></p>` : '';
   el.armShow.innerHTML = `<div class="arm-big${own ? '' : ' locked'}"><img src="${iconURL(id)}" alt=""></div>
-    <div class="arm-meta"><span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3><div class="star-row">${starInfo}</div>
-      <p>${d.lv[0]}</p><p class="evo-line">각성: Lv ${MAX_LV} + <b>${PASSIVES[d.pair].name}</b> → <b>${d.evoName}</b></p></div>
+    <div class="arm-meta"><span class="rar">${P ? `${r.name} · ${ladGroup(P.t)}` : `${r.name} · ${r.en}`}</span><h3>${d.name}</h3><div class="star-row">${starInfo}</div>
+      ${ladLine}<p>${d.lv[0]}</p><p class="evo-line">각성: Lv ${MAX_LV} + <b>${PASSIVES[d.pair].name}</b> → <b>${d.evoName}</b></p></div>
     <div class="arm-act">${act}${own && n > 1 ? `<span class="bonus">★${n} · ${bonusTxt(n)}</span>` : ''}</div>`;
   // 등급별로 나눠 보여 줘요 (등급 이름 옆에 모은 수)
-  const tile = k => {
-    const m = armStars(k), o = m > 0;
-    return `<button class="arm hx${k === armSel ? ' sel' : ''}${o ? '' : ' locked'}" data-id="${k}" style="--rc:${rarOf(k).col}" aria-pressed="${k === armSel}"><span class="rline"></span>
-      <span class="a-ic"><img src="${iconURL(k)}" alt="">${o ? '' : '<i class="lock" aria-label="잠김"></i>'}</span><b>${WEAPONS[k].name}</b>
-      ${k === 'blaster' ? '<span class="sub">기본</span>' : o ? starStr(m) : `<span class="sub">${rarOf(k).name}</span>`}${save.equip === k ? '<span class="eq">장착</span>' : ''}</button>`;
-  };
   el.armGrid.innerHTML = ['base', 'rare', 'epic', 'legend'].map(r => { const ids = ARMS.filter(k => ARM_INFO[k].r === r); if (!ids.length) return ''; const own = ids.filter(k => armStars(k) > 0).length;
-    return `<h4 class="arm-tier" style="--rc:${RARITY[r].col}"><i></i>${RARITY[r].name} <small>${RARITY[r].en}</small><span>${own} / ${ids.length}</span></h4>${ids.map(tile).join('')}`; }).join('');
+    return `<h4 class="arm-tier" style="--rc:${RARITY[r].col}"><i></i>${RARITY[r].name} <small>${RARITY[r].en}</small><span>${own} / ${ids.length}</span></h4>${ids.map(armTile).join('')}`; }).join('');
   el.podImg.src = podArt('#ffcf4d', false);
   const anyNew = R.pool.some(k => !armStars(k));
   el.gRates.innerHTML = R.pool.length ? `${R.sure ? '<b class="sure">이번 캡슐은 새 무기 확정!</b><br>' : ''}${['rare', 'epic', 'legend'].map(r => { const ids = R.pool.filter(k => ARM_INFO[k].r === r); return ids.length ? `<span class="rt" style="--rc:${RARITY[r].col}">${RARITY[r].name} <b>${Math.round(ids.reduce((a, k) => a + (R.from.includes(k) ? ARM_INFO[k].w : 0), 0) / Math.max(1e-9, R.from.reduce((a, k) => a + ARM_INFO[k].w, 0)) * 100)}%</b> <small>${ids.length}종</small></span>` : ''; }).join('')}<br>같은 무기는 별이 올라요(최대 ★${STAR_MAX})${anyNew && !R.sure ? ` · ${PITY}번 연속 겹치면 다음은 새 무기 (${Math.min(save.pity, PITY)}/${PITY})` : ''}`
@@ -10905,7 +11087,29 @@ function renderArmory() {
   el.drawBtn.disabled = !R.pool.length || (!free && save.coins < DRAW_COST);
   el.drawBtn.innerHTML = !R.pool.length ? '<b>모두 모았어요</b><small>COMPLETE</small>' : free ? '<b>무료로 열기</b><small>첫 캡슐은 공짜</small>'
     : `<b>캡슐 열기</b><small><span class="coin-dot"></span>${fmtNum(DRAW_COST)}</small>`;
+  renderLadder();
 }
+/* 초월 등급: 등급 캡슐 + 한 등급(10종)씩 넘겨 보는 칸. 보는 등급의 무기만 그때 만들어요 */
+let ladView = 1;
+function renderLadder() {
+  const open = ladOpen(), top = ladTop(), F = ladFloor(), done = ladDone();
+  ladView = clamp(Math.round(ladView) || 1, 1, LAD_MAX);
+  const t = ladView, ids = ladTier(t), R = tierRar(t), own = ids.filter(k => armStars(k) > 0).length, fc = tierCol(F);
+  el.ladder.style.setProperty('--rc', R.col);
+  el.ladPodImg.src = podArt(fc, false);
+  el.ladLabel.textContent = top ? `TIER POD · ${F}+` : 'TIER POD';
+  el.ladRates.innerHTML = !open ? '<b class="lock">전설 무기를 하나 모으면 열려요.</b> 위의 보급 캡슐에서 전설 무기가 나오면 그다음부터 쓸 수 있어요.'
+    : done ? '8,000등급의 무기를 모두 ★5까지 모았어요!'
+    : `지금 <b style="color:${fc}">초월 ${fmtNum(F)}등급</b>부터 나와요<br>${[0, 1, 2].map(k => `<span class="rt" style="--rc:${tierCol(F + k)}">${k ? `+${k}등급` : '같은 등급'} <b>${Math.round(ladP(k) * 100)}%</b></span>`).join('')}<span class="rt" style="--rc:${tierCol(F + 3)}">+3 이상 <b>${Math.round(Math.pow(LAD_Q, 3) * 100)}%</b></span><br>두드려서 색이 바뀔 때마다 한 등급씩 올라가요 · 가진 가장 높은 등급이 다음 캡슐의 바닥이 돼요`;
+  el.ladBtn.disabled = !open || done || save.coins < LAD_COST;
+  el.ladBtn.innerHTML = !open ? '<b>잠겨 있어요</b><small>전설 무기 필요</small>' : done ? '<b>모두 모았어요</b><small>COMPLETE</small>'
+    : `<b>등급 캡슐</b><small><span class="coin-dot"></span>${fmtNum(LAD_COST)}</small>`;
+  el.ladCur.innerHTML = `<b style="color:${R.col}"><i style="background:${R.col}"></i>초월 ${fmtNum(t)}등급</b><small>${ladGroup(t)} · 위력 ×${fmtPow(tierPow(t))} · 모음 ${own}/${LAD_N}${t === top ? ' · 내 최고' : ''}</small>`;
+  el.ladNav.querySelectorAll('[data-lj]').forEach(b => { b.disabled = +b.dataset.lj < 0 ? t <= 1 : t >= LAD_MAX; });
+  el.ladMine.disabled = !top; el.ladMine.textContent = top ? `최고 ${fmtNum(top)}등급` : '내 최고 등급';
+  el.ladGrid.innerHTML = ids.map(armTile).join('');
+}
+function ladGo(t) { ladView = clamp(Math.floor(t) || 1, 1, LAD_MAX); Sfx.init(); Sfx.select(); renderLadder(); }
 function equipArm(id) { if (!(armStars(id) > 0)) return; save.equip = id; armSel = id; persist(); Sfx.init(); Sfx.select(); renderArmory(); }
 function rollArm() {
   const R = drawRates(), free = !save.draws;
@@ -10921,18 +11125,21 @@ let drawTimers = [], lastDraw = null, pod = null;
 /* 캡슐 두드리기: 결과는 확률표대로 먼저 정하고, 두드릴 때마다 그 등급까지 색이 한 단계씩 올라요.
    세 번 두드리는 동안 색이 오르면 다시 세 번, 세 번 내내 그대로면 그 색으로 열려요. */
 const POD_SEQ = ['rare', 'epic', 'legend'], POD_TAPS = 3;
-function openDraw() {
+function openDraw(kind) {
   if (!el.drawModal.hidden && el.drawActs.classList.contains('wait')) return; // 캡슐이 열리는 중이면 다시 뽑지 않아요
-  const res = rollArm(); if (!res) return;
+  const lad = kind === 'lad', res = lad ? rollLadder() : rollArm(); if (!res) return;
   lastDraw = res; Sfx.init();
   if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
   drawTimers.forEach(clearTimeout); drawTimers = [];
-  el.drawPanel.className = 'panel narrow hx draw-panel'; podColor('#4fe3ff', 0);
-  el.drawLabel.textContent = 'SUPPLY POD'; el.drawLabel.className = 'label'; el.drawTitle.textContent = '보급 캡슐';
-  el.podBig.src = podArt('#4fe3ff', false); el.podItem.src = iconURL(res.id);
+  // 색 단계: 보급 캡슐은 하늘색 → 희귀 → 에픽 → 전설, 등급 캡슐은 바닥 등급 → +1 → +2 …
+  const seq = lad ? Array.from({ length: res.up + 1 }, (_, k) => ({ col: tierCol(res.from + k), label: `TIER ${res.from + k}`, gold: k >= 3, big: k >= 3 }))
+    : [{ col: '#4fe3ff', label: 'SUPPLY POD' }, ...POD_SEQ.slice(0, POD_SEQ.indexOf(ARM_INFO[res.id].r) + 1).map(rk => ({ col: RARITY[rk].col, label: RARITY[rk].en, gold: rk === 'legend', big: rk === 'legend' }))];
+  el.drawPanel.className = 'panel narrow hx draw-panel'; podColor(seq[0].col, 0);
+  el.drawLabel.textContent = seq[0].label; el.drawLabel.className = 'label'; el.drawTitle.textContent = lad ? '등급 캡슐' : '보급 캡슐';
+  el.podBig.src = podArt(seq[0].col, false); el.podItem.src = iconURL(res.id);
   el.podStage.className = 'pod-stage tapping'; el.drawActs.classList.add('wait');
-  pod = { res, lvl: -1, need: POD_SEQ.indexOf(ARM_INFO[res.id].r), left: POD_TAPS, n: 0, upAt: randi(1, POD_TAPS), done: false, auto: 0 };
-  el.drawRes.innerHTML = `<p class="tap-hint">캡슐을 <b>두드려요!</b> 색이 바뀌면 세 번 더</p><button class="tap-fast" id="tapFast" type="button">빨리 열기</button>`;
+  pod = { res, seq, lad, lvl: 0, need: seq.length - 1, left: POD_TAPS, n: 0, upAt: randi(1, POD_TAPS), done: false, auto: 0 };
+  el.drawRes.innerHTML = `<p class="tap-hint">캡슐을 <b>두드려요!</b> ${lad ? '색이 바뀔 때마다 한 등급 올라가고 세 번 더' : '색이 바뀌면 세 번 더'}</p><button class="tap-fast" id="tapFast" type="button">빨리 열기</button>`;
   renderPodTaps(false);
   el.drawModal.hidden = false; el.drawPanel.focus({ preventScroll: true }); Sfx.rattle();
   el.aCoins.textContent = fmtNum(save.coins); // 뒤의 무기고는 캡슐이 열린 뒤에 바꿔요(결과가 미리 보이지 않게)
@@ -10950,11 +11157,12 @@ function tapPod() {
   let up = false;
   if (pod.lvl < pod.need && pod.n >= pod.upAt) { // 색이 한 단계 올라요 → 다시 세 번
     up = true; pod.lvl++; pod.left = POD_TAPS; pod.n = 0; pod.upAt = randi(1, POD_TAPS);
-    const rk = POD_SEQ[pod.lvl], col = RARITY[rk].col;
-    el.podBig.src = podArt(col, false); podColor(col, pod.lvl + 1);
-    el.drawLabel.textContent = RARITY[rk].en; el.drawLabel.className = 'label' + (rk === 'legend' ? ' gold' : '');
+    const S = pod.seq[pod.lvl];
+    el.podBig.src = podArt(S.col, false); podColor(S.col, Math.min(3, pod.lvl));
+    el.drawLabel.textContent = S.label; el.drawLabel.className = 'label' + (S.gold ? ' gold' : '');
+    el.podPlus.textContent = pod.lad ? `+${pod.lvl}등급` : '+3';
     el.podStage.classList.remove('tap'); restartAnim(el.podStage, 'lvup');
-    if (rk === 'legend') Sfx.evo(); else Sfx.levelup();
+    if (S.big) Sfx.evo(); else Sfx.levelup();
   }
   if (!up && pod.left <= 0) { pod.done = true; renderPodTaps(false); revealPod(); return; }
   renderPodTaps(up);
@@ -10962,29 +11170,34 @@ function tapPod() {
 // 빨리 열기: 저절로 빠르게 두드려요
 function autoTapPod() { if (!pod || pod.done || pod.auto) return; pod.auto = 1; const step = () => { if (!pod || pod.done || el.drawModal.hidden) return; tapPod(); if (!pod.done) drawTimers.push(setTimeout(step, 170)); }; step(); }
 function revealPod() {
-  const res = pod.res, r = rarOf(res.id), d = WEAPONS[res.id], rk = ARM_INFO[res.id].r;
+  const res = pod.res, r = rarOf(res.id), d = WEAPONS[res.id], rk = ARM_INFO[res.id].r, P = res.lad ? LAD[res.id] : null;
+  const tier = P ? (res.up >= 3 ? 'legend' : res.up >= 1 ? 'epic' : 'rare') : rk; // 등급 캡슐은 많이 오를수록 화려하게 열려요
   el.drawRes.innerHTML = '';
   el.podStage.className = 'pod-stage shake2'; setRc(el.drawPanel, res.id); Sfx.rattle();
   // 흔들리다 열리며 무기가 솟아올라요
   drawTimers.push(setTimeout(() => {
     el.podBig.src = podArt(r.col, true); el.podStage.className = 'pod-stage open';
-    if (rk === 'legend') Sfx.evo(); else Sfx.chest();
-    if (rk !== 'rare') el.drawPanel.classList.add(rk === 'legend' ? 'gold' : 'epic');
-    el.drawLabel.textContent = r.en; el.drawLabel.className = 'label' + (rk === 'legend' ? ' gold' : '');
-    el.drawTitle.textContent = res.isNew ? '새 무기!' : res.stars >= STAR_MAX ? '최고 등급!' : '별이 올랐어요!';
-    el.drawRes.innerHTML = `<span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3>${starStr(res.stars)}
-      <p class="gain">${res.isNew ? 'NEW · 무기고에 들어왔어요' : `★${res.stars} · ${bonusTxt(res.stars)}`}</p><p class="d">${d.lv[0]}</p>`;
+    if (tier === 'legend') Sfx.evo(); else Sfx.chest();
+    if (tier !== 'rare') el.drawPanel.classList.add(tier === 'legend' ? 'gold' : 'epic');
+    el.drawLabel.textContent = r.en; el.drawLabel.className = 'label' + (tier === 'legend' ? ' gold' : '');
+    el.drawTitle.textContent = P && res.up > 0 ? `${res.up}등급 올랐어요!` : res.isNew ? '새 무기!' : res.stars >= STAR_MAX ? '★5 완성!' : '별이 올랐어요!';
+    const gain = res.isNew ? 'NEW · 무기고에 들어왔어요' : `★${res.stars} · ${bonusTxt(res.stars)}`;
+    el.drawRes.innerHTML = P ? `<span class="rar">${r.name} · ${ladGroup(P.t)}</span><h3>${d.name}</h3>${starStr(res.stars)}
+      <p class="gain">${gain}${res.up > 0 ? ` · 이제 ${fmtNum(P.t)}등급부터 나와요` : ''}</p><p class="d">위력 ×${fmtPow(P.shown)}${P.afx ? ` · ${P.afx.name} ${P.afx.d(P.v, P.t)}` : ''}</p><p class="d">${d.lv[0]}</p>`
+      : `<span class="rar">${r.name} · ${r.en}</span><h3>${d.name}</h3>${starStr(res.stars)}
+      <p class="gain">${gain}</p><p class="d">${d.lv[0]}</p>`;
+    if (P) ladView = P.t; // 무기고 아래 등급 칸도 나온 등급으로 넘겨 둬요
     renderDrawActs(); el.drawActs.classList.remove('wait'); renderArmory();
     el.drawOk.focus({ preventScroll: true }); el.drawActs.scrollIntoView({ block: 'nearest' });
   }, 650));
 }
 function renderDrawActs() {
-  const eq = save.equip === lastDraw.id, can = drawPool().length && save.coins >= DRAW_COST;
+  const lad = lastDraw.lad, eq = save.equip === lastDraw.id, cost = lad ? LAD_COST : DRAW_COST, left = lad ? !ladDone() : drawPool().length > 0, can = left && save.coins >= cost;
   el.drawEquip.disabled = eq; el.drawEquip.textContent = eq ? '장착 중' : '장착하기';
-  el.drawAgain.disabled = !can; el.drawAgain.innerHTML = drawPool().length ? `한 번 더 열기 <span class="coin-dot"></span>${fmtNum(DRAW_COST)}` : '모두 모았어요';
+  el.drawAgain.disabled = !can; el.drawAgain.innerHTML = left ? `한 번 더 열기 <span class="coin-dot"></span>${fmtNum(cost)}` : '모두 모았어요';
 }
 function closeDraw() { drawTimers.forEach(clearTimeout); drawTimers = []; pod = null; el.drawModal.hidden = true; renderArmory(); }
-function showArmory() { cancelLobbyFx(); armSel = save.equip; el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
+function showArmory() { cancelLobbyFx(); armSel = save.equip; ladView = isProc(save.equip) ? procT(save.equip) : ladFloor(); el.menu.hidden = true; el.shop.hidden = true; el.armory.hidden = false; renderArmory(); el.armory.scrollTop = 0; }
 function syncToggles() { document.querySelectorAll('.toggle[data-set]').forEach(t => t.setAttribute('aria-checked', String(!!save.set[t.dataset.set]))); }
 
 function showMenu() {
@@ -11271,7 +11484,12 @@ el.armShow.addEventListener('click', e => { const b = e.target.closest('[data-eq
 el.drawBtn.addEventListener('click', () => { if (el.drawModal.hidden) openDraw(); });
 el.drawEquip.addEventListener('click', () => { if (lastDraw) { equipArm(lastDraw.id); renderDrawActs(); } });
 el.drawOk.addEventListener('click', closeDraw);
-el.drawAgain.addEventListener('click', openDraw);
+el.drawAgain.addEventListener('click', () => openDraw(lastDraw && lastDraw.lad ? 'lad' : 'pod'));
+el.ladBtn.addEventListener('click', () => { if (el.drawModal.hidden) openDraw('lad'); });
+el.ladGrid.addEventListener('click', e => { const b = e.target.closest('.arm'); if (!b) return; armSel = b.dataset.id; Sfx.init(); Sfx.select(); renderArmory(); el.armShow.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' }); });
+el.ladNav.addEventListener('click', e => { const b = e.target.closest('[data-lj]'); if (b && !b.disabled) ladGo(ladView + +b.dataset.lj); });
+el.ladJump.addEventListener('submit', e => { e.preventDefault(); const v = Math.floor(+el.ladIn.value); if (v >= 1) { ladGo(v); el.ladIn.value = ''; } });
+el.ladMine.addEventListener('click', () => { const t = ladTop(); if (t) ladGo(t); });
 el.podStage.addEventListener('pointerdown', e => { if (pod && !pod.done) { e.preventDefault(); tapPod(); } });
 el.drawRes.addEventListener('click', e => { if (e.target.closest('#tapFast')) autoTapPod(); });
 el.ups.addEventListener('click', e => {
@@ -11293,6 +11511,14 @@ document.querySelectorAll('.toggle[data-set]').forEach(t => t.addEventListener('
   if (k === 'sfx') Sfx.setSfx(save.set.sfx);
   if (k === 'music') { Sfx.setMusic(save.set.music); if (!save.set.music) Sfx.musicStop(); else if (run && state === 'play') Sfx.musicStart(); }
 }));
+// 도감의 초월 등급 요약: 8만 종을 다 늘어놓지 않고, 모은 수와 가진 것 중 높은 등급 몇 개만 보여 줘요
+function codexLadder() {
+  const mine = Object.keys(save.arms).filter(isProc).sort((a, b) => procT(b) - procT(a) || procI(a) - procI(b)), top = ladTop();
+  const show = mine.slice(0, 6).map(id => { const P = ladEnsure(id), d = WEAPONS[id]; return `<div class="codex-item"><div class="build-item"><img src="${iconURL(id)}" alt=""><div><b>${d.name} <em class="rar sm" style="--rc:${P.col}">${fmtNum(P.t)}등급</em></b><span style="white-space:normal">바탕 ${WEAPONS[P.arch].name} · 위력 ×${fmtPow(P.shown)}${P.afx ? ` · ${P.afx.name}` : ''} · 각성 ${d.evoName}</span></div></div></div>`; }).join('');
+  return `<h3>초월 등급 <small class="muted">${fmtNum(mine.length)}/${fmtNum(LAD_MAX * LAD_N)} · ${top ? `최고 ${fmtNum(top)}등급` : '아직 없어요'}</small></h3>
+      <p>전설 위에 등급이 ${fmtNum(LAD_MAX)}단계 있고, 등급마다 무기가 ${LAD_N}종이에요. 무기고의 <b>등급 캡슐</b>에서 얻고, 무기고 아래에서 모든 등급을 넘겨 볼 수 있어요. 바탕이 되는 주무기의 동작과 각성을 그대로 물려받고, 등급이 높을수록 피해가 커져요.</p>
+      ${show ? `<div class="evo-table">${show}</div>` : ''}${mine.length > 6 ? `<p class="muted">… 그 밖에 ${fmtNum(mine.length - 6)}종</p>` : ''}`;
+}
 function openHelp(kind) {
   if (kind === 'codex') {
     el.helpTitle.textContent = '도감'; el.helpLabel.textContent = 'CODEX';
@@ -11301,6 +11527,7 @@ function openHelp(kind) {
     el.helpBody.innerHTML = `<p><b>주무기</b>는 한 판에 하나만 들고 나가요. 무기고의 보급 캡슐에서 얻고, 장착한 무기만 레벨 업 때 나와요. <b>스킬</b>은 레벨 업과 보물 상자에서 골라 ${MAX_SLOTS - 1}칸까지 가질 수 있어요. 보조 장비는 ${MAX_SLOTS}칸이에요.</p>
       <p>무기나 스킬을 Lv ${MAX_LV}까지 올리고 짝이 되는 보조 장비를 갖고 있으면, 다음 레벨 업이나 보물 상자에서 <b>각성</b>해요.</p>
       <h3>주무기 <small class="muted">${ARMS.filter(armStars).length}/${ARMS.length}</small></h3><div class="evo-table">${[...ARMS].sort((a, b) => TIER_ORDER.indexOf(ARM_INFO[a].r) - TIER_ORDER.indexOf(ARM_INFO[b].r)).map(id => entry(id, ` <em class="rar sm" style="--rc:${rarOf(id).col}">${rarOf(id).name}</em>${armStars(id) ? '' : ' <em class="muted">· 아직 없어요</em>'}`)).join('')}</div>
+      ${codexLadder()}
       <h3>스킬 <small class="muted">${SKILLS.length}가지</small></h3><div class="evo-table">${SKILLS.map(id => entry(id)).join('')}</div>
       <h3>보조 장비</h3><div class="help-items">${P_IDS.map(id => `<div><img src="${iconURL(id)}" alt=""><span><b style="color:var(--text)">${PASSIVES[id].name}</b><br>${PASSIVES[id].info}</span></div>`).join('')}</div>`;
   } else {
@@ -11349,6 +11576,7 @@ addEventListener('keydown', e => {
   if (state === 'play' && ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) e.preventDefault();
   keys.add(e.code);
   if (e.repeat) return;
+  if (e.target instanceof HTMLInputElement && e.code !== 'Escape') return; // 등급 번호를 칠 때는 단축키를 쓰지 않아요
   if (!el.drawModal.hidden && pod && !pod.done && (e.code === 'Space' || e.code === 'Enter' || e.code === 'NumpadEnter')) { e.preventDefault(); tapPod(); return; } // 캡슐 두드리기
   if (e.code === 'Escape' || e.code === 'KeyP') {
     if (state === 'play') pauseGame(); else if (state === 'pause') resumeFromPause();
@@ -11401,7 +11629,7 @@ window.__shadowRaid = {
   get run() { return run; }, get state() { return state; }, get enemies() { return enemies; }, get pickups() { return pickups; }, get eshots() { return eshots; }, get hazards() { return hazards; }, player,
   setTimeScale(v) { timeScale = v; }, setMove(x, y) { botMove = x === null ? null : { x, y }; }, pick: i => { cardLock = 0; pickChoice(i); },
   fastForward(sec, tick) { const n = Math.round(sec * 60); for (let i = 0; i < n && state !== 'result'; i++) { if (tick) tick(); if (state === 'play') { update(1 / 60); if (run) hudUpdate(); } } },
-  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), bossFight: kind => spawnBoss(kind), BOSS, perf,
+  chestOk: () => el.chestOk.click(), start: () => startRun(), save: () => save, draw: () => openDraw(), drawLad: () => openDraw('lad'), lad: { ensure: ladEnsure, LAD, roll: rollLadder, tier: ladTier, top: ladTop, open: ladOpen, arch: LAD_ARCH, pow: tierPow, col: tierCol, go: ladGo, get view() { return ladView; }, iconCache: () => iconCache.size }, armory: () => showArmory(), spawn: (type, x, y) => spawnEnemy(type, x, y), bossFight: kind => spawnBoss(kind), BOSS, perf,
   give(id, evo = true) { let w = hasW(id); if (!w) { addWeapon(id); w = hasW(id); } w.lv = MAX_LV; const pid = WEAPONS[id].pair; if (!run.pass[pid]) { run.pass[pid] = 1; run.passOrder.push(pid); recalc(); } if (evo && !w.evo) awakenWeapon(w); run.buildVer++; return w; },
   ENEMIES, sprites: si => spritesFor(si), deathPose,
   get aw() { return run && run.aw; }, AWK, ARMS, SKILLS, WEAPONS, get shots() { return shots; }, get fx() { return fx; }, get parts() { return parts; }, menu: () => ({ critters, hero: menuHero, edge: menuEdge, spotOk, toScr, shots: menuShots }), kill: en => killEnemy(en), hit: (en, d) => dealDamage(en, d, null, 1, 0, 120),
